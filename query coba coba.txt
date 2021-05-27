@@ -1,0 +1,1 @@
+CREATE (newUser:User {name : 'Rhio Adjie Fabian', email: 'rhio.adjie.tif18@polban.ac.id', address: 'Cimahi', number: '081317401484', program_studi: 'D3 - Teknik Informatika', angkatan: '2018', avatar: 'rhio.png'}) RETURN newUser.name

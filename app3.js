@@ -1,19 +1,23 @@
 // Configure environment
 // Lib
-const express = require("express");
+const express = require('express');
 const app = express();
 const port = 3000;
-const sparqlCon = require("@comunica/actor-init-sparql").newEngine;
+const sparqlCon = require('@comunica/actor-init-sparql').newEngine;
 const myEngine = sparqlCon();
-const bodyParser = require("body-parser");
+const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded());
 app.use(bodyParser.json());
+
 // Database
 const neo4j = require('neo4j-driver');
-const user = "neo4j";
-const password = "fakboi3";
-const uri = "bolt://localhost:7687";
+const user = 'neo4j';
+const password = 'fakboi3';
+const uri = 'bolt://localhost:7687';
 const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
+
+const USER = require('./model/User');
+const io = new USER('Rhio', 'rhio.adjie.tif18@polban.ac.id', 'Cimahi', '081317401484', 'D3 - Teknik Informatika', '2018');
 
 // Ontology Builder
 app.post("/", async (req, res) => {
