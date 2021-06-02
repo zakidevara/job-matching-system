@@ -1,6 +1,6 @@
 const Model = require("./Model");
 
-class JobType extends Model {
+class WorkExperienceType extends Model{
     #name;
 
     constructor(name){
@@ -13,7 +13,6 @@ class JobType extends Model {
     getName(){
         return this.#name;
     }
-
 }
 
-module.exports = JobType;
+module.exports = WorkExperienceType;

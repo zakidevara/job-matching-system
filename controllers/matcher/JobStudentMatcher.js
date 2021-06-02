@@ -1,33 +1,26 @@
-const JobController = require('../resources/JobController');
-const UserController = require('../resources/UserController');
-const SkillController = require('../resources/SkillController');
 const JobModel = require('../../model/Job');
 const UserModel = require('../../model/User');
-const userDb = 'neo4j';
-const passwordDb = 'fakboi3';
-const uri = 'bolt://localhost:7687';
-const driver = neo4j.driver(uri, neo4j.auth.basic(userDb, passwordDb)); 
+const Skill = require('../../model/Skill');
 
 class JobStudentMatcher {
     
-    async match(job, user){
-        if(job != JobModel || user != UserModel){
-            return -1;
-        }
+    static async match(job, user){
         let resultMatcher = 0;
-        for(i=0; i < user.skills.length; i++){
+        let userSkills = await user.getSkills();
+        let jobRequiredSkills = await job.getRequiredSkills();
+        for(let i=0; i < userSkills.length; i++){
             let maxSkillSimilarity = 0;
             let currSkillSimilarity = 0;
-            for(j=0; j < job.requiredSkills.length; j++){
-                let skillObj = new SkillController();
-                currSkillSimilarity = await skillObj.calculateSimilarity(user.skills[i], job.requiredSkills[j]);
+            for(let j=0; j < jobRequiredSkills.length; j++){
+                let objSkill = new Skill('', '');
+                currSkillSimilarity = await objSkill.calculateSimilarity(userSkills[i].getName(), jobRequiredSkills[j].getName());
                 if(currSkillSimilarity > maxSkillSimilarity){
                     maxSkillSimilarity = currSkillSimilarity;
                 }
             }
             resultMatcher += maxSkillSimilarity;
         }
-        resultMatcher /= user.skills.length;
+        resultMatcher /= userSkills.length;
         return resultMatcher;
     }
 }

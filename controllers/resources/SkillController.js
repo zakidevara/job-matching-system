@@ -20,12 +20,6 @@ class SkillController extends ResourceController {
         await session.close();
         return result.records;
     }
-
-    async calculateSimilarity(firstSkill, secondSkill){
-        let objSKill = new SkillModel();
-        let result = await objSKill.skillSimilarity(firstSkill, secondSkill);
-        return result;
-    }
 }
 
 module.exports = SkillController;
