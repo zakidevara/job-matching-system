@@ -1,36 +1,32 @@
 // Configure environment
 // Lib
 const express = require('express');
-const app = express();
-const port = 3000;
+// const app = express();
+// const port = 3000;
 const sparqlCon = require('@comunica/actor-init-sparql').newEngine;
 const myEngine = sparqlCon();
-const bodyParser = require('body-parser');
-app.use(bodyParser.urlencoded());
-app.use(bodyParser.json());
+// const bodyParser = require('body-parser');
+// app.use(bodyParser.urlencoded());
+// app.use(bodyParser.json());
 
 // Database
 const neo4j = require('neo4j-driver');
 const user = 'neo4j';
-const password = 'fakboi3';
+const password = 'seminar';
 const uri = 'bolt://localhost:7687';
 const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
 
-const USER = require('./model/User');
-const io = new USER('Rhio', 'rhio.adjie.tif18@polban.ac.id', 'Cimahi', '081317401484', 'D3 - Teknik Informatika', '2018');
-
 // Ontology Builder
-app.post("/", async (req, res) => {
+async function buildOntology(qConcept){
     var subConceptChecked = [];
     var processQueue = [];
-    processQueue = [req.body.qConcept];
+    processQueue = [qConcept];
     let validateConcept = true;
     let i = 0;
     // Enter loop
     while(processQueue.length > 0){
         i++;
         // Pop first element of array
-        //console.log(processQueue);
         let concept = processQueue.shift();
         validateConcept = false;
 
@@ -49,7 +45,6 @@ app.post("/", async (req, res) => {
             const resultResource = async (concept) => {
                 try{
                     var queryResource = await myEngine.query(`
-                        PREFIX dbc: <http://dbpedia.org/resource/Category:>
                         PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
                         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
                         PREFIX dct: <http://purl.org/dc/terms/>
@@ -122,7 +117,6 @@ app.post("/", async (req, res) => {
                 try{
                     var querySubConcept = await myEngine.query(`
                         PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-                        PREFIX dbc: <http://dbpedia.org/resource/Category:>
                         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
                         CONSTRUCT {
                             ?sub_concepts skos:broader ?broader .
@@ -240,145 +234,18 @@ app.post("/", async (req, res) => {
         console.log('Array is clear');
     }
     console.log('Total iterasi:', i);
-
-    // Set label for root node
     let session = driver.session();
-    let setLabelForRootNode = session.writeTransaction(async txc => {
-        var result = await txc.run("MATCH (n:Resource {uri: 'http://dbpedia.org/resource/Category:Software_engineering'}) SET n.label = 'Software engineering' RETURN n");
-        return result;
-    });
-    setLabelForRootNode.then(result => {
-        //console.log('result set label: ', result);
-        if(result.records.length > 0){
-            res.send({message: "success"});
-        } else {
-            res.send({message: "failed"});
-        }
-    }).catch(error => {
-        console.log('error set label: ', error);
-    }).then(() => {
-        session.close();
-    });
-});
-
-// Skill Similarity
-app.post("/skill-similarity", async (req, res) => {
-    // Get required skills
-    let firstSkill = req.body.fs;
-    let secondSkill = req.body.ss;
-
-    // Fill up all parents from each skill
-    let dataOfParentsFS = await getParentofNode(firstSkill);
-    let listOfParentsFS = dataOfParentsFS.records;
-    let dataOfParentsSS = await getParentofNode(secondSkill);
-    let listOfParentsSS = dataOfParentsSS.records;
-
-    // Get only label from every node in array
-    let listOfObjFS = [];
-    listOfParentsFS.forEach((item, index) => {
-        let obj = {};
-        obj['label'] = item.get('result').properties.label;
-        obj['uri'] = item.get('result').properties.uri;
-        listOfObjFS.push(obj);
-    });
-    let listOfObjSS = [];
-    listOfParentsSS.forEach((item, index) => {
-        let obj = {};
-        obj['label'] = item.get('result').properties.label;
-        obj['uri'] = item.get('result').properties.uri;
-        listOfObjSS.push(obj);
-    });
-
-    // Remove duplicates
-    let fsObject = listOfObjFS.map(JSON.stringify);
-    let uniqueFSSet = new Set(fsObject);
-    let finalFsList = Array.from(uniqueFSSet).map(JSON.parse);
-
-    let ssObject = listOfObjSS.map(JSON.stringify);
-    let uniqueSSSet = new Set(ssObject);
-    let finalSsList = Array.from(uniqueSSSet).map(JSON.parse);
-
-    console.log('total parent of first skill : ',finalFsList.length);
-    console.log('total parent of second skill : ', finalSsList.length);
-    
-    // Get the difference and intersection (Sanchez)
-    let totDifFS = getTotalOfDifferenceSkill(finalFsList, finalSsList);     // notasi --> listOfParentsFS \ listOfParentsSS
-    let totDifSS = getTotalOfDifferenceSkill(finalSsList, finalFsList);     // notasi --> listOfParentsSS \ listOfParentsFS
-    let intersection = getIntersection(finalFsList, finalSsList);           // notasi --> listOfParentsFS n listOfParentsSS
-
-    console.log(totDifFS);
-    console.log(totDifSS);
-    console.log(intersection);
-    console.log('pembagi: ', totDifFS+totDifSS+intersection);
-    console.log('pembilang: ', totDifFS+totDifSS);
-    console.log('hasil bagi: ', 1 + ((totDifFS+totDifSS)/(totDifFS+totDifSS+intersection)));
-
-    let disimilarity = Math.log(1 + ((totDifFS+totDifSS)/(totDifFS+totDifSS+intersection))) / Math.log(2);
-    let similarity = 1 - disimilarity;
-    res.send({
-        message: 'halo',
-        similarity: similarity,
-        disimilarity: disimilarity
-    });
-
-    // Get the difference and intersection (Rodriguez)
-    // let totDifFS = getTotalOfDifferenceSkill(finalFsList, finalSsList);     // notasi --> listOfParentsFS \ listOfParentsSS
-    // let totDifSS = getTotalOfDifferenceSkill(finalSsList, finalFsList);     // notasi --> listOfParentsSS \ listOfParentsFS
-    // let intersection = getIntersection(finalFsList, finalSsList);           // notasi --> listOfParentsFS n listOfParentsSS
-    // let gamma = getGamma(finalFsList, finalSsList);
-
-    // console.log(totDifFS);
-    // console.log(totDifSS);
-    // console.log(intersection);
-    // console.log(gamma);
-
-    // let similarity = Math.log(1 + (intersection/(intersection+gamma*totDifFS+(1-gamma)*totDifSS))) / Math.log(2);
-    // res.send({
-    //     message: 'halo',
-    //     similarity: similarity
-    // });
-});
-
-async function getParentofNode(skillName){
-    let replacedSkillName = skillName.replace(/\s/g,"_");
-    console.log('replaced skillname: ', replacedSkillName);
-    let session = driver.session();
-    let listParents =  await session.run(
-        'MATCH (:Resource {label: $skillName})-[:SUBJECT*0..1]->(:Resource)-[:BROADER*0..1]->(result:Resource) Return result',
-        {
-            skillName: skillName
-        }
-    );
-    await session.close();
-    return listParents;
-}
-
-function getTotalOfDifferenceSkill(firstArr, secondArr){
-    var result = [];
-    result = firstArr.filter((elements) => {
-        return !secondArr.some(item => (item.label === elements.label) && (item.uri === elements.uri));
-    });
-    return result.length;
-}
-
-function getIntersection(firstArr, secondArr){
-    var result = [];
-    result = firstArr.filter((elements) => {
-        return secondArr.some(item => (item.label === elements.label) && (item.uri === elements.uri));
-    });
-    return result.length;
-}
-
-function getGamma(firstArr, secondArr) {
-    var result = 0;
-    if(firstArr.length >= secondArr.length){
-        result = secondArr.length / (firstArr.length + secondArr.length);
+    let resultSetLabel = await session.run(`MATCH (n:Resource {uri: 'http://dbpedia.org/resource/Category:${qConcept}'}) SET n.name = '${qConcept}' RETURN n`);
+    if(resultSetLabel.records.length > 0){
+        return 'Success';
     } else {
-        result = firstArr.length / (firstArr.length + secondArr.length);
+        return 'Failed';
     }
-    return result;
 }
 
-app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`);
-});
+async function main(){
+    let result = await buildOntology('HTML');
+    console.log('result: ', result);
+}
+
+main();

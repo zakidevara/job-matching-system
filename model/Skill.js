@@ -124,6 +124,23 @@ class Skill extends Model {
         let disimilarity = Math.log(1 + ((totDifFS+totDifSS)/(totDifFS+totDifSS+intersection))) / Math.log(2);
         let similarity = 1 - disimilarity;
         return similarity;
+
+        // Get the difference and intersection (Rodriguez)
+        // let totDifFS = getTotalOfDifferenceSkill(finalFsList, finalSsList);     // notasi --> listOfParentsFS \ listOfParentsSS
+        // let totDifSS = getTotalOfDifferenceSkill(finalSsList, finalFsList);     // notasi --> listOfParentsSS \ listOfParentsFS
+        // let intersection = getIntersection(finalFsList, finalSsList);           // notasi --> listOfParentsFS n listOfParentsSS
+        // let gamma = getGamma(finalFsList, finalSsList);
+
+        // console.log(totDifFS);
+        // console.log(totDifSS);
+        // console.log(intersection);
+        // console.log(gamma);
+
+        // let similarity = Math.log(1 + (intersection/(intersection+gamma*totDifFS+(1-gamma)*totDifSS))) / Math.log(2);
+        // res.send({
+        //     message: 'halo',
+        //     similarity: similarity
+        // });
     }
 }
 
