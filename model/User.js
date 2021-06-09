@@ -17,12 +17,11 @@ class User extends Model {
     #phoneNumber;
     #programStudi;
     #angkatan;
-    #skills;
     #createdAt;
     #updatedAt;
     #photo;
 
-    constructor(userID, name, email, address, number, programStudi, angkatan, skill, photo, createdAt, updatedAt){
+    constructor(userID, name, email, address, number, programStudi, angkatan, photo, createdAt, updatedAt){
         super(userID); 
         this.#name = name;
         this.#email = email;
@@ -30,7 +29,6 @@ class User extends Model {
         this.#phoneNumber = number;
         this.#programStudi = programStudi
         this.#angkatan = angkatan;
-        this.#skills = skill;
         this.#photo = photo;
         this.#createdAt = createdAt;
         this.#updatedAt = updatedAt;
@@ -110,7 +108,6 @@ class User extends Model {
     getPhoto(){
         return this.#photo;
     }
-
     toObject(){
         let userSkills = [];
         this.#skills.forEach((item, index) => {
@@ -133,13 +130,28 @@ class User extends Model {
         return objResult;
     }
 
+    // Database Related
+
+    async all(){
+        let session = driver.session();
+        let query = `MATCH (res:User) RETURN res`;
+        let resultListUsers = await session.run(query);
+        let listUsers = [];
+        resultListUsers.records.forEach((item, index) => {
+            let value = item.get('res').properties;
+            let objUser = new User(value.userID, value.name, value.email, value.address, value.phoneNumber, value.programStudi, value.angkatan, value.photo, null, null);
+            listUsers.push(objUser);
+        });
+        return listUsers;
+    }
+
     static async find(userID){
         let session = driver.session();
         let query = `MATCH (res:User {userID: ${userID}}) RETURN res`;
         let resultUserData = await session.run(query);
         if(resultUserData.records.length > 0){
             let value = resultUserData.records[0].get('res').properties;
-            let objUser = new User(value.userID, value.name, value.email, value.address, value.phoneNumber, value.programStudi, value.angkatan, [], value.photo, null, null);
+            let objUser = new User(value.userID, value.name, value.email, value.address, value.phoneNumber, value.programStudi, value.angkatan, value.photo, null, null);
             await session.close();
             return objUser;
         } else{
