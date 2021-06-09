@@ -12,9 +12,9 @@ class Skill extends Model {
     #name;
     #uri;
 
-    constructor(label = '', uri = ''){
-        super('102');
-        this.#name = label;
+    constructor(skillID, name = '', uri = ''){
+        super(skillID);
+        this.#name = name;
         this.#uri = uri;
     }
 
@@ -32,6 +32,22 @@ class Skill extends Model {
             uri: this.#uri
         };
         return objResult;
+    }
+
+    static async find(skillID){
+        let session = driver.session();
+        let query = `MATCH (res:Skill) WHERE ID(res) = ${skillID} RETURN res`;
+        let resultSkill = await session.run(query);
+        if(resultSkill.records.length > 0){
+            let value = resultSkill.records[0].get('res');
+            let properties = value.properties;
+            let skillData = new Skill(value.identity, properties.name, properties.uri);
+            await session.close();
+            return skillData;
+        } else {
+            await session.close();
+            return null;
+        }
     }
 
     async getParentofNode(skillName){

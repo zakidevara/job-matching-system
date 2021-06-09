@@ -116,6 +116,7 @@ class User extends Model {
         });
 
         let objResult = {
+            id: super.getID(),
             name: this.#name,
             email: this.#email,
             address: this.#address,
@@ -132,45 +133,49 @@ class User extends Model {
 
     // Database Related
 
-    async all(){
+    static async all(){
         let session = driver.session();
         let query = `MATCH (res:User) RETURN res`;
         let resultListUsers = await session.run(query);
-        let listUsers = [];
+        let tempList = [];
         resultListUsers.records.forEach((item, index) => {
-            let value = item.get('res').properties;
-            let objUser = new User(value.userID, value.name, value.email, value.address, value.phoneNumber, value.programStudi, value.angkatan, value.photo, null, null);
-            listUsers.push(objUser);
+            let value = item.get('res');
+            let properties = value.properties;
+            let objUser = new User(value.identity, properties.name, properties.email, properties.address, properties.phoneNumber, properties.programStudi, properties.angkatan, properties.photo, null, null);
+            tempList.push(objUser);
         });
+
+        let listUsers = [];
+        tempList.forEach((item, index) => {
+            let obj = item.toObject();
+            listUsers.push(obj);
+        });
+        await session.close();
         return listUsers;
     }
 
     static async find(userID){
         let session = driver.session();
-        let query = `MATCH (res:User {userID: ${userID}}) RETURN res`;
+        let query = `MATCH (res:User) WHERE ID(res) = ${userID} RETURN res`;
         let resultUserData = await session.run(query);
         if(resultUserData.records.length > 0){
-            let value = resultUserData.records[0].get('res').properties;
-            let objUser = new User(value.userID, value.name, value.email, value.address, value.phoneNumber, value.programStudi, value.angkatan, value.photo, null, null);
+            let value = resultUserData.records[0].get('res');
+            let properties = value.properties;
+            let userData = new User(value.identity, properties.name, properties.email, properties.address, properties.phoneNumber, properties.programStudi, properties.angkatan, properties.photo, null, null);
             await session.close();
-            return objUser;
+            return userData;
         } else{
             await session.close();
             return null;
         }
     }
 
-    static async getUserSkills(userID){
-        let session = driver.session();
-        let query = `MATCH (n:User {userID: ${userID}})-[:SKILLED_IN]-(res:Skill) RETURN res`;
-        let resultUserSkills = await session.run(query);
-        let listSkill = [];
-        resultUserSkills.records.forEach((item, index) => {
-            let value = item.get('res').properties;
-            let skillObj = new Skill(value.label, value.uri);
-            listSkill.push(skillObj);
+    async addSkill(skillList){
+        let objSkillList = [];
+        skillList.forEach((item, index) => {
+            let objSKill = await Skill.find(item);
+            objSkillList.push(objSKill); 
         });
-        return listSkill;
     }
 
     // Additional profile data
