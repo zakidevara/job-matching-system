@@ -179,7 +179,7 @@ async function buildOntology(qConcept){
             // #3 async
             const updateProcessQueue = async _ => {
                 let session = driver.session();
-                let getCurrentSubConcept = await session.run("MATCH (n:Resource)-[:BROADER]->(:Resource {uri: $rsc}) RETURN n", {rsc : `http://dbpedia.org/resource/Category:${concept}`});
+                let getCurrentSubConcept = await session.run("MATCH (n:Resource)-[:skos__broader]->(:Resource {uri: $rsc}) RETURN n", {rsc : `http://dbpedia.org/resource/Category:${concept}`});
                 let records = getCurrentSubConcept.records;
                 let extractedValue = [];
 
@@ -235,7 +235,7 @@ async function buildOntology(qConcept){
     }
     console.log('Total iterasi:', i);
     let session = driver.session();
-    let resultSetLabel = await session.run(`MATCH (n:Resource {uri: 'http://dbpedia.org/resource/Category:${qConcept}'}) SET n.name = '${qConcept}' RETURN n`);
+    let resultSetLabel = await session.run(`MATCH (n:Resource {uri: 'http://dbpedia.org/resource/Category:${qConcept}'}) SET n.label = '${qConcept}' RETURN n`);
     if(resultSetLabel.records.length > 0){
         return 'Success';
     } else {

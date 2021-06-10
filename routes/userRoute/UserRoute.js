@@ -1,30 +1,75 @@
 const express = require('express');
-const JobController = require('../../controllers/resources/JobController');
 const router = express.Router();
 
 // Import controller
-const skillController = require('../../controllers/resources/SkillController');
 const UserController = require('../../controllers/resources/UserController');
+const JobController = require('../../controllers/resources/JobController');
 
 // User route
-// router.post('/add-new-skill', function(req, res) {
-//     let uC = new userController('User');
-//     let skill = req.body.skill;
-//     let userID = req.body.userID;
-//     uC.addSkill(skill, userID);
-// });
-
 // Get all user
 router.get('/user', async function(req, res) {
-    let userList = await UserController.all();
+    let uC = new UserController('User');
+    let userList = await uC.all();
     res.send({ userList });
 });
 
 // Get user by ID
 router.get('/user/:userID', async function(req, res) {
     let userID = req.params.userID;
-    let user = await UserController.findByID(userID);
+    let uC = new UserController('User');
+    let user = await uC.findByID(userID);
     res.send({ user });
+});
+
+// Update user data
+router.put('/user/:userID', async function(req, res) {
+    let userID = req.params.userID;
+    let userData = req.body;
+    let uC = new UserController('User');
+    let result = await uC.updateData(userID, userData);
+    if(result === null) {
+        res.send({
+            status: false,
+            message: 'Gagal update'
+        });
+    } else {
+        res.send({
+            status: true,
+            user: result,
+            message: 'Berhasil update'
+        });
+    }
+});
+
+// Add new skill
+router.post('/user/:userID/addSkill', async function(req, res) {
+    let userID = req.params.userID;
+    let skillList = req.body;
+    let uC = new UserController('User');
+    let result = await uC.addSkill(userID, skillList);
+    if(result === null){
+        res.send({
+            status: false,
+            message: 'Gagal menambahkan skill'
+        });
+    } else {
+        res.send({
+            status: true,
+            skill: result.success,
+            failedToAdd: result.failed
+        });
+    }
+});
+
+router.post('/user/:userID/removeSkill', async function(req, res) {
+    let userID = req.params.userID;
+    let skillID = req.body.skillID;
+    let uC = new UserController('User');
+    let result = uC.removeSkill(userID, skillID);
+
+    res.send({
+        status: result
+    });
 });
 
 router.get('/applicant-recommendation', async function(req, res){

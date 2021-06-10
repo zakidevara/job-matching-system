@@ -12,7 +12,7 @@ app.use(bodyParser.json());
 // Database
 const neo4j = require('neo4j-driver');
 const user = 'neo4j';
-const password = 'fakboi3';
+const password = 'seminar';
 const uri = 'bolt://localhost:7687';
 const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
 
@@ -179,7 +179,7 @@ app.post("/build-ontology", async (req, res) => {
             // #3 async
             const updateProcessQueue = async _ => {
                 let session = driver.session();
-                let getCurrentSubConcept = await session.run("MATCH (n:Resource)-[:BROADER]->(:Resource {uri: $rsc}) RETURN n", {rsc : `http://dbpedia.org/resource/Category:${concept}`});
+                let getCurrentSubConcept = await session.run("MATCH (n:Resource)-[:skos__broader]->(:Resource {uri: $rsc}) RETURN n", {rsc : `http://dbpedia.org/resource/Category:${concept}`});
                 let records = getCurrentSubConcept.records;
                 let extractedValue = [];
 

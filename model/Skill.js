@@ -28,6 +28,7 @@ class Skill extends Model {
 
     toObject(){
         let objResult = {
+            id: super.getID(),
             name: this.#name,
             uri: this.#uri
         };

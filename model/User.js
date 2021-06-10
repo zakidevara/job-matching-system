@@ -13,25 +13,25 @@ class User extends Model {
     // Property of user (private)
     #name;
     #email;
-    #address;
-    #phoneNumber;
-    #programStudi;
-    #angkatan;
-    #createdAt;
-    #updatedAt;
+    #password;
+    #birthDate;
+    #gender;
+    #religion;
+    #degree;
+    #classYear;
     #photo;
 
-    constructor(userID, name, email, address, number, programStudi, angkatan, photo, createdAt, updatedAt){
+    constructor(userID, name, email, password, birthDate, gender, religion, degree, classYear, photo){
         super(userID); 
         this.#name = name;
         this.#email = email;
-        this.#address = address;
-        this.#phoneNumber = number;
-        this.#programStudi = programStudi
-        this.#angkatan = angkatan;
+        this.#password = password;
+        this.#birthDate = birthDate;
+        this.#gender = gender;
+        this.#religion = religion;
+        this.#degree = degree;
+        this.#classYear = classYear;
         this.#photo = photo;
-        this.#createdAt = createdAt;
-        this.#updatedAt = updatedAt;
     }
 
     // Setter
@@ -41,23 +41,23 @@ class User extends Model {
     setEmail(newEmail){
         this.#email = newEmail;
     }
-    setAddress(newAddress){
-        this.#address = newAddress;
+    setPassword(newPass){
+        this.#password = newPass;
     }
-    setNumber(newNumber){
-        this.#phoneNumber = newNumber;
+    setBirthDate(newDate){
+        this.#birthDate = newDate;
     }
-    setProgramStudi(newProgramStudi){
-        this.#programStudi = newProgramStudi;
+    setGender(newGender){
+        this.#gender = newGender;
     }
-    setAngkatan(newAngkatan){
-        this.#angkatan = newAngkatan;
+    setReligion(newReligion){
+        this.#religion = newReligion;
     }
-    setSkills(listSkill){
-        this.#skills = listSkill;
+    setDegree(newDegree){
+        this.#degree = newDegree;
     }
-    setUpdatedAt(updateTime){
-        this.#updatedAt = updateTime;
+    setClassYear(newYear){
+        this.#classYear = newYear;
     }
     setPhoto(pathPhoto){
         this.#photo = pathPhoto;
@@ -73,59 +73,52 @@ class User extends Model {
     getEmail(){
         return this.#email;
     }
-    getAddress(){
-        return this.#address;
+    getPassword(){
+        return this.#password;
     }
-    getNumber(){
-        return this.#phoneNumber;
+    getBirthDate(){
+        return this.#birthDate;
     }
-    getProgramStudi(){
-        return this.#programStudi;
+    getGender(){
+        return this.#gender;
     }
-    getAngkatan(){
-        return this.#angkatan;
+    getReligion(){
+        return this.#religion;
+    }
+    getDegree(){
+        return this.#degree;
+    }
+    getClassYear(){
+        return this.#classYear;
+    }
+    getPhoto(){
+        return this.#photo;
     }
     async getSkills(){
         let userID = super.getID();
         let session = driver.session();
-        let query = `MATCH (n:User {userID: ${userID}})-[:SKILLED_IN]-(res:Skill) RETURN res`;
+        let query = `MATCH (n:User) WHERE ID(n) = ${userID}, (n)-[:SKILLED_IN]-(res:Skill) RETURN res`;
         let resultUserSkills = await session.run(query);
         let listSkill = [];
         resultUserSkills.records.forEach((item, index) => {
-            let value = item.get('res').properties;
-            let skillObj = new Skill(value.label, value.uri);
+            let value = item.get('res');
+            let properties = value.properties;
+            let skillObj = new Skill(value.identity, properties.label, properties.uri);
             listSkill.push(skillObj);
         });
         await session.close();
         return listSkill;
     }
-    getCreatedUserData(){
-        return this.#createdAt;
-    }
-    getUpdatedUserData(){
-        return this.#updatedAt;
-    }
-    getPhoto(){
-        return this.#photo;
-    }
     toObject(){
-        let userSkills = [];
-        this.#skills.forEach((item, index) => {
-            let objSkill = item.toObject();
-            userSkills.push(objSkill);
-        });
-
         let objResult = {
             id: super.getID(),
             name: this.#name,
             email: this.#email,
-            address: this.#address,
-            phoneNumer: this.#phoneNumber,
-            programStudi: this.#programStudi,
-            angkatan: this.#angkatan,
-            userSkills: userSkills,
-            createdAt: this.#createdAt,
-            updatedAt: this.#updatedAt,
+            birthdate: this.#birthDate,
+            gender: this.#gender,
+            religion: this.#religion,
+            degree: this.#degree,
+            classYear: this.#classYear,
             photo: this.#photo
         };
         return objResult;
@@ -133,6 +126,7 @@ class User extends Model {
 
     // Database Related
 
+    // Get all users
     static async all(){
         let session = driver.session();
         let query = `MATCH (res:User) RETURN res`;
@@ -141,7 +135,7 @@ class User extends Model {
         resultListUsers.records.forEach((item, index) => {
             let value = item.get('res');
             let properties = value.properties;
-            let objUser = new User(value.identity, properties.name, properties.email, properties.address, properties.phoneNumber, properties.programStudi, properties.angkatan, properties.photo, null, null);
+            let objUser = new User(value.identity, properties.name, properties.email, properties.password, properties.birthDate, properties.gender, properties.religion, properties.degree, properties.classYear, properties.photo);
             tempList.push(objUser);
         });
 
@@ -154,6 +148,7 @@ class User extends Model {
         return listUsers;
     }
 
+    // Find user by ID
     static async find(userID){
         let session = driver.session();
         let query = `MATCH (res:User) WHERE ID(res) = ${userID} RETURN res`;
@@ -161,7 +156,7 @@ class User extends Model {
         if(resultUserData.records.length > 0){
             let value = resultUserData.records[0].get('res');
             let properties = value.properties;
-            let userData = new User(value.identity, properties.name, properties.email, properties.address, properties.phoneNumber, properties.programStudi, properties.angkatan, properties.photo, null, null);
+            let userData = new User(value.identity, properties.name, properties.email, properties.password, properties.birthDate, properties.gender, properties.religion, properties.degree, properties.classYear, properties.photo);
             await session.close();
             return userData;
         } else{
@@ -170,21 +165,65 @@ class User extends Model {
         }
     }
 
-    async addSkill(skillList){
-        let objSkillList = [];
-        skillList.forEach((item, index) => {
-            let objSKill = await Skill.find(item);
-            objSkillList.push(objSKill); 
-        });
+    // Update user
+    async update(userData){
+        let userID = super.getID();
+        let session = driver.session();
+        let query = `MATCH (res:User) WHERE ID(res) = ${userID} SET res = {name: '${userData.name}', email: '${userData.email}', birthDate: '${userData.birthDate}', gender: '${userData.gender}', religion: '${userData.religion}', degree: '${userData.degree}', classYear: '${userData.classYear}', photo: '${userData.photo}'} RETURN res`;
+        let resultUpdate = await session.run(query);
+        if(resultUpdate.records.length > 0){
+            let value = resultUpdate.records[0].get('res');
+            let properties = value.properties;
+            let userData = new User(value.identity, properties.name, properties.email, properties.password, properties.birthDate, properties.gender, properties.religion, properties.degree, properties.classYear, properties.photo);
+            await session.close();
+            return userData.toObject();
+        } else {
+            await session.close();
+            return null;
+        }
     }
 
-    // Additional profile data
-    async addEducation(education){}
-    async addCertification(certification){}
-    async addWorkExp(){}
-    async addAchievement(){}
-    async addSkill(skillName){}
-    
+    async addSkill(skillList){
+        let userID = super.getID();
+        let failedToAdd = [];
+        let successToAdd = [];
+        let length = skillList.length;
+        let session = driver.session();
+
+        for(let i=0; i < length; i++){
+            let query = `MATCH (u:User), (s:Skill) WHERE ID(u) = ${userID} AND ID(s) = ${skillList[i]} CREATE (u)-[:SKILLED_IN]->(s) RETURN s`;
+            let resultAddSkill = await session.run(query);
+            if(resultAddSkill.records.length > 0){
+                let valueSkill = resultAddSkill.records[0].get('s');
+                let propertiesSkill = valueSkill.properties;
+                let skill = new Skill(valueSkill.identity, propertiesSkill.name, propertiesSkill.uri);
+                successToAdd.push(skill);
+            } else {
+                failedToAdd.push(skillList[i]);
+            }
+        }
+
+        let finalSuccessResult = [];
+        successToAdd.forEach((item, index) => {
+            let obj = item.toObject();
+            finalSuccessResult.push(obj);
+        });
+        
+        let objResult = {
+            success: finalSuccessResult,
+            failed: failedToAdd
+        };
+        await session.close();
+        return objResult;
+    }
+
+    async removeSkill(skillID){
+        let userID = super.getID();
+        let session = driver.session();
+        let query = `MATCH (u:User), (s:Skill) WHERE ID(u) = ${userID} AND ID(s) = ${skillID} (u)-[rel:SKILLED_IN]->(s) DELETE rel`;
+        let resultDelete = await session.run(query);
+        console.log(resultDelete);
+    }
 }
 
 module.exports = User;
