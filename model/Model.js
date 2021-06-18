@@ -1,3 +1,10 @@
+
+// Database
+const neo4j = require('neo4j-driver');
+const driver = neo4j.driver(process.env.NEO4J_HOST, neo4j.auth.basic(process.env.NEO4J_USERNAME, process.env.NEO4J_PASSWORD), {
+    disableLosslessIntegers: true
+});
+
 class Model {
     #id;
     constructor(id){
@@ -22,4 +29,4 @@ class Model {
     async save(){}
 }
 
-module.exports = Model;
+module.exports = {Model, driver};

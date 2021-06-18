@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 
 // Import controller
-const UserController = require('../../controllers/resources/UserController');
-const JobController = require('../../controllers/resources/JobController');
+const UserController = require('../../application/controllers/UserController');
+const JobController = require('../../application/controllers/JobController');
 
 // User route
 // Get all user

@@ -1,13 +1,10 @@
-const Model = require("./Model");
+const {Model, driver} = require("./Model");
 const Skill = require('./Skill');
-// Database
-const neo4j = require('neo4j-driver');
-const JobStudentMatcher = require("../controllers/matcher/JobStudentMatcher");
+
+const JobStudentMatcher = require("../application/matcher/JobStudentMatcher");
 const User = require("./User");
 const Applicant = require("./Applicant");
-const driver = neo4j.driver(process.env.uri_lokal, neo4j.auth.basic(process.env.user, process.env.password_lokal), {
-    disableLosslessIntegers: true
-});
+
 class Job extends Model {
     // Property of job (private)
     #userID;

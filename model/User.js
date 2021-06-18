@@ -1,10 +1,5 @@
-const Model = require("./Model");
-// Database
-const neo4j = require('neo4j-driver');
+const {Model, driver} = require("./Model");
 const Skill = require("./Skill");
-const driver = neo4j.driver(process.env.uri_lokal, neo4j.auth.basic(process.env.user, process.env.password_lokal), {
-    disableLosslessIntegers: true
-});
 
 class User extends Model {
     // Property of user (private)
