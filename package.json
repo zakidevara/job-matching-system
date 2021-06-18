@@ -10,10 +10,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "neo4j-driver": "^4.2.3",
     "@comunica/actor-init-sparql": "^1.19.2",
     "body-parser": "^1.19.0",
-    "express": "^4.17.1"
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "neo4j-driver": "^4.2.3"
   },
   "devDependencies": {
     "nodemon": "^2.0.7"

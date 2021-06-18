@@ -1,9 +1,6 @@
 const Model = require("./Model");
 const neo4j = require('neo4j-driver');
-const user = 'neo4j';
-const password = 'fakboi3';
-const uri = 'bolt://localhost:7687';
-const driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
+const driver = neo4j.driver(process.env.uri_lokal, neo4j.auth.basic(process.env.user, process.env.password_lokal), {
     disableLosslessIntegers: true
 });
 
@@ -12,7 +9,7 @@ class Skill extends Model {
     #name;
     #uri;
 
-    constructor(skillID, name = '', uri = ''){
+    constructor(skillID, name, uri){
         super(skillID);
         this.#name = name;
         this.#uri = uri;
@@ -52,11 +49,9 @@ class Skill extends Model {
     }
 
     async getParentofNode(skillName){
-        let replacedSkillName = skillName.replace(/\s/g,"_");
-        console.log('replaced skillname: ', replacedSkillName);
         let session = driver.session();
         let listParents =  await session.run(
-            'MATCH (:Resource {label: $skillName})-[:SUBJECT*0..1]->(:Resource)-[:BROADER*0..1]->(result:Resource) Return result',
+            'MATCH (:Skill {name: $skillName})-[:SUBJECT*0..1]->(:Skill)-[:BROADER*0..1]->(result:Skill) Return result',
             {
                 skillName: skillName
             }
@@ -68,7 +63,7 @@ class Skill extends Model {
     getTotalOfDifferenceSkill(firstArr, secondArr){
         var result = [];
         result = firstArr.filter((elements) => {
-            return !secondArr.some(item => (item.label === elements.label) && (item.uri === elements.uri));
+            return !secondArr.some(item => (item.name === elements.name) && (item.uri === elements.uri));
         });
         return result.length;
     }
@@ -76,7 +71,7 @@ class Skill extends Model {
     getIntersection(firstArr, secondArr){
         var result = [];
         result = firstArr.filter((elements) => {
-            return secondArr.some(item => (item.label === elements.label) && (item.uri === elements.uri));
+            return secondArr.some(item => (item.name === elements.name) && (item.uri === elements.uri));
         });
         return result.length;
     }
@@ -98,18 +93,17 @@ class Skill extends Model {
         let dataOfParentsSS = await this.getParentofNode(secondSkill);
         let listOfParentsSS = dataOfParentsSS.records;
 
-        // Get only label from every node in array
         let listOfObjFS = [];
         listOfParentsFS.forEach((item, index) => {
             let obj = {};
-            obj['label'] = item.get('result').properties.label;
+            obj['name'] = item.get('result').properties.name;
             obj['uri'] = item.get('result').properties.uri;
             listOfObjFS.push(obj);
         });
         let listOfObjSS = [];
         listOfParentsSS.forEach((item, index) => {
             let obj = {};
-            obj['label'] = item.get('result').properties.label;
+            obj['name'] = item.get('result').properties.name;
             obj['uri'] = item.get('result').properties.uri;
             listOfObjSS.push(obj);
         });
@@ -123,20 +117,10 @@ class Skill extends Model {
         let uniqueSSSet = new Set(ssObject);
         let finalSsList = Array.from(uniqueSSSet).map(JSON.parse);
 
-        console.log('total parent of first skill : ',finalFsList.length);
-        console.log('total parent of second skill : ', finalSsList.length);
-        
         // Get the difference and intersection (Sanchez)
         let totDifFS = this.getTotalOfDifferenceSkill(finalFsList, finalSsList);     // notasi --> listOfParentsFS \ listOfParentsSS
         let totDifSS = this.getTotalOfDifferenceSkill(finalSsList, finalFsList);     // notasi --> listOfParentsSS \ listOfParentsFS
         let intersection = this.getIntersection(finalFsList, finalSsList);           // notasi --> listOfParentsFS n listOfParentsSS
-
-        console.log(totDifFS);
-        console.log(totDifSS);
-        console.log(intersection);
-        console.log('pembagi: ', totDifFS+totDifSS+intersection);
-        console.log('pembilang: ', totDifFS+totDifSS);
-        console.log('hasil bagi: ', 1 + ((totDifFS+totDifSS)/(totDifFS+totDifSS+intersection)));
 
         let disimilarity = Math.log(1 + ((totDifFS+totDifSS)/(totDifFS+totDifSS+intersection))) / Math.log(2);
         let similarity = 1 - disimilarity;

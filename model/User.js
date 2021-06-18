@@ -2,10 +2,7 @@ const Model = require("./Model");
 // Database
 const neo4j = require('neo4j-driver');
 const Skill = require("./Skill");
-const user = 'neo4j';
-const password = 'fakboi3';
-const uri = 'bolt://localhost:7687';
-const driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
+const driver = neo4j.driver(process.env.uri_lokal, neo4j.auth.basic(process.env.user, process.env.password_lokal), {
     disableLosslessIntegers: true
 });
 
@@ -21,15 +18,12 @@ class User extends Model {
     #classYear;
     #photo;
 
-    constructor(userID, name, email, password, birthDate, gender, religion, degree, classYear, photo){
+    constructor(userID, name, email, password, birthDate, classYear, photo = ''){
         super(userID); 
         this.#name = name;
         this.#email = email;
         this.#password = password;
         this.#birthDate = birthDate;
-        this.#gender = gender;
-        this.#religion = religion;
-        this.#degree = degree;
         this.#classYear = classYear;
         this.#photo = photo;
     }
@@ -97,13 +91,13 @@ class User extends Model {
     async getSkills(){
         let userID = super.getID();
         let session = driver.session();
-        let query = `MATCH (n:User) WHERE ID(n) = ${userID}, (n)-[:SKILLED_IN]-(res:Skill) RETURN res`;
+        let query = `MATCH (n:User)-[:SKILLED_IN]->(res:Skill) WHERE ID(n) = ${userID} RETURN res`;
         let resultUserSkills = await session.run(query);
         let listSkill = [];
         resultUserSkills.records.forEach((item, index) => {
             let value = item.get('res');
             let properties = value.properties;
-            let skillObj = new Skill(value.identity, properties.label, properties.uri);
+            let skillObj = new Skill(value.identity, properties.name, properties.uri);
             listSkill.push(skillObj);
         });
         await session.close();
@@ -115,9 +109,6 @@ class User extends Model {
             name: this.#name,
             email: this.#email,
             birthdate: this.#birthDate,
-            gender: this.#gender,
-            religion: this.#religion,
-            degree: this.#degree,
             classYear: this.#classYear,
             photo: this.#photo
         };
@@ -135,7 +126,7 @@ class User extends Model {
         resultListUsers.records.forEach((item, index) => {
             let value = item.get('res');
             let properties = value.properties;
-            let objUser = new User(value.identity, properties.name, properties.email, properties.password, properties.birthDate, properties.gender, properties.religion, properties.degree, properties.classYear, properties.photo);
+            let objUser = new User(value.identity, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo);
             tempList.push(objUser);
         });
 
@@ -156,7 +147,7 @@ class User extends Model {
         if(resultUserData.records.length > 0){
             let value = resultUserData.records[0].get('res');
             let properties = value.properties;
-            let userData = new User(value.identity, properties.name, properties.email, properties.password, properties.birthDate, properties.gender, properties.religion, properties.degree, properties.classYear, properties.photo);
+            let userData = new User(value.identity, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo);
             await session.close();
             return userData;
         } else{

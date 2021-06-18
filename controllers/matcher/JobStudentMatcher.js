@@ -1,5 +1,3 @@
-const JobModel = require('../../model/Job');
-const UserModel = require('../../model/User');
 const Skill = require('../../model/Skill');
 
 class JobStudentMatcher {
@@ -12,7 +10,7 @@ class JobStudentMatcher {
             let maxSkillSimilarity = 0;
             let currSkillSimilarity = 0;
             for(let j=0; j < jobRequiredSkills.length; j++){
-                let objSkill = new Skill('', '');
+                let objSkill = new Skill(101,'', '');
                 currSkillSimilarity = await objSkill.calculateSimilarity(userSkills[i].getName(), jobRequiredSkills[j].getName());
                 if(currSkillSimilarity > maxSkillSimilarity){
                     maxSkillSimilarity = currSkillSimilarity;

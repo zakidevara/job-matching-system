@@ -1,13 +1,7 @@
 // Configure environment
 // Lib
-const express = require('express');
-// const app = express();
-// const port = 3000;
 const sparqlCon = require('@comunica/actor-init-sparql').newEngine;
 const myEngine = sparqlCon();
-// const bodyParser = require('body-parser');
-// app.use(bodyParser.urlencoded());
-// app.use(bodyParser.json());
 
 // Database
 const neo4j = require('neo4j-driver');
@@ -244,7 +238,7 @@ async function buildOntology(qConcept){
 }
 
 async function main(){
-    let result = await buildOntology('Software_engineering');
+    let result = await buildOntology('HTML');
     console.log('result: ', result);
 }
 

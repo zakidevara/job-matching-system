@@ -23,13 +23,6 @@ class JobController extends ResourceController {
     static async getJobRecommendation(userID, amount){
         // Get all available job with requires skill
         let listJob = await Job.getAllAvailableJob();
-        console.log('list job: ', listJob.length);
-
-        // Get required skills for every job based on jobID (current userID)
-        for(let i=0; i < listJob.length; i++){
-            let listSkill = await Job.getJobRequiredSkill(listJob[i].getJobID());
-            listJob[i].setRequiredSkills(listSkill);
-        }
         
         // Get user data
         let userData = await User.find(userID);

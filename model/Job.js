@@ -5,90 +5,41 @@ const neo4j = require('neo4j-driver');
 const JobStudentMatcher = require("../controllers/matcher/JobStudentMatcher");
 const User = require("./User");
 const Applicant = require("./Applicant");
-const user = 'neo4j';
-const password = 'fakboi3';
-const uri = 'bolt://localhost:7687';
-const driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
+const driver = neo4j.driver(process.env.uri_lokal, neo4j.auth.basic(process.env.user, process.env.password_lokal), {
     disableLosslessIntegers: true
 });
 class Job extends Model {
     // Property of job (private)
     #userID;
     #title;
+    #quantity;
+    #location;
+    #contact;
+    #benefits;
     #description;
-    #companyLogo;
+    #duration;
+    #remote;
     #companyName;
-    #jobType;
-    #salary;
-    #createdAt;
-    #updatedAt;
-    #requiredSkills;
-    #applicant
+    #endDate;
+    #minSalary;
+    #maxSalary;
     #status;
 
-    constructor(jobID, userID, title, desc, companyLogo, companyName, jobType, salary, createdAt = null, requiredSkills = null, applicant = null, status = 0){
+    constructor(jobID, userID=null, title, quantity, location='', contact='', benefits='', description, duration='', remote=true, companyName='', endDate, minSalary='', maxSalary='', status=1){
         super(jobID);
         this.#userID = userID;
         this.#title = title;
-        this.#description = desc;
-        this.#companyLogo = companyLogo;
+        this.#quantity = quantity;
+        this.#location = location;
+        this.#contact = contact;
+        this.#benefits = benefits;
+        this.#description = description;
+        this.#duration = duration;
+        this.#remote = remote;
         this.#companyName = companyName;
-        this.#jobType = jobType;
-        this.#salary = salary;
-        if(createdAt === null){
-            let currentDate = new Date();
-            this.#createdAt = currentDate.getDate() + "-" + 
-                              (currentDate.getMonth()+1) + "-" +
-                              currentDate.getFullYear() + "- " + 
-                              currentDate.getHours() + ":" +
-                              currentDate.getMinutes() + ":" +
-                              currentDate.getSeconds();
-        }
-        if(requiredSkills === null){
-            this.#requiredSkills = [];
-        } else {
-            this.#requiredSkills = requiredSkills;
-        }
-        if(applicant === null){
-            this.#applicant = [];
-        } else {
-            this.#applicant = applicant;
-        }
-        this.#status = status;
-    }
-
-    // Setter
-    setUserID(userID){
-        this.#userID = userID;
-    }
-    setTitle(newTitle){
-        this.#title = newTitle;
-    }
-    setDesc(newDesc){
-        this.#description = newDesc;
-    }
-    setCompanyLogo(companyLogo){
-        this.#companyLogo = companyLogo;
-    }
-    setCompanyName(companyName){
-        this.#companyName = companyName;
-    }
-    setJobType(jobType){
-        this.#jobType = jobType;
-    }
-    setSalary(salary){
-        this.#salary = salary;
-    }
-    setUpdateJobData(updateTime){
-        this.#updatedAt = updateTime;
-    }
-    setRequiredSkills(listSkill){
-        this.#requiredSkills = listSkill;
-    }
-    setApplicant(applicant){
-        this.#applicant = applicant;
-    }
-    setStatus(status){
+        this.#endDate = endDate;
+        this.#minSalary = minSalary;
+        this.#maxSalary = maxSalary;
         this.#status = status;
     }
 
@@ -105,38 +56,23 @@ class Job extends Model {
     getDesc(){
         return this.#description;
     }
-    getCompanyLogo(){
-        return this.#companyLogo;
-    }
     getCompanyName(){
         return this.#companyName;
-    }
-    getJobType(){
-        return this.#jobType;
-    }
-    getSalary(){
-        return this.#salary;
-    }
-    getCreatedJobData(){
-        return this.#createdAt;
-    }
-    getUpdatedJobData(){
-        return this.#updatedAt;
     }
     async getRequiredSkills(){
         let jobID = super.getID();
         let session = driver.session();
-        let query = `MATCH (j:Job {jobID: ${jobID}})-[:REQUIRES_SKILL]->(res:Skill) RETURN res`;
+        let query = `MATCH (j:Job)-[:REQUIRES_SKILL]->(res:Skill) WHERE ID(j) = ${jobID} RETURN res`;
         let resultListSkill = await session.run(query);
         let listSkill = [];
         resultListSkill.records.forEach((item, index) => {
-            let value = item.get('res').properties;
-            let skillObj = new Skill(value.label, value.uri);
+            let value = item.get('res');
+            let properties = value.properties;
+            let skillObj = new Skill(value.identity, properties.name, properties.uri);
             listSkill.push(skillObj);
         });
         await session.close();
-        this.#requiredSkills =  listSkill;
-        return this.#requiredSkills;
+        return listSkill;
     }
     async getApplicant(){
         let jobID = super.getID();
@@ -149,32 +85,27 @@ class Job extends Model {
             let objApplicant = new Applicant(value.userID, value.dateApplied, value.similarity);
             listApplicant.push(objApplicant);
         });
-        this.#applicant = listApplicant;
-        return this.#applicant;
+        return listApplicant;
     }
     getStatus(){
         return this.#status;
     }
 
     toObject(){
-        let requiredSkills = [];
-        this.#requiredSkills.forEach((item, index) => {
-            let objSKill = item.toObject();
-            requiredSkills.push(objSKill);
-        });
-
         let objResult = {
             userID: this.#userID,
             title: this.#title,
+            quantity: this.#quantity,
+            location: this.#location,
+            contact: this.#contact,
+            benefits: this.#benefits,
             description: this.#description,
-            companyLogo: this.#companyLogo,
+            duration: this.#duration,
+            remote: this.#remote,
             companyName: this.#companyName,
-            jobType: this.#jobType,
-            salary: this.#salary,
-            createdAt: this.#createdAt,
-            updatedAt: this.#updatedAt,
-            requiredSkills: requiredSkills,
-            applicant: this.#applicant,
+            endDate: this.#endDate,
+            minSalary: this.#minSalary,
+            maxSalary: this.#maxSalary,
             status: this.#status
         };
         return objResult;
@@ -217,7 +148,7 @@ class Job extends Model {
             let currentDate = new Date();
             let dateApplied = currentDate.getDate() + "-" + 
                               (currentDate.getMonth()+1) + "-" +
-                              currentDate.getFullYear();
+                              currentDate.getFullYear();    
             
             let secQuery = `MATCH (u:User), (j:Job) WHERE u.userID = ${userID} AND j.jobID = ${jobID} CREATE (u)-[rel:APPLY {userID: ${userID}, dateApplied: '${dateApplied}', similarity: ${similarity}}]->(j) RETURN rel`;
             let result = await session.run(secQuery);
@@ -236,28 +167,28 @@ class Job extends Model {
         let resultListJob = await session.run(`MATCH (res:Job {status: 1}) RETURN res`);
         let listJob = [];
         resultListJob.records.forEach((item, index) => {
-            let value = item.get('res').properties;
-            let jobObj = new Job(value.jobID, value.userID, value.title, value.description, value.companyLogo, value.companyName, value.jobType,
-                                value.salary, value.createdAt, null, null, value.status);
+            let value = item.get('res');
+            let properties = value.properties;
+            let jobObj = new Job(value.identity, null, properties.title, properties.quantity, properties.location, properties.contact, properties.benefits, properties.description, properties.duration, properties.remote, properties.companyName, properties.endDate, properties.minSalary, properties.maxSalary, properties.status);
             listJob.push(jobObj);
         });
         await session.close();
         return listJob;
     }
 
-    static async getJobRequiredSkill(jobID){
-        let session = driver.session();
-        let query = `MATCH (j:Job {jobID: ${jobID}})-[:REQUIRES_SKILL]->(res:Skill) RETURN res`;
-        let resultListSkill = await session.run(query);
-        let listSkill = [];
-        resultListSkill.records.forEach((item, index) => {
-            let value = item.get('res').properties;
-            let skillObj = new Skill(value.label, value.uri);
-            listSkill.push(skillObj);
-        });
-        await session.close();
-        return listSkill;
-    }
+    // static async getJobRequiredSkill(jobID){
+    //     let session = driver.session();
+    //     let query = `MATCH (j:Job {jobID: ${jobID}})-[:REQUIRES_SKILL]->(res:Skill) RETURN res`;
+    //     let resultListSkill = await session.run(query);
+    //     let listSkill = [];
+    //     resultListSkill.records.forEach((item, index) => {
+    //         let value = item.get('res').properties;
+    //         let skillObj = new Skill(value.label, value.uri);
+    //         listSkill.push(skillObj);
+    //     });
+    //     await session.close();
+    //     return listSkill;
+    // }
     
 }
 

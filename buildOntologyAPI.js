@@ -1,13 +1,13 @@
 // Configure environment
 // Lib
 const express = require('express');
-// const app = express();
-// const port = 3000;
+const app = express();
+const port = 3000;
 const sparqlCon = require('@comunica/actor-init-sparql').newEngine;
 const myEngine = sparqlCon();
-// const bodyParser = require('body-parser');
-// app.use(bodyParser.urlencoded());
-// app.use(bodyParser.json());
+const bodyParser = require('body-parser');
+app.use(bodyParser.urlencoded());
+app.use(bodyParser.json());
 
 // Database
 const neo4j = require('neo4j-driver');
@@ -17,10 +17,10 @@ const uri = 'bolt://localhost:7687';
 const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
 
 // Ontology Builder
-async function buildOntology(qConcept){
+app.post("/build-ontology", async (req, res) => {
     var subConceptChecked = [];
     var processQueue = [];
-    processQueue = [qConcept];
+    processQueue = [req.body.qConcept];
     let validateConcept = true;
     let i = 0;
     // Enter loop
@@ -179,7 +179,7 @@ async function buildOntology(qConcept){
             // #3 async
             const updateProcessQueue = async _ => {
                 let session = driver.session();
-                let getCurrentSubConcept = await session.run("MATCH (n:Resource)-[:BROADER]->(:Resource {uri: $rsc}) RETURN n", {rsc : `http://dbpedia.org/resource/Category:${concept}`});
+                let getCurrentSubConcept = await session.run("MATCH (n:Resource)-[:skos__broader]->(:Resource {uri: $rsc}) RETURN n", {rsc : `http://dbpedia.org/resource/Category:${concept}`});
                 let records = getCurrentSubConcept.records;
                 let extractedValue = [];
 
@@ -234,18 +234,48 @@ async function buildOntology(qConcept){
         console.log('Array is clear');
     }
     console.log('Total iterasi:', i);
+
+    // Set label for root node
     let session = driver.session();
-    let resultSetLabel = await session.run(`MATCH (n:Resource {uri: 'http://dbpedia.org/resource/Category:${qConcept}'}) SET n.name = '${qConcept}' RETURN n`);
+    let resultSetLabel = await session.run(`MATCH (n:Resource {uri: 'http://dbpedia.org/resource/Category:Software_engineering'}) SET n.name = 'Software engineering' RETURN n`);
     if(resultSetLabel.records.length > 0){
-        return 'Success';
-    } else {
-        return 'Failed';
+         // Add new label Skill for every node labeled with Resource
+         let addSkillLabel = await session.run('MATCH (n:Resource) SET n :Skill Return n');
+         if(addSkillLabel.records.length > 0){
+             // Add new label Concept for Concept type node
+             let addConceptLabel = await session.run(`MATCH (n:Resource) WHERE n.uri CONTAINS 'http://dbpedia.org/resource/Category:' SET n :Concept Return n`);
+             if(addConceptLabel.records.length > 0){
+                 res.send({
+                     message: "Build ontology success"
+                 });
+             } else {
+                res.send({
+                    message: "Build ontology failed"
+                });
+             }
+         }
     }
-}
+    // let setLabelForRootNode = session.writeTransaction(async txc => {
+    //     var result = await txc.run("MATCH (n:Resource {uri: 'http://dbpedia.org/resource/Category:Software_engineering'}) SET n.label = 'Software engineering' RETURN n");
+    //     return result;
+    // });
+    // setLabelForRootNode.then(result => {
+    //     //console.log('result set label: ', result);
+    //     if(result.records.length > 0){
+    //         res.send({message: "success"});
+    //     } else {
+    //         res.send({message: "failed"});
+    //     }
+    // }).catch(error => {
+    //     console.log('error set label: ', error);
+    // }).then(() => {
+    //     session.close();
+    // });
 
-async function main(){
-    let result = await buildOntology('Software_engineering');
-    console.log('result: ', result);
-}
+    // Add new label Skill for every node labeled with Resource
+    
+});
 
-main();
+app.listen(port, () => {
+    console.log(`Example app listening at http://localhost:${port}`);
+});
