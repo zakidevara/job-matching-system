@@ -7,6 +7,11 @@ class UserController extends ResourceController{
         super(label);
     }
 
+    async create(userData){
+        let newUser = await User.create(userData);
+        return newUser.toObject();
+    }
+
     // Get all user
     async all(){
         let userList = await User.all();
@@ -25,7 +30,7 @@ class UserController extends ResourceController{
         if(user === null) return null;
 
         let updateResult = await user.update(userData);
-        return updateResult;
+        return updateResult.toObject();
     }
 
     // Add new skill
@@ -37,12 +42,27 @@ class UserController extends ResourceController{
         return addSkillResult;
     }
 
+    // Remove skill
     async removeSkill(userID, skillID){
         let user = await User.find(userID);
         if(user === null) return null;
 
         let removeSkillResult = await user.removeSkill(skillID);
         return removeSkillResult;
+    }
+
+    // Get all skill
+    async getUserSkills(userID){
+        let user = await User.find(userID);
+        if(user == null) return null;
+
+        let tempSkills = await user.getSkills();
+        let listSkills = [];
+        tempSkills.forEach((item, index) => {
+            let obj = item.toObject();
+            listSkills.push(obj);
+        });
+        return listSkills;
     }
 
 }

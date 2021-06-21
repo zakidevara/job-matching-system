@@ -1,1 +1,51 @@
-CREATE (newUser:User {name : 'Rhio Adjie Fabian', email: 'rhio.adjie.tif18@polban.ac.id', address: 'Cimahi', number: '081317401484', program_studi: 'D3 - Teknik Informatika', angkatan: '2018', avatar: 'rhio.png'}) RETURN newUser.name
+/-- Query Import User dari JSON --/
+CALL apoc.load.json("file:/dummy_dataset_user_v4.json") YIELD value AS user
+MERGE (u:User {nim: user.nim})
+SET u.email = user.email,
+u.password = user.password,
+u.name = user.name,
+u.gender = user.gender,
+u.birthDate = user.birthDate,
+u.phoneNumber = user.phoneNumber,
+u.studyProgram = user.studyProgram,
+u.classYear = user.classYear 
+WITH u, user.skills AS skills, user.religion AS religion
+UNWIND skills as sk
+MERGE (s:Skill {name: sk})
+MERGE (u)-[:SKILLED_IN]->(s)
+MERGE (r:Religion {id: religion})
+MERGE (u)-[:HAS_RELIGION]->(r)
+RETURN u
+
+/-- Query Import Job dari JSON --/
+CALL apoc.load.json("file:/dummy_dataset_job_v9.json") YIELD value AS job
+MERGE (j:Job {jobID: job.job_id})
+SET j.contact = job.contact,
+j.title = job.title,
+j.description = job.description,
+j.quantity = job.quantity,
+j.location = job.location,
+j.endDate = job.endDate,
+j.benefits = job.benefits,
+j.duration = job.duration,
+j.companyName = job.companyName,
+j.remote = job.remote,
+j.minSalary = job.minSalary,
+j.maxSalary = job.maxSalary 
+WITH j, job, job.genderReq AS genderReq, job.descriptionAddition AS description
+WHERE genderReq IS NOT NULL OR description IS NOT NULL
+CREATE (jr:JobReq)
+SET jr.genderReq = genderReq,
+jr.description = description  
+MERGE (j)-[:REQUIRES]->(jr) 
+WITH j, jr, job.skills_req AS skills, job.perekrut AS perekrut, job.jobType AS type
+UNWIND skills as sk
+MERGE (s:Skill {name: sk})   
+MERGE (jr)-[:REQUIRES_SKILL]->(s)
+MERGE (u:User {nim: perekrut})
+MERGE (jt:JobType {id: type})
+MERGE (j)-[:CLASSIFIED]->(jt) 
+MERGE (u)-[:POSTS]->(j)
+
+
+

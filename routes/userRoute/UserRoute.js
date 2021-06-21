@@ -6,6 +6,12 @@ const UserController = require('../../application/controllers/UserController');
 const JobController = require('../../application/controllers/JobController');
 
 // User route
+// Create new user
+router.post('/user', async function(req, res) {
+    let uC = new UserController('User');
+    let newUser = await uC.create(req.body);
+    res.send({ newUser });
+});
 // Get all user
 router.get('/user', async function(req, res) {
     let uC = new UserController('User');
@@ -44,7 +50,7 @@ router.put('/user/:userID', async function(req, res) {
 // Add new skill
 router.post('/user/:userID/addSkill', async function(req, res) {
     let userID = req.params.userID;
-    let skillList = req.body;
+    let skillList = req.body.skill_id;
     let uC = new UserController('User');
     let result = await uC.addSkill(userID, skillList);
     if(result === null){
@@ -61,15 +67,23 @@ router.post('/user/:userID/addSkill', async function(req, res) {
     }
 });
 
+// Remove skill
 router.post('/user/:userID/removeSkill', async function(req, res) {
     let userID = req.params.userID;
-    let skillID = req.body.skillID;
+    let skillID = req.body.skill_id;
     let uC = new UserController('User');
-    let result = uC.removeSkill(userID, skillID);
-
+    let result = await uC.removeSkill(userID, skillID);
     res.send({
         status: result
     });
+});
+
+// Get user skills
+router.get('/user/:userID/skill', async function(req, res) {
+    let userID = req.params.userID;
+    let uC = new UserController('User');
+    let userSkills = await uC.getUserSkills(userID);
+    res.send({ userSkills });
 });
 
 router.get('/applicant-recommendation', async function(req, res){

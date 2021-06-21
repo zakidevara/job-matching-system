@@ -1,0 +1,635 @@
+[
+  {
+    "nim": 181511001,
+    "email": "dummy.tif417@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Afif Rana Muhammad",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 2,
+    "classYear": 2017,
+    "skills": [
+      "PHP"
+    ]
+  },
+  {
+    "nim": 181511002,
+    "email": "dummy.tif417@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Alif Ramdani",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 2,
+    "classYear": 2017,
+    "skills": [
+      "C++",
+      "JavaScript"
+    ]
+  },
+  {
+    "nim": 181511003,
+    "email": "dummy.tif417@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Alifia Syalsabila",
+    "gender": 2,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 2,
+    "classYear": 2017,
+    "skills": [
+      "React Native"
+    ]
+  },
+  {
+    "nim": 181511004,
+    "email": "dummy.tif417@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Alwan Assyauqi",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 2,
+    "classYear": 2017,
+    "skills": [
+      "Laravel",
+      "Web development"
+    ]
+  },
+  {
+    "nim": 181511005,
+    "email": "dummy.tif18@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Andi Fauzy",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2018,
+    "skills": [
+      "Android software development",
+      "CodeIgniter",
+      "Flutter (software)"
+    ]
+  },
+  {
+    "nim": 181511006,
+    "email": "dummy.tif18@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Bening Promistya Anandita Qolbu",
+    "gender": 2,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2018,
+    "skills": [
+      "CodeIgniter",
+      "PHP"
+    ]
+  },
+  {
+    "nim": 181511007,
+    "email": "dummy.tif416@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Debora Eirene",
+    "gender": 2,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 2,
+    "studyProgram": 2,
+    "classYear": 2016,
+    "skills": [
+      "Python (programming language)"
+    ]
+  },
+  {
+    "nim": 181511008,
+    "email": "dummy.tif17@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Ersaad Gisda",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2017,
+    "skills": [
+      "Web development"
+    ]
+  },
+  {
+    "nim": 181511009,
+    "email": "dummy.tif418@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Hafiz Muhammad",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 2,
+    "classYear": 2018,
+    "skills": [
+      "JQuery",
+      "JavaScript"
+    ]
+  },
+  {
+    "nim": 181511010,
+    "email": "dummy.tif416@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Hendra Permana",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 2,
+    "classYear": 2016,
+    "skills": [
+      "IOS development software"
+    ]
+  },
+  {
+    "nim": 181511011,
+    "email": "dummy.tif18@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Hilmy Okto",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2018,
+    "skills": [
+      "Laravel"
+    ]
+  },
+  {
+    "nim": 181511012,
+    "email": "ikhsan.setiawan.tif18@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Ikhsan Setiawan",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2018,
+    "skills": [
+      "React Native"
+    ]
+  },
+  {
+    "nim": 181511013,
+    "email": "dummy.tif416@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Ilham Robyana Sofyan",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 2,
+    "classYear": 2016,
+    "skills": [
+      "Swift (programming language)"
+    ]
+  },
+  {
+    "nim": 181511014,
+    "email": "ivan.eka.tif18@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Ivan Eka Putra",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2018,
+    "skills": [
+      "Web development",
+      "Vue.js"
+    ]
+  },
+  {
+    "nim": 181511015,
+    "email": "dummy.tif19@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Ummu Izzatul Kharimah",
+    "gender": 2,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2019,
+    "skills": [
+      "Phalcon (framework)"
+    ]
+  },
+  {
+    "nim": 181511016,
+    "email": "dummy.tif17@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Jays",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2017,
+    "skills": [
+      "Oracle Database"
+    ]
+  },
+  {
+    "nim": 181511017,
+    "email": "dummy.tif18@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Lisa",
+    "gender": 2,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2018,
+    "skills": [
+      "Swift (programming language)"
+    ]
+  },
+  {
+    "nim": 181511018,
+    "email": "dummy.tif17@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Lisnawati Srisunda",
+    "gender": 2,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2017,
+    "skills": [
+      "Web development",
+      "Flutter (software)",
+      "Mobile software development",
+      "C (programming language)",
+      "PHP",
+      "HTML",
+      "SQL",
+      "CodeIgniter",
+      "PostgreSQL"
+    ]
+  },
+  {
+    "nim": 181511019,
+    "email": "dummy.tif417@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "M Randi Noor",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 2,
+    "classYear": 2017,
+    "skills": [
+      "PHP",
+      "Laravel"
+    ]
+  },
+  {
+    "nim": 181511020,
+    "email": "dummy.tif16@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Matin Majduddin Muhtadi",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2016,
+    "skills": [
+      "Java (programming language)"
+    ]
+  },
+  {
+    "nim": 181511021,
+    "email": "dummy.tif417@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Mumuh Kustino Muharam",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 2,
+    "classYear": 2017,
+    "skills": [
+      "Android software development"
+    ]
+  },
+  {
+    "nim": 181511022,
+    "email": "dummy.tif18@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Nadia PD",
+    "gender": 2,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2018,
+    "skills": [
+      "Web development",
+      "PHP"
+    ]
+  },
+  {
+    "nim": 181511023,
+    "email": "dummy.tif418@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Naufal Rajabi",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 2,
+    "classYear": 2018,
+    "skills": [
+      "MySQL",
+      "SQL"
+    ]
+  },
+  {
+    "nim": 181511024,
+    "email": "dummy.tif17@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Nikita Nabila",
+    "gender": 2,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2017,
+    "skills": [
+      "Unity (game engine)"
+    ]
+  },
+  {
+    "nim": 181511025,
+    "email": "dummy.tif17@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Norman Ibrahim S",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2017,
+    "skills": [
+      "JavaScript"
+    ]
+  },
+  {
+    "nim": 181511026,
+    "email": "dummy.tif16@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Novilawati",
+    "gender": 2,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2016,
+    "skills": [
+      "Python (programming language)"
+    ]
+  },
+  {
+    "nim": 181511027,
+    "email": "dummy.tif415@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Nur Rohman",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 2,
+    "classYear": 2015,
+    "skills": [
+      "Microsoft Office"
+    ]
+  },
+  {
+    "nim": 181511028,
+    "email": "dummy.tif17@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Pega Kurniawan",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2016,
+    "skills": [
+      "CSS",
+      "Bootstrap (front-end framework)"
+    ]
+  },
+  {
+    "nim": 181511029,
+    "email": "dummy.tif415@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Reka Alamsyah R.",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 2,
+    "classYear": 2015,
+    "skills": [
+      "HTML"
+    ]
+  },
+  {
+    "nim": 181511030,
+    "email": "dummy.tif419@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Reynaldy Rizky Saputra",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 2,
+    "classYear": 2019,
+    "skills": [
+      "Swift (programming language)"
+    ]
+  },
+  {
+    "nim": 181511031,
+    "email": "dummy.tif18@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Rezky Wahyuda Sitepu",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2018,
+    "skills": [
+      "Zend Framework"
+    ]
+  },
+  {
+    "nim": 181511032,
+    "email": "rhio.adjie.tif18@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Rhio Adjie Fabian",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2018,
+    "skills": [
+      "Node.js",
+      "JavaScript",
+      "React Native",
+      "PHP",
+      "Laravel",
+      "CodeIgniter",
+      "Java (programming language)",
+      "CSS",
+      "HTML",
+      "Flutter (software)",
+      "C++",
+      "C (programming language)",
+      "Io (programming language)"
+    ]
+  },
+  {
+    "nim": 181511033,
+    "email": "dummy.tif16@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Rohmat Dasuki",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2016,
+    "skills": [
+      "React Native"
+    ]
+  },
+  {
+    "nim": 181511034,
+    "email": "dummy.tif19@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Muhammad Sakhi Hartanto",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2019,
+    "skills": [
+      "Go (programming language)"
+    ]
+  },
+  {
+    "nim": 181511035,
+    "email": "dummy.tif19@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Shofwan Ahmad Syihab",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2019,
+    "skills": [
+      "Visual Basic"
+    ]
+  },
+  {
+    "nim": 181511036,
+    "email": "dummy.tif17@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Velia Sagita",
+    "gender": 2,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2017,
+    "skills": [
+      "PHP",
+      "Dart (programming language)"
+    ]
+  },
+  {
+    "nim": 181511037,
+    "email": "dummy.tif17@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Yoga Subagja",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2017,
+    "skills": [
+      "CSS"
+    ]
+  },
+  {
+    "nim": 181511038,
+    "email": "dummy.tif418@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Zara Veda Mahendra",
+    "gender": 2,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 2,
+    "classYear": 2018,
+    "skills": [
+      "C Sharp (programming language)"
+    ]
+  },
+  {
+    "nim": 181511039,
+    "email": "kresna.bayu.tif18@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Kresna Bayu Sanyoto",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2018,
+    "skills": [
+      "Java (programming language)"
+    ]
+  },
+  {
+    "nim": 181511040,
+    "email": "atthoriq.gerhana.tif18@polban.ac.id",
+    "password": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "name": "Atthoriq Gerhana Firdaus",
+    "gender": 1,
+    "birthDate": "2000-01-01",
+    "phoneNumber": "+6288811112222",
+    "religion": 1,
+    "studyProgram": 1,
+    "classYear": 2018,
+    "skills": [
+      "Android software development",
+      "Python (programming language)"
+    ]
+  }
+]

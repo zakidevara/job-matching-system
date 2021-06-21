@@ -1,29 +1,40 @@
 const {Model, driver} = require("./Model");
+const Religion = require("./Religion");
 const Skill = require("./Skill");
+const StudyProgram = require("./StudyProgram");
+const Gender = require("./Gender");
 
 class User extends Model {
     // Property of user (private)
+    #nim;
     #name;
     #email;
     #password;
     #birthDate;
-    #gender;
-    #religion;
-    #degree;
     #classYear;
     #photo;
+    #phoneNumber;
+    #gender;
+    #studyProgram;
 
-    constructor(userID, name, email, password, birthDate, classYear, photo = ''){
-        super(userID); 
+    constructor(userID, nim = '', name = '', email = '', password = '', birthDate = '', classYear = '', photo = '', phoneNumber = '', gender = 0, studyProgram = 0){
+        super(userID);
+        this.#nim = nim;
         this.#name = name;
         this.#email = email;
         this.#password = password;
         this.#birthDate = birthDate;
         this.#classYear = classYear;
         this.#photo = photo;
+        this.#phoneNumber = phoneNumber;
+        this.#gender = gender;
+        this.#studyProgram = studyProgram;
     }
 
     // Setter
+    setNim(newNim){
+        this.#nim = newNim;
+    }
     setName(newName){
         this.#name = newName;
     }
@@ -39,22 +50,26 @@ class User extends Model {
     setGender(newGender){
         this.#gender = newGender;
     }
-    setReligion(newReligion){
-        this.#religion = newReligion;
-    }
-    setDegree(newDegree){
-        this.#degree = newDegree;
-    }
     setClassYear(newYear){
         this.#classYear = newYear;
     }
     setPhoto(pathPhoto){
         this.#photo = pathPhoto;
     }
+    setPhoneNumber(newNumber){
+        this.#phoneNumber = newNumber;
+    }
+    setStudyProgram(newStudy){
+        this.#studyProgram = newStudy;
+    }
+
 
     // Getter
     getID(){
         return super.getID();
+    }
+    getNim(){
+        return this.#nim;
     }
     getName(){
         return this.#name;
@@ -68,33 +83,48 @@ class User extends Model {
     getBirthDate(){
         return this.#birthDate;
     }
-    getGender(){
-        return this.#gender;
-    }
-    getReligion(){
-        return this.#religion;
-    }
-    getDegree(){
-        return this.#degree;
-    }
     getClassYear(){
         return this.#classYear;
     }
     getPhoto(){
         return this.#photo;
     }
-    async getSkills(){
-        let userID = super.getID();
+    getPhoneNumber(){
+        return this.#phoneNumber;
+    }
+    getGender(){
+        return this.#gender;
+    }
+    getStudyProgram(){
+        return this.#studyProgram;
+    }
+    async getReligion(){
         let session = driver.session();
-        let query = `MATCH (n:User)-[:SKILLED_IN]->(res:Skill) WHERE ID(n) = ${userID} RETURN res`;
+        let query = `MATCH (u:User {nim: ${this.#nim}})-[:HAS_RELIGION]->(r:Religion) RETURN r`;
+        let result = await session.run(query);
+        if(result.records.length > 0){
+            let value = result.records[0].get('r').properties;
+            let objReligion = new Religion(value.id, value.name);
+            await session.close();
+            return objReligion;
+        } else {
+            await session.close();
+            return null;
+        }
+    }
+    async getSkills(){
+        let session = driver.session();
+        let query = `MATCH (u:User {nim: ${this.#nim}})-[:SKILLED_IN]->(s:Skill) RETURN s`;
         let resultUserSkills = await session.run(query);
         let listSkill = [];
-        resultUserSkills.records.forEach((item, index) => {
-            let value = item.get('res');
-            let properties = value.properties;
-            let skillObj = new Skill(value.identity, properties.name, properties.uri);
-            listSkill.push(skillObj);
-        });
+        if(resultUserSkills.records.length > 0){
+            resultUserSkills.records.forEach((item, index) => {
+                let value = item.get('s');
+                let properties = value.properties;
+                let skillObj = new Skill(value.identity, properties.name, properties.uri);
+                listSkill.push(skillObj);
+            });
+        }
         await session.close();
         return listSkill;
     }
@@ -102,26 +132,74 @@ class User extends Model {
         let objResult = {
             id: super.getID(),
             name: this.#name,
+            nim: this.#nim,
             email: this.#email,
             birthdate: this.#birthDate,
             classYear: this.#classYear,
-            photo: this.#photo
+            photo: this.#photo,
+            phoneNumber: this.#phoneNumber,
+            gender: Gender.toString(this.#gender),
+            studyProgram: StudyProgram.toString(this.#studyProgram)
         };
         return objResult;
     }
 
     // Database Related
+    // Create new user
+    static async create(userData){
+        let session = driver.session();
+        let query = `MERGE (u:User {email: '${userData.email}'})
+                     SET u.name = '${userData.name}',
+                     u.nim = ${userData.nim},
+                     u.birthDate = '${userData.birth_date}',
+                     u.classYear = ${userData.class_year},
+                     u.photo = '${userData.photo}',
+                     u.phoneNumber = '${userData.phone_number}',
+                     u.gender = ${userData.gender},
+                     u.studyProgram = ${userData.study_program.study_program_id}
+                     RETURN u`;
+        let result = await session.run(query);
+        if(result.records.length > 0){
+            let value = result.records[0].get('u');
+            let properties = value.properties;
+            let userObj = new User(value.identity, properties.nim, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo, properties.phoneNUmber, properties.gender, properties.studyProgram);
+            await session.close();
+            return userObj;
+        } else {
+            await session.close();
+            return null;
+        }
+    }
+
+    // Save instance to database
+    async save(){
+        let session = driver.session();
+        let query = `MERGE (u:User {nim: ${this.#nim}})
+                     SET u.name = '${this.#name}', 
+                     u.email = '${this.#email}',
+                     u.password = '${this.#password}', 
+                     u.birthDate = '${this.#birthDate}',
+                     u.classYear = ${this.#classYear}, 
+                     u.photo = '${this.#photo}',
+                     u.phoneNumber = '${this.#phoneNumber}',
+                     u.gender = ${this.#gender},
+                     u.studyProgram = ${this.#studyProgram}
+                     RETURN u`;
+        let result = await session.run(query);
+        await session.close();
+        return result.records.length > 0 ? true : false;
+    }
 
     // Get all users
     static async all(){
         let session = driver.session();
-        let query = `MATCH (res:User) RETURN res`;
+        let query = `MATCH (u:User) RETURN u ORDER BY u.nim`;
         let resultListUsers = await session.run(query);
         let tempList = [];
         resultListUsers.records.forEach((item, index) => {
-            let value = item.get('res');
+            let value = item.get('u');
             let properties = value.properties;
-            let objUser = new User(value.identity, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo);
+            let objUser = new User(value.identity, properties.nim, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo, properties.phoneNumber, properties.gender, properties.studyProgram);
             tempList.push(objUser);
         });
 
@@ -137,12 +215,28 @@ class User extends Model {
     // Find user by ID
     static async find(userID){
         let session = driver.session();
-        let query = `MATCH (res:User) WHERE ID(res) = ${userID} RETURN res`;
+        let query = `MATCH (u:User {nim: ${userID}}) RETURN u`;
         let resultUserData = await session.run(query);
         if(resultUserData.records.length > 0){
-            let value = resultUserData.records[0].get('res');
+            let value = resultUserData.records[0].get('u');
             let properties = value.properties;
-            let userData = new User(value.identity, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo);
+            let userData = new User(value.identity, properties.nim, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo, properties.phoneNumber, properties.gender, properties.studyProgram);
+            await session.close();
+            return userData;
+        } else{
+            await session.close();
+            return null;
+        }
+    }
+
+    static async findByEmail(email){
+        let session = driver.session();
+        let query = `MATCH (u:User {email: '${email}'}) RETURN u`;
+        let resultUserData = await session.run(query);
+        if(resultUserData.records.length > 0){
+            let value = resultUserData.records[0].get('u');
+            let properties = value.properties;
+            let userData = new User(value.identity, properties.nim, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo, properties.phoneNUmber, properties.gender, properties.studyProgram);
             await session.close();
             return userData;
         } else{
@@ -153,16 +247,24 @@ class User extends Model {
 
     // Update user
     async update(userData){
-        let userID = super.getID();
         let session = driver.session();
-        let query = `MATCH (res:User) WHERE ID(res) = ${userID} SET res = {name: '${userData.name}', email: '${userData.email}', birthDate: '${userData.birthDate}', gender: '${userData.gender}', religion: '${userData.religion}', degree: '${userData.degree}', classYear: '${userData.classYear}', photo: '${userData.photo}'} RETURN res`;
+        let query = `MATCH (u:User {nim: ${this.#nim}}) 
+                     SET u.name = '${userData.name}',
+                     u.email = '${userData.email}',
+                     u.birthDate = '${userData.birth_date}',
+                     u.classYear = '${userData.class_year}',
+                     u.photo = '${userData.photo}',
+                     u.phoneNumber = '${userData.phone_number}',
+                     u.gender = ${userData.gender},
+                     u.studyProgram = ${userData.study_program.study_program_id}
+                     RETURN u`;
         let resultUpdate = await session.run(query);
         if(resultUpdate.records.length > 0){
-            let value = resultUpdate.records[0].get('res');
+            let value = resultUpdate.records[0].get('u');
             let properties = value.properties;
-            let userData = new User(value.identity, properties.name, properties.email, properties.password, properties.birthDate, properties.gender, properties.religion, properties.degree, properties.classYear, properties.photo);
+            let userData = new User(value.identity, properties.nim, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo, properties.phoneNUmber, properties.gender, properties.studyProgram);
             await session.close();
-            return userData.toObject();
+            return userData;
         } else {
             await session.close();
             return null;
@@ -170,14 +272,13 @@ class User extends Model {
     }
 
     async addSkill(skillList){
-        let userID = super.getID();
         let failedToAdd = [];
         let successToAdd = [];
         let length = skillList.length;
         let session = driver.session();
 
         for(let i=0; i < length; i++){
-            let query = `MATCH (u:User), (s:Skill) WHERE ID(u) = ${userID} AND ID(s) = ${skillList[i]} CREATE (u)-[:SKILLED_IN]->(s) RETURN s`;
+            let query = `MATCH (u:User), (s:Skill) WHERE u.nim = ${this.#nim} AND ID(s) = ${skillList[i]} MERGE (u)-[:SKILLED_IN]->(s) RETURN s`;
             let resultAddSkill = await session.run(query);
             if(resultAddSkill.records.length > 0){
                 let valueSkill = resultAddSkill.records[0].get('s');
@@ -204,11 +305,14 @@ class User extends Model {
     }
 
     async removeSkill(skillID){
-        let userID = super.getID();
         let session = driver.session();
-        let query = `MATCH (u:User), (s:Skill) WHERE ID(u) = ${userID} AND ID(s) = ${skillID} (u)-[rel:SKILLED_IN]->(s) DELETE rel`;
-        let resultDelete = await session.run(query);
-        console.log(resultDelete);
+        let query = `MATCH (u:User {nim: ${this.#nim}})-[rel:SKILLED_IN]->(s:Skill) WHERE ID(s) = ${skillID} DELETE rel`;
+        try{
+            await session.run(query);
+            return 'Success';
+        } catch (error){
+            return error;
+        }
     }
 }
 

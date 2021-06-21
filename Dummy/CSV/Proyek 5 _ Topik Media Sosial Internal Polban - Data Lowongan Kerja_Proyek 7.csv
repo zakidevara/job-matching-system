@@ -1,0 +1,204 @@
+job_id,tanggal_posting,contact,perekrut,title,description,quantity,jobType,location,endDate,benefits,duration,companyName,remote,minSalary,maxSalary,descriptionAddition,genderReq,religionReq,studyProgramReq,skills_req
+1,14/01/2019,Naufal Rajabi,181511023,Android developer,"Persyaratan Umum :
+
+-Pria
+-Muslim
+-Jujur,Pekerja keras,Amanah
+- Mampu bekerja Team
+-Berkomunikasi dengan Baik.
+-Pas Foto terbaru 4 x 6 : 2 L
+-Surat keterangan berbadan Sehat
+-Surat kelakuan baik
+-Bersedia Ditempatkan di JAKARTA TIMUR
+
+# Persyaratan Khusus
+
+- S1 System Information Universitas Terkemuka
+-Usia Max 35
+-Mampu bekerja dengan target
+-Diutamakan yg berpengalaman minimal 1 tahun sebagai android developer
+- Jenis kerjaan : Full-time
+- Memahami konsep pemograman OOP
+- Menguasai JavaScript, Java, SQL
+- Berpengalaman menggunakan database MySQL
+- Menguasai PHP, CSS, HTML 5 adalah poin plus
+- Menguasai grafis design adalah poin plus
+",1,1,Jakarta Timur,NULL,NULL,NULL,NULL,FALSE,NULL,NULL,"Diutamakan yg berpengalaman minimal 1 tahun sebagai android developer
+S1 System Information Universitas Terkemuka",1,1,NULL,"[""JavaScript"", ""Java (programming language)"", ""SQL"", ""MySQL"", ""PHP"", ""CSS"", ""HTML""]"
+2,01/02/2019,Alifia Syalsabila,171511003,Android developer,"1. Muslim/Muslimah
+2. Tidak merokok
+3. Usia maksimal 35 tahun
+4. Pendidikan terakhir minimal D3 untuk posisi No.1,SMK untuk posisi no 2 & 3
+5. Pengalaman min. 1 tahun dibidangnya
+6. Fresh Graduate welcome",1,1,NULL,NULL,NULL,NULL,NULL,FALSE,NULL,NULL,"Pendidikan terakhir minimal D3 untuk posisi No.1,SMK untuk posisi no 2 & 3",NULL,NULL,NULL,"[""Android software development""]"
+3,01/02/2019,Alifia Syalsabila,171511003,Ios developer,"1. Muslim/Muslimah
+2. Tidak merokok
+3. Usia maksimal 35 tahun
+4. Pendidikan terakhir minimal D3 untuk posisi No.1,SMK untuk posisi no 2 & 3
+5. Pengalaman min. 1 tahun dibidangnya
+6. Fresh Graduate welcome",1,1,NULL,NULL,NULL,NULL,NULL,FALSE,NULL,NULL,"Pendidikan terakhir minimal D3 untuk posisi No.1,SMK untuk posisi no 2 & 3",NULL,NULL,NULL,"[""IOS development software""]"
+4,10/02/2019,Lisnawati,171511018,Web developer,Yang bisa laravel,1,2,NULL,NULL,NULL,NULL,NULL,TRUE,NULL,NULL,NULL,NULL,NULL,NULL,"[""Web development"",""Laravel""]"
+5,20/02/2019,Reka Alamsyah,151511029,Web developer,2 orang di web laravel,2,2,NULL,NULL,NULL,NULL,NULL,TRUE,NULL,NULL,NULL,NULL,NULL,NULL,"[""Web development"",""Laravel""]"
+6,20/02/2019,Reka Alamsyah,151511029,Android developer,2 orang di mobile android,2,2,NULL,NULL,NULL,NULL,NULL,TRUE,NULL,NULL,NULL,NULL,NULL,NULL,"[""Android software development""]"
+7,11/05/2019,Debora Eirene,161511007,Web developer,Website sederhana dari jurusan administrasi niaga,1,2,NULL,NULL,NULL,NULL,NULL,TRUE,NULL,NULL,NULL,NULL,NULL,NULL,"[""Web development""]"
+8,19/05/2019,Omeeeeeennn,151511027,Web developer,Web simpel menggunakan bahasa apa aja,1,2,NULL,NULL,NULL,NULL,NULL,TRUE,NULL,NULL,NULL,NULL,NULL,NULL,"[""Web development""]"
+9,21/06/2019,Nikita Nabila,171511024,Programmer,"Persyaratan:
+- Pria Maks. 25 thn
+- Freshgraduate / Berpengalaman min. 1 Tahun
+- Pendidikan  S1 
+- Jurusan informatika
+- Jujur, teliti, tekun dan mampu bekerjasama
+- Mau untuk terus berkembang dan memiliki logika yang baik
+- Memahami dan mampu mengoperasikan delphi, SQL Server, dan MySQL
+- Memahami dan mampu membuat serta memantau website
+- Memahami PHP Framework, jQuery, Java, dan html5 menjadi nilai +
+- Memahami jaringan menjadi nilai +",1,1,NULL,NULL,NULL,NULL,NULL,FALSE,NULL,NULL,"Freshgraduate / Berpengalaman min. 1 Tahun
+Pendidikan  S1 
+Jurusan informatika",NULL,NULL,NULL,"[""Web development"", ""MySQL"", ""Microsoft SQL Server"", ""PHP"", ""JQuery"", ""Java (programming language)"", ""HTML"", ""Zend Framework"", ""Laravel"", ""CodeIgniter"", ""Phalcon (framework)""]"
+10,05/08/2019,Bening,181511006,Programmer,Skill database (query oracle),1,1,NULL,NULL,NULL,NULL,NULL,FALSE,NULL,NULL,NULL,NULL,NULL,NULL,"[""Oracle Database""]"
+11,13/08/2019,Nikita Nabila,171511024,Web developer,"Crud sama search, disuahakan bukan mahasiswa yang lagi KP/PKL",1,2,NULL,NULL,NULL,NULL,NULL,TRUE,NULL,NULL,NULL,NULL,NULL,NULL,"[""Web development""]"
+12,15/09/2019,yogsss,171511037,"iOS, Android, Front-End, SDET, Back-End Developer","1. iOS:
+Swift & ObjC
+
+2. Android
+Java & Kotlin
+
+3. Front-End
+Javascript & HTML
+
+4. SDET
+Java
+
+5. Back-End Developer
+Java, Spring, & Spring Boot Technology",1,1,NULL,NULL,NULL,NULL,NULL,FALSE,NULL,NULL,NULL,NULL,NULL,NULL,"[""Swift (programming language)"", ""Java (programming language)"", ""Kotlin (programming language)"", ""JavaScript"", ""HTML""]"
+13,27/09/2019,Rezky WS,181511031,Software Engineer,"* Bachelor degree in Computer Science, Information System, Information Technology, Software Engineering and Electrical Engineering, Math, Physics from Reputable Universities
+* Experiences in Java or C/C++ programming languages
+* Experiences or software construction and unit test
+* Strong understanding on mobile and web technologies
+* Strong understanding logic, algorithm, and data structure concepts",1,1,NULL,NULL,NULL,NULL,NULL,FALSE,NULL,NULL,"Bachelor degree in Computer Science, Information System, Information Technology, Software Engineering and Electrical Engineering, Math, Physics from Reputable Universities",NULL,NULL,NULL,"[""Java (programming language)"", ""C (programming language)"", ""C++""]"
+14,28/10/2019,Jays,171511016,"Project Manager, System Analyst, Front End, Back End, Quality Assurance","- Mengerti bahasa pemrograman PHP
+- Mengerti dan pernah menggunakan minimal satu framework PHP
+- Dapat diminta untuk mempelajari framework phalcon PHP",1,2,NULL,NULL,NULL,NULL,NULL,TRUE,NULL,NULL,NULL,NULL,NULL,NULL,"[""PHP"", ""Phalcon (framework)"", ""Laravel"", ""CodeIgniter"", ""Zend Framework""]"
+15,20/11/2019,Alif Ramdani,171511002,Computer Vision & Data Science,Bahasa Python,1,1,NULL,NULL,NULL,NULL,NULL,FALSE,NULL,NULL,NULL,NULL,NULL,NULL,"[""Python (programming language)""]"
+16,15/01/2019,Reka Alamsyah R.,151511029,Web developer,"Minimal pernah pake react atau vue js, dan laravel",1,1,NULL,NULL,NULL,NULL,NULL,FALSE,NULL,NULL,NULL,NULL,NULL,NULL,"[""React Native"",""Vue.js"", ""Laravel""]"
+17,20/03/2020,Nikita Nabila,171511024,Web Developer,"* Proven working experience as a Web Developer at least 2 year
+* Fresh graduate or other education background with strong willingness to learn are welcome
+* Having extensive knowledge on PHP, PostgreSQL, HTML5, CSS3, Javascript and Responsive Web Design
+* Familiar with PHP framewoek such as Laravel
+* Familiar (and not limited to) with framewoek and library such as bootstrap and jQuery
+* Knowledge of: css pre processor such as LESS/SCSS. Having knowledge of SEO is a plus
+* Knowledge of: GIT version control system
+* Strong analytical and problem solving skills
+* Able to working full-time and on site in Bandung",1,1,Bandung,NULL,NULL,NULL,NULL,FALSE,NULL,NULL,"Proven working experience as a Web Developer at least 2 year
+Fresh graduate or other education background with strong willingness to learn are welcome",NULL,NULL,NULL,"[""Web development"", ""PHP"", ""HTML"", ""CSS"", ""JavaScript"", ""PostgreSQL"", ""Laravel"", ""JQuery"", ""Bootstrap (front-end framework)"", ""Git""]"
+18,21/04/2020,Nadia Pd,181511022,Software Developer,"Kualifikasi Utama:
+1. Menguasai bahasa programming phyton
+
+Kualifikasi Tambahan:
+1. Menguasai program C++ (level basic)
+2. Memiliki dasar frontend untuk pembuatan desain GUI
+3. Memahami database MySQL
+4. Pernah memiliki project berkaitan dengan Raspberry Pi is a plus",1,1,NULL,NULL,NULL,NULL,NULL,FALSE,NULL,NULL,NULL,NULL,NULL,NULL,"[""Python (programming language)"", ""C++"", ""MySQL"", ""Raspberry Pi OS""]"
+19,04/06/2020,Rohmat Dasuki,161511033,Programmer,Angular dan Laravel,1,1,NULL,NULL,NULL,NULL,NULL,FALSE,NULL,NULL,NULL,NULL,NULL,NULL,"[""AngularJS"", ""Laravel""]"
+20,20/07/2020,Hendra Permana,161511010,Programmer,"1. Berpengalaman pada Socket Programming
+2. Menguasai bahasa Pemrograman Java/Python menjadi nilai tambah",1,1,NULL,NULL,NULL,NULL,NULL,FALSE,NULL,NULL,NULL,NULL,NULL,NULL,"[""Java (programming language)"", ""Python (programming language)""]"
+21,05/08/2020,ikhsans,181511012,Web Developer,"assalamualaikum
+dicari web developer rate diatas umr,
+lulusan SMK/D3,
+tertarik harap email ke rizal@pindad.com
+nuhun",1,1,NULL,NULL,NULL,NULL,NULL,FALSE,NULL,NULL,lulusan SMK/D3,NULL,NULL,NULL,"[""Web development""]"
+22,28/08/2020,Jays,171511016,Web Developer,Diutamakan Vue.js developer,2-4,2,NULL,NULL,NULL,NULL,NULL,TRUE,NULL,NULL,NULL,NULL,NULL,NULL,"[""Web development"",""Vue.js""]"
+23,14/09/2020,Lisa,181511017,Web Developer,"Assalamualaikum, punten di sini ada yg bisa bikin web virtual 3d event?
+untuk liat sample nya, bisa pc dlu. Hatur nuhun ",1,2,NULL,NULL,NULL,NULL,NULL,TRUE,NULL,NULL,NULL,NULL,NULL,NULL,"[""Web development""]"
+24,19/09/2020,Reynaldy Rizky S.,191511030,Anggota Tim PKM-M,"Assalamu'alaikum. Kami (Fauzan, Marissa, dan Rey dari kelas D4-2A) sedang mencari anggota tim untuk PKM-M dengan syarat mahasiswa prodi D3 angkatan 2019 atau mahasiswa angkatan 2018/2017. Topik PKM adalah Sistem Pendeteksi Kecelakaan Mobil. Bagi yang berminat silahkan menghubungi saya. Terima kasih",1,2,NULL,NULL,NULL,NULL,NULL,FALSE,NULL,NULL,NULL,NULL,NULL,NULL,[]
+25,12/10/2020,Afif,171511001,Programmer,"Flutter, CI",1,2,NULL,NULL,NULL,NULL,NULL,TRUE,NULL,NULL,NULL,NULL,NULL,NULL,"[""Flutter (software)"",""CodeIgniter""]"
+26,19/10/2020,Lisa,181511017,Programmer Web,"1. Terbiasa (mengerti dan menguasi) php 5 dan mysql, minimal menggunakan selama 1 tahun
+2. Menguasai HTML, CSS, dan JavaScript
+3. Menguasai framework CI dan bootstrap 
+4. Bersedia bekerja cepat
+
+⭐️jujur dan dapat dipercaya",1,1,NULL,NULL,NULL,NULL,NULL,FALSE,NULL,NULL,"Terbiasa (mengerti dan menguasi) php 5 dan mysql, minimal menggunakan selama 1 tahun",NULL,NULL,NULL,"[""Web development"", ""PHP"", ""MySQL"", ""HTML"", ""CSS"", ""JavaScript"", ""CodeIgniter"", ""Bootstrap (front-end framework)""]"
+27,19/10/2020,Lisa,181511017,Android developer,Project android atau odoo,1,2,NULL,NULL,NULL,NULL,NULL,TRUE,NULL,NULL,NULL,NULL,NULL,NULL,"[""Android software development""]"
+28,27/10/2020,yogsss,171511037,Web Developer dan Mobile Developer,"PT. Sanghiang Perkasa (Kalbe Nutritionals) database:
+
+ Web Developer:
+- Min. S1 Teknologi Informatika, Ilmu Komputer, dan jurusan sejenis lainnya
+- Memiliki pengalaman minimal 2 tahun sebagai Web Developer (full-stack)
+- Menguasai bahasa pemrograman .Net (mvc)
+- Mampu bekerja secara multi-tasking
+
+Mobile Developer:
+- Min. S1 Teknologi Informatika, Ilmu Komputer, dan jurusan sejenis lainnya
+- Memiliki pengalaman minimal 2 tahun sebagai Mobile Developer (full-stack)
+- Menguasai Android Studio
+- Mampu bekerja secara multi-tasking
+
+Silakan mengirimkan CV terupdate Anda ke ervita.komala@kalbenutritionals.com. Terima kasih",2,1,"Karawang, Jawa Barat",NULL,NULL,NULL,PT. Sanghiang Perkasa,FALSE,NULL,NULL,"Min. S1 Teknologi Informatika, Ilmu Komputer, dan jurusan sejenis lainnya
+Memiliki pengalaman minimal 2 tahun sebagai Web Developer (full-stack)
+Memiliki pengalaman minimal 2 tahun sebagai Mobile Developer (full-stack)",NULL,NULL,NULL,"[""Web development"", ""Android software development"", "".NET Framework"", ""Android Studio""]"
+29,28/10/2020,Hilmy Okto,181511011,Unity Multiplayer Developer,"PENGUMUMAN....
+Bagi Sobat Hantu yang mau bergabung dengan Lentera Nusantara sebagai Unity Multiplayer Developer, bisa kirim CV dan Portofolio ke admin@lentera-nusantara.com
+Mimin tunggu yaaaa... 😉
+maksimal sampai tanggal 30 November 2020
+SEMANGAT! 💪😎
+
+#ghostparadegame #ghostparade #bandung #lowongan #lowongankerja #game #gamebandung #gamekonsol #konsolgame #comics #ghostparadecomic #loker #lokerbandung #lokerprogrammer
+#videogames
+#bausastralelembut
+#gamedeveloper
+#GhostParade #GhostParadeGame #Numskull
+#NumskullGames #Switch #Gaming
+#komikinajah 
+#aksysgames",1,1,Bandung,30/11/2020,NULL,NULL,Lentera Nusantara,FALSE,NULL,NULL,NULL,NULL,NULL,NULL,"[""Unity (game engine)""]"
+30,28/10/2020,Jays,171511016,Senior Developer,"Info lowongan PT. Infomedia Nusantara:
+
+Dibutuhkan segera untuk posisi Senior Developer dengan kriteria sbb:
+
+1. Pria/Wanita, Min Pendidikan S1/D3
+2. Basic Java
+3. Database Oracle, MySQL
+4. Development colaboration (jenkins, Github, Jira)
+5. Linux/Unix
+6. Basic Kubernetes
+7. Stay 1 year during project
+
+Benefit:
+- Salary
+- BPJS
+
+Penempatan di Gedung Telkomsel Smart Office, Gatot Subroto, Jakarta (Untuk saat ini WFH)
+",1,1,Jakarta,NULL,"- Salary
+- BPJS",NULL,NULL,TRUE,NULL,NULL,"Min Pendidikan S1/D3
+Stay 1 year during project",NULL,NULL,NULL,"[""Java (programming language)"", ""Oracle Database"", ""MySQL"", ""Kubernetes""]"
+31,29/10/2020,Andi Fauzy,181511005,Project Manager,"Ada project nih temen"". Pengerjaan satu bulan, requirement :
+1. React Native
+2. Redux-saga, 
+Fee bisa didiskusikan, yang minat boleh pc saya, buat dihubungi ke orang pemilik project. Hatur nuhun 🙏",1,2,NULL,NULL,NULL,1 bulan,NULL,TRUE,NULL,NULL,NULL,NULL,NULL,NULL,"[""React Native"", ""Redux (JavaScript library)""]"
+32,06/11/2020,Mumuh KMuharam,171511021,PHP Programmer,"Neuronworks
+Male/Max 30yo
+Domicile/Assigned on Bandung
+Required maximal for S1 Information System
+Already accustomed about PHP Programming, php, Zend, Laravel, & CI in Framework, Proficient in MySQL Database programming, php, oracle programming, html, css, bootstrap & javascript programming.
+3 years expreience in programming
+very good on manage database design.
+Good attitude and be able to work with team",1,1,Bandung,NULL,NULL,NULL,NULL,FALSE,NULL,NULL,"3 years expreience in programming
+Required maximal for S1 Information System",NULL,NULL,NULL,"[""PHP"", ""Zend Framework"", ""Laravel"", ""CodeIgniter"", ""MySQL"", ""Oracle Database"", ""HTML"", ""CSS"", ""JavaScript"", ""Bootstrap (front-end framework)""]"
+33,11/11/2020,Ivan Eka,181511049,Mobile Developer,"Android and IOS
+Salary 4,5jt - 7 jt",1,1,NULL,NULL,NULL,NULL,NULL,FALSE,4500000,7000000,NULL,NULL,NULL,NULL,"[""IOS development software"", ""Android software development""]"
+34,11/11/2020,Norman Ibrahim S,171511025,Java Web Programmer,"[ INFO LOKER PROGRAMMER JAVA ]
+
+Bismillah, mau menginformasikan, ada lowongan pekerjaan di bidang programmer web java, s.d. 10 orang
+Tempat : onsite, di bank BUMN Jakarta
+Salary : sesuai hasil test (pasti diatas UMR)
+
+yang berminat bisa hubungi norman
+atau email aja ke nibrahimsultan@gmail.com
+
+Terima kasih",10,1,Jakarta,NULL,NULL,NULL,Bank BUMN Jakarta,FALSE,NULL,NULL,NULL,NULL,NULL,NULL,"[""Web development"", ""Java (programming language)""]"
+35,04/12/2020,Rhio,181511064,Fullstack Developer dan Front End Developer,"1. Memiliki gelar di bidang Ilmu Komputer, Teknik Informatika, Sistem Informasi atau jurusan terkait.
+2. Memiliki pengalaman kerja di bidang tersebut min. 1 tahun
+3. Mampu melakukan pengembangan pada halaman web & pengkodean untuk pemeliharaan aset digital perusahaan
+4. Menguasai PHP (Native of Frameworks), HTML, CSS, JS Framework (Angular, React, dll), dan familiar dengan CMS terutama Wordpress
+5. Familiar dengan API integration seperti Rest API
+6. Lokasi kantor: Pointlab Coworking Space, Graha Pos Indonesia, Jl. Banda No.30,Bandung",1,1,Bandung,NULL,NULL,NULL,NULL,FALSE,NULL,NULL,"Memiliki gelar di bidang Ilmu Komputer, Teknik Informatika, Sistem Informasi atau jurusan terkait.
+Memiliki pengalaman kerja di bidang tersebut min. 1 tahun",NULL,NULL,NULL,"[""Web development"",""PHP"", ""HTML"", ""CSS"", ""JavaScript"", ""AngularJS"", ""Vue.js"", ""React Native"", ""WordPress""]"
