@@ -6,6 +6,73 @@ const JobStudentMatcher = require("../matcher/JobStudentMatcher");
 
 class JobController extends ResourceController {
 
+    constructor(label){
+        super(label);
+    }
+
+    async all(){
+        let jobList = await Job.getAllAvailableJob();
+        return jobList;
+    }
+
+    async create(jobData){
+        let newJob = await Job.create(jobData);
+        return newJob;
+    }
+
+    async find(jobID){
+        let jobData = await Job.find(jobID);
+        let job = jobData.job.toObject();
+        let jobTypeF = jobData.jobType.toObject();
+        let jobReq = jobData.jobReq.toObject();
+
+        let requirements = {
+            studyProgramReq: jobReq.studyProgramRequirement,
+            classYearRequirement: jobReq.classYearRequirement,
+            documentsRequirement: jobReq.documentsRequirement,
+            requiredSkills: jobReq.requiredSkills,
+            softSkillRequirment: jobReq.softSkillRequirment,
+            maximumAge: jobReq.maximumAge,
+            requiredReligion: jobReq.requiredReligion,
+            requiredGender: jobReq.requiredGender,
+            description: jobReq.description
+        };
+
+        let resultObj = {
+            jobID: job.jobID,
+            title: job.title,
+            description: job.description,
+            jobType: jobTypeF,
+            companyName: job.companyName,
+            remote: job.remote,
+            location: job.location,
+            duration: job.duration,
+            benefits: job.benefits,
+            contact: job.contact,
+            quantity: job.quantity,
+            minSalary: job.minSalary,
+            maxSalary: job.maxSalary,
+            endDate: job.endDate,
+            requirements: requirements,
+            status: job.status
+        };
+        return resultObj;
+    }
+
+    async update(jobID, updatedJobData){
+        let jobData = await Job.find(jobID);
+        if(jobData === null) return null;
+
+        let updateResult = await jobData.job.update(updatedJobData, jobData.jobReq, jobData.jobType);
+    }
+
+    async deleteJob(jobID){
+        let jobData = await Job.find(jobID);
+        let job = jobData.job;
+        let result = await job.delete();
+        return result;
+    }
+
     static async applyJob(jobID, userID){
         // Validate user and job in database
         let job = await Job.find(jobID);

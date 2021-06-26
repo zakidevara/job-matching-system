@@ -1,6 +1,7 @@
 const ResourceController = require("./ResourceController");
 const neo4j = require('neo4j-driver');
 const SkillModel = require('../../model/Skill');
+const Skill = require("../../model/Skill");
 const user = 'neo4j';
 const password = 'fakboi3';
 const uri = 'bolt://localhost:7687';
@@ -12,13 +13,9 @@ class SkillController extends ResourceController {
         super(label);
     }
 
-    async searchByName(skillName){
-        let session = driver.session();
-        let result = await session.run(`MATCH (n:Resource) WHERE n.label CONTAINS '$skill' RETURN n`, {
-            skill: skillName
-        });
-        await session.close();
-        return result.records;
+    async setIDForNode(){
+        let result = await Skill.setID();
+        return result;
     }
 }
 

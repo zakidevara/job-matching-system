@@ -1,16 +1,32 @@
+const {v4: uuidv4 } = require('uuid');
 async function test(){
     const neo4j = require('neo4j-driver');
-    const user = "neo4j";
-    const password = "fakboi3";
-    const uri = "bolt://localhost:7687";
-    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
+    const driver = neo4j.driver('neo4j://165.22.102.112:7687', neo4j.auth.basic('neo4j', 'passwordzk'), {
         disableLosslessIntegers: true
     });
     
     let session = driver.session();
-    let query = `MATCH (res:User {userID: 1}) RETURN res`;
+    let query = `MATCH (d:Degree) RETURN d`;
     let result = await session.run(query);
 
-    console.log(result.records[0].get('res'));
+    let list = [];
+    if(result.records.length > 0){
+        result.records.forEach((item) => {
+            let value = item.get('d').properties;
+            let obj = {
+                id: value.id,
+                name: value.name
+            };
+            list.push(obj);
+        });
+
+        for(let i=0; i < list.length; i++){
+            let value = list[i];
+            let id = uuidv4();
+            let query = `MATCH (d:Degree {name: '${value.name}'}) SET d.id = '${id}' RETURN d`;
+            let result = await session.run(query);
+            console.log(result.records[0].get('d').properties.name);
+        }
+    }
 }
 test();

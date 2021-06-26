@@ -1,9 +1,12 @@
-const Model = require("./Model");
+const {Model} = require("./Model");
 
 class JobType extends Model {
+    #id;
     #name;
 
-    constructor(name){
+    constructor(id, name){
+        super();
+        this.#id = id;
         this.#name = name;
     }
 
@@ -12,6 +15,17 @@ class JobType extends Model {
     }
     getName(){
         return this.#name;
+    }
+    getID(){
+        return this.#id;
+    }
+
+    toObject(){
+        let objResult = {
+            id: this.#id,
+            name: this.#name
+        };
+        return objResult;
     }
 
 }

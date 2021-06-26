@@ -10,7 +10,7 @@ class JobStudentMatcher {
             let maxSkillSimilarity = 0;
             let currSkillSimilarity = 0;
             for(let j=0; j < jobRequiredSkills.length; j++){
-                let objSkill = new Skill(101,'', '');
+                let objSkill = new Skill('', '');
                 currSkillSimilarity = await objSkill.calculateSimilarity(userSkills[i].getName(), jobRequiredSkills[j].getName());
                 if(currSkillSimilarity > maxSkillSimilarity){
                     maxSkillSimilarity = currSkillSimilarity;

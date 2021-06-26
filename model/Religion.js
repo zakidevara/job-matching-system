@@ -2,22 +2,24 @@ const { Model, driver } = require("./Model");
 
 class Religion extends Model{
     // Property of religion (private)
+    #id;
     #name;
 
     constructor(id, name){
-        super(id);
+        super();
+        this.#id = id;
         this.#name = name;
     }
 
     getReligionID(){
-        return super.getID();
+        return this.#id;
     }
     getName(){
         return this.#name;
     }
     toObject(){
         let resultObj = {
-            id: super.getID(),
+            id: this.#id,
             name: this.#name
         };
         return resultObj;

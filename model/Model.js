@@ -5,28 +5,15 @@ const driver = neo4j.driver(process.env.NEO4J_HOST, neo4j.auth.basic(process.env
     disableLosslessIntegers: true
 });
 
+// UUID
+const {v4: uuidv4 } = require('uuid');
+
 class Model {
-    #id;
-    constructor(id){
-        this.#id = id;
+    constructor(){
+        if(this.constructor === Model){
+            throw new Error('Abstract class "Model" cannot be instantiated directly');
+        }
     }
-
-    setID(newID){
-        this.#id = newID;
-    }
-
-    getID(){
-        return this.#id;
-    }
-    
-    static async all(){}
-    static async find(){}
-    static async findById(){}
-    static async create(){}
-    static async update(){}
-    static async deleteByID(){}
-    async delete(){}
-    async save(){}
 }
 
-module.exports = {Model, driver};
+module.exports = {Model, driver, uuidv4};

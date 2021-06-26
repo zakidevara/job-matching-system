@@ -1,14 +1,20 @@
-const {Model, driver} = require("./Model");
+const {Model, driver, uuidv4} = require("./Model");
 
 class Skill extends Model {
     // Property of skill (private)
+    #id;
     #name;
     #uri;
 
-    constructor(skillID, name, uri){
-        super(skillID);
+    constructor(id, name, uri){
+        super();
+        this.#id = id;
         this.#name = name;
         this.#uri = uri;
+    }
+
+    getID(){
+        return this.#id;
     }
 
     getName(){
@@ -21,11 +27,47 @@ class Skill extends Model {
 
     toObject(){
         let objResult = {
-            id: super.getID(),
+            id: this.#id,
             name: this.#name,
             uri: this.#uri
         };
         return objResult;
+    }
+
+    // Database Related
+
+    // Set UUID for every Skill node
+    static async setID(){
+        let session = driver.session();
+        let query = `MATCH (s:Skill) RETURN s`;
+        let result = await session.run(query);
+        
+        let skillData = [];
+        result.records.forEach((item) => {
+            let value = item.get('s').properties;
+            let skill = new Skill(value.name, value.uri);
+            skillData.push(skill);
+        });
+
+        let exampleData = {};
+        for(let i=0; i < skillData.length; i++){
+            let skillID = uuidv4();
+            let value = skillData[i];
+            console.log('curr skill: ', value.getName());
+            let query = `MATCH (s:Skill {uri: "${value.getUri()}"}) SET s.id = '${skillID}' RETURN s`;
+            let result = await session.run(query);
+            if(result.records.length > 0){
+                if(i === 0){
+                    let value = result.records[0].get('s').properties;
+                    exampleData['id'] = value.id;
+                    exampleData['name'] = value.name;
+                    exampleData['uri'] = value.uri;
+                } else {
+                    continue;
+                }
+            }
+        }
+        return exampleData;
     }
 
     static async find(skillID){
@@ -35,7 +77,7 @@ class Skill extends Model {
         if(resultSkill.records.length > 0){
             let value = resultSkill.records[0].get('res');
             let properties = value.properties;
-            let skillData = new Skill(value.identity, properties.name, properties.uri);
+            let skillData = new Skill(properties.name, properties.uri);
             await session.close();
             return skillData;
         } else {

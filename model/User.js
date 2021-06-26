@@ -17,8 +17,8 @@ class User extends Model {
     #gender;
     #studyProgram;
 
-    constructor(userID, nim = '', name = '', email = '', password = '', birthDate = '', classYear = '', photo = '', phoneNumber = '', gender = 0, studyProgram = 0){
-        super(userID);
+    constructor(nim = '', name = '', email = '', password = '', birthDate = '', classYear = '', photo = '', phoneNumber = '', gender = 0, studyProgram = 0){
+        super();
         this.#nim = nim;
         this.#name = name;
         this.#email = email;
@@ -121,7 +121,7 @@ class User extends Model {
             resultUserSkills.records.forEach((item, index) => {
                 let value = item.get('s');
                 let properties = value.properties;
-                let skillObj = new Skill(value.identity, properties.name, properties.uri);
+                let skillObj = new Skill(properties.name, properties.uri);
                 listSkill.push(skillObj);
             });
         }
@@ -130,7 +130,6 @@ class User extends Model {
     }
     toObject(){
         let objResult = {
-            id: super.getID(),
             name: this.#name,
             nim: this.#nim,
             email: this.#email,
@@ -150,19 +149,19 @@ class User extends Model {
         let session = driver.session();
         let query = `MERGE (u:User {email: '${userData.email}'})
                      SET u.name = '${userData.name}',
-                     u.nim = ${userData.nim},
-                     u.birthDate = '${userData.birth_date}',
-                     u.classYear = ${userData.class_year},
+                     u.nim = '${userData.nim}',
+                     u.birthDate = '${userData.birthDate}',
+                     u.classYear = ${userData.classYear},
                      u.photo = '${userData.photo}',
-                     u.phoneNumber = '${userData.phone_number}',
+                     u.phoneNumber = '${userData.phoneNumber}',
                      u.gender = ${userData.gender},
-                     u.studyProgram = ${userData.study_program.study_program_id}
+                     u.studyProgram = ${userData.studyProgram.studyProgramId}
                      RETURN u`;
         let result = await session.run(query);
         if(result.records.length > 0){
             let value = result.records[0].get('u');
             let properties = value.properties;
-            let userObj = new User(value.identity, properties.nim, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo, properties.phoneNUmber, properties.gender, properties.studyProgram);
+            let userObj = new User(properties.nim, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo, properties.phoneNUmber, properties.gender, properties.studyProgram);
             await session.close();
             return userObj;
         } else {
@@ -199,7 +198,7 @@ class User extends Model {
         resultListUsers.records.forEach((item, index) => {
             let value = item.get('u');
             let properties = value.properties;
-            let objUser = new User(value.identity, properties.nim, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo, properties.phoneNumber, properties.gender, properties.studyProgram);
+            let objUser = new User(properties.nim, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo, properties.phoneNumber, properties.gender, properties.studyProgram);
             tempList.push(objUser);
         });
 
@@ -215,12 +214,12 @@ class User extends Model {
     // Find user by ID
     static async find(userID){
         let session = driver.session();
-        let query = `MATCH (u:User {nim: ${userID}}) RETURN u`;
+        let query = `MATCH (u:User {nim: '${userID}'}) RETURN u`;
         let resultUserData = await session.run(query);
         if(resultUserData.records.length > 0){
             let value = resultUserData.records[0].get('u');
             let properties = value.properties;
-            let userData = new User(value.identity, properties.nim, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo, properties.phoneNumber, properties.gender, properties.studyProgram);
+            let userData = new User(properties.nim, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo, properties.phoneNumber, properties.gender, properties.studyProgram);
             await session.close();
             return userData;
         } else{
@@ -236,7 +235,7 @@ class User extends Model {
         if(resultUserData.records.length > 0){
             let value = resultUserData.records[0].get('u');
             let properties = value.properties;
-            let userData = new User(value.identity, properties.nim, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo, properties.phoneNUmber, properties.gender, properties.studyProgram);
+            let userData = new User(properties.nim, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo, properties.phoneNUmber, properties.gender, properties.studyProgram);
             await session.close();
             return userData;
         } else{
@@ -262,7 +261,7 @@ class User extends Model {
         if(resultUpdate.records.length > 0){
             let value = resultUpdate.records[0].get('u');
             let properties = value.properties;
-            let userData = new User(value.identity, properties.nim, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo, properties.phoneNUmber, properties.gender, properties.studyProgram);
+            let userData = new User(properties.nim, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo, properties.phoneNUmber, properties.gender, properties.studyProgram);
             await session.close();
             return userData;
         } else {
@@ -283,7 +282,7 @@ class User extends Model {
             if(resultAddSkill.records.length > 0){
                 let valueSkill = resultAddSkill.records[0].get('s');
                 let propertiesSkill = valueSkill.properties;
-                let skill = new Skill(valueSkill.identity, propertiesSkill.name, propertiesSkill.uri);
+                let skill = new Skill(propertiesSkill.name, propertiesSkill.uri);
                 successToAdd.push(skill);
             } else {
                 failedToAdd.push(skillList[i]);
@@ -304,14 +303,52 @@ class User extends Model {
         return objResult;
     }
 
+    async addSkillv2(skillList){
+        let failedToAdd = [];
+        let successToAdd = [];
+        let length = skillList.length;
+        let session = driver.session();
+
+        for(let i=0; i < length; i++){
+            let checkRel = `MATCH (u:User {nim: ${this.#nim}})-[re:SKILLED_IN]->(s:Skill) WHERE ID(s) = ${skillList[i]} RETURN re`;
+            let resultCheckRel = await session.run(checkRel);
+            if(resultCheckRel.records.length < 1){
+                let queryAddSkill = `MATCH (u:User), (s:Skill) WHERE u.nim = ${this.#nim} AND ID(s) = ${skillList[i]} MERGE (u)-[:SKILLED_IN]->(s) RETURN s`;
+                let resultAddSkill = await session.run(queryAddSkill);
+                if(resultAddSkill.records.length > 0){
+                    let valueSkill = resultAddSkill.records[0].get('s');
+                    let properties = valueSkill.properties;
+                    let skill = new Skill(properties.name, properties.uri);
+                    successToAdd.push(skill);
+                } else {
+                    failedToAdd.push(skillList[i]);
+                }
+            } else {
+                failedToAdd.push(skillList[i]);
+            }
+        }
+        let finalSuccessResult = [];
+        successToAdd.forEach((item, index) => {
+            let obj = item.toObject();
+            finalSuccessResult.push(obj);
+        });
+        
+        let objResult = {
+            success: finalSuccessResult,
+            failed: failedToAdd
+        };
+        await session.close();
+        return objResult;
+    }
+
     async removeSkill(skillID){
         let session = driver.session();
-        let query = `MATCH (u:User {nim: ${this.#nim}})-[rel:SKILLED_IN]->(s:Skill) WHERE ID(s) = ${skillID} DELETE rel`;
-        try{
-            await session.run(query);
+        let query = `MATCH (u:User {nim: ${this.#nim}})-[re:SKILLED_IN]->(s:Skill) WHERE ID(s) = ${skillID} DELETE re RETURN COUNT(re)`;
+        let result = await session.run(query);
+        if(result.records.length > 0){
             return 'Success';
-        } catch (error){
-            return error;
+        } else {
+            return 'Failed';
         }
     }
 }
