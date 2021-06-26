@@ -1,5 +1,8 @@
-const {Model, driver, uuidv4} = require("./Model");
+const Model = require("./Model");
 const Skill = require('./Skill');
+// UUID
+const {v4: uuidv4 } = require('uuid');
+const DB = require("../services/DB");
 
 const JobStudentMatcher = require("../application/matcher/JobStudentMatcher");
 const User = require("./User");
@@ -62,9 +65,8 @@ class Job extends Model {
         return this.#companyName;
     }
     async getRequiredSkills(){
-        let session = driver.session();
         let query = `MATCH (j:Job {jobID: '${this.#jobID}'})-[:REQUIRES_SKILL]->(s:Skill) Return s`;
-        let resultListSkill = await session.run(query);
+        let resultListSkill = await DB.query(query);
         let listSkill = [];
         resultListSkill.records.forEach((item, index) => {
             let value = item.get('s');
@@ -72,13 +74,12 @@ class Job extends Model {
             let skillObj = new Skill(properties.name, properties.uri);
             listSkill.push(skillObj);
         });
-        await session.close();
+        
         return listSkill;
     }
     async getApplicant(){
-        let session = driver.session();
         let query = `MATCH (j:Job {jobID: '${this.#jobID}'})<-[res:APPLY]-(:User) RETURN res`;
-        let resultApplicant = await session.run(query);
+        let resultApplicant = await DB.query(query);
         let listApplicant = [];
         resultApplicant.records.forEach((item, index) => {
             let value = item.get('res').properties;
@@ -116,8 +117,7 @@ class Job extends Model {
 
     // Get all job
     static async getAllAvailableJob(){
-        let session = driver.session();
-        let resultListJob = await session.run(`MATCH (j:Job {status: true})<-[:POSTS]-(u:User) RETURN j, u ORDER BY j.jobID`);
+        let resultListJob = await DB.query(`MATCH (j:Job {status: true})<-[:POSTS]-(u:User) RETURN j, u ORDER BY j.jobID`);
         let jobData = [];
         resultListJob.records.forEach((item, index) => {
            let propJob = item.get('j').properties;
@@ -134,7 +134,7 @@ class Job extends Model {
             let value = jobData[i];
             // Get the rest of requirement of Job
             let queryJobReq = `MATCH (j:Job {jobID : '${value.job.jobID}'})-[:REQUIRES]->(jr:JobReq), (j)-[:CLASSIFIED]->(jt:JobType), (jr)-[:REQUIRES_SKILL]->(s:Skill) RETURN jr, jt, s`;
-            let resultJobReq = await session.run(queryJobReq);
+            let resultJobReq = await DB.query(queryJobReq);
             let listSkills = [];
             let listReligions = [];
             let jobReqData = {};
@@ -164,7 +164,7 @@ class Job extends Model {
                 jobReqData.setSkills(listSkills);
 
                 let queryReligions = `MATCH (j:Job {jobID : '${value.job.jobID}'})-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_RELIGION]->(r:Religion) RETURN r`;
-                let resultReligions = await session.run(queryReligions);
+                let resultReligions = await DB.query(queryReligions);
                 if(resultReligions.records.length > 0){
                     resultReligions.records.forEach((item, index) => {
                         let value = item.get('r').properties;
@@ -219,7 +219,6 @@ class Job extends Model {
 
     // Create new job
     static async create(jobData){
-        let session = driver.session();
         let jobID = uuidv4();
         let userID = '181511041';
 
@@ -344,7 +343,7 @@ class Job extends Model {
                   RETURN j,jr,s,jt,u`;
         }
         console.log(query);
-        let resultCreateJob = await session.run(query);
+        let resultCreateJob = await DB.query(query);
         let newJob = {};
         let jobRequirement = {};
         let tempJobReq = {};
@@ -455,15 +454,14 @@ class Job extends Model {
             requirements: finalRequirements,
             status: newJob.status
         }
-        await session.close();
+        
         return resultObj;
     }
 
     static async find(jobID){
-        let session = driver.session();
         let query = `MATCH (j:Job {jobID: '${jobID}'})-[:REQUIRES]->(jr:JobReq), (j)<-[:POSTS]-(u:User), (j)-[:CLASSIFIED]->(jt:JobType), (jr)-[:REQUIRES_SKILL]->(s:Skill) RETURN j,jr,u,jt,s`;
 
-        let result = await session.run(query);
+        let result = await DB.query(query);
         if(result.records.length > 0){
             // Extract the data
             let propJob = result.records[0].get('j').properties;
@@ -492,7 +490,7 @@ class Job extends Model {
             });
 
             let queryReligions = `MATCH (j:Job {jobID: '${jobID}'})-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_RELIGION]->(r:Religion) RETURN r`;
-            let resultReligions = await session.run(queryReligions);
+            let resultReligions = await DB.query(queryReligions);
             let listReligions = [];
             if(resultReligions.records.length > 0){
                 resultReligions.records.forEach((item, index) => {
@@ -509,16 +507,15 @@ class Job extends Model {
                 jobType: jobType,
                 jobReq: jobReq
             };
-            await session.close();
+            
             return resultObj;
         } else {
-            await session.close();
+            
             return null;
         }
     }
 
     async update(updatedJobData, jobReq, jobType){
-        let session = driver.session();
         
         // Cleaning string data
         let contact = updatedJobData.contact;
@@ -715,13 +712,12 @@ class Job extends Model {
             }
         }
         console.log('newest query: ', query);
-        // let result = await session.run(query);
+        // let result = await DB.query(query);
     }
 
     async delete(){
-        let session = driver.session();
         let query = `MATCH (j:Job {jobID: '${this.#jobID}'})-[:REQUIRES]->(jr:JobReq) DETACH DELETE j,jr RETURN COUNT(j)`;
-        let result = await session.run(query);
+        let result = await DB.query(query);
         if(result.records.length > 0){
             return 'Success';
         } else {
@@ -730,13 +726,12 @@ class Job extends Model {
     }
 
     async apply(user){
-        let session = driver.session();
         let userID = user.getNim();
         let jobID = this.#jobID;
         let query = `MATCH (u:User {nim: '${userID}'})-[:APPLY]->(j:Job {jobID: '${jobID}'}) RETURN u,j`;
-        let validateUserAndJob = await session.run(query);
+        let validateUserAndJob = await DB.query(query);
         if(validateUserAndJob.records.length != 0){
-            await session.close();
+            
             return 5;   // User already apply to selected job
         } else {
             // Calculate similarity applicant with selected job
@@ -747,12 +742,12 @@ class Job extends Model {
                               currentDate.getDate();    
             
             let secQuery = `MATCH (u:User), (j:Job) WHERE u.nim = '${userID}' AND j.jobID = '${jobID}' CREATE (u)-[rel:APPLY {userID: '${userID}', dateApplied: '${dateApplied}', similarity: ${similarity}}]->(j) RETURN rel`;
-            let result = await session.run(secQuery);
+            let result = await DB.query(secQuery);
             if(result.records.length > 0){
-                await session.close();
+                
                 return 1; // Relationship created
             } else {
-                await session.close();
+                
                 return 0; // Relationship failed
             }
         }

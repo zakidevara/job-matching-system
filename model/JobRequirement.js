@@ -1,4 +1,4 @@
-const { Model } = require("./Model");
+const Model = require("./Model");
 
 class JobRequirement extends Model{
     // Property of job requirement (private)

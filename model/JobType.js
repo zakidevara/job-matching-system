@@ -1,4 +1,4 @@
-const {Model} = require("./Model");
+const Model = require("./Model");
 
 class JobType extends Model {
     #id;

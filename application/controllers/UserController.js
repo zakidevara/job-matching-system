@@ -14,14 +14,22 @@ class UserController extends ResourceController{
 
     // Get all user
     async all(){
-        let userList = await User.all();
-        return userList;
+        try{
+            let userList = await User.all();
+            return userList;
+        }catch(e){
+            throw e;
+        }
     }
 
     // Get user by ID
     async findByID(userID){
-        let userData = await User.find(userID);
-        return userData.toObject();
+        try{
+            let userData = await User.find(userID);
+            return userData.toObject();
+        }catch(e){
+            throw e;
+        }
     }
 
     // Update data user

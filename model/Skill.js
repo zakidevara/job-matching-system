@@ -1,4 +1,7 @@
-const {Model, driver, uuidv4} = require("./Model");
+const Model = require("./Model");
+// UUID
+const {v4: uuidv4 } = require('uuid');
+const DB = require("../services/DB");
 
 class Skill extends Model {
     // Property of skill (private)
@@ -38,9 +41,9 @@ class Skill extends Model {
 
     // Set UUID for every Skill node
     static async setID(){
-        let session = driver.session();
+        
         let query = `MATCH (s:Skill) RETURN s`;
-        let result = await session.run(query);
+        let result = await DB.query(query);
         
         let skillData = [];
         result.records.forEach((item) => {
@@ -55,7 +58,7 @@ class Skill extends Model {
             let value = skillData[i];
             console.log('curr skill: ', value.getName());
             let query = `MATCH (s:Skill {uri: "${value.getUri()}"}) SET s.id = '${skillID}' RETURN s`;
-            let result = await session.run(query);
+            let result = await DB.query(query);
             if(result.records.length > 0){
                 if(i === 0){
                     let value = result.records[0].get('s').properties;
@@ -71,30 +74,30 @@ class Skill extends Model {
     }
 
     static async find(skillID){
-        let session = driver.session();
+        
         let query = `MATCH (res:Skill) WHERE ID(res) = ${skillID} RETURN res`;
-        let resultSkill = await session.run(query);
+        let resultSkill = await DB.query(query);
         if(resultSkill.records.length > 0){
             let value = resultSkill.records[0].get('res');
             let properties = value.properties;
             let skillData = new Skill(properties.name, properties.uri);
-            await session.close();
+            
             return skillData;
         } else {
-            await session.close();
+            
             return null;
         }
     }
 
     async getParentofNode(skillName){
-        let session = driver.session();
-        let listParents =  await session.run(
+        
+        let listParents =  await DB.query(
             'MATCH (:Skill {name: $skillName})-[:SUBJECT*0..1]->(:Skill)-[:BROADER*0..1]->(result:Skill) Return result',
             {
                 skillName: skillName
             }
         );
-        await session.close();
+        
         return listParents;
     }
     
