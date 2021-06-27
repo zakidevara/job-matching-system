@@ -18,6 +18,7 @@ class User extends Model {
     #phoneNumber;
     #gender;
     #studyProgram;
+    #status;
 
     constructor(nim = '', name = '', email = '', password = '', birthDate = '', classYear = '', photo = '', phoneNumber = '', gender = 0, studyProgram = 0){
         super();
@@ -101,34 +102,36 @@ class User extends Model {
         return this.#studyProgram;
     }
     async getReligion(){
-        
-        let query = `MATCH (u:User {nim: ${this.#nim}})-[:HAS_RELIGION]->(r:Religion) RETURN r`;
-        let result = await DB.query(query);
-        if(result.records.length > 0){
-            let value = result.records[0].get('r').properties;
-            let objReligion = new Religion(value.id, value.name);
-            
-            return objReligion;
-        } else {
-            
-            return null;
+        let query = `MATCH (u:User {nim: '${this.#nim}'})-[:HAS_RELIGION]->(r:Religion) RETURN r`;
+        try{
+            let result = await DB.query(query);
+            if(result.records.length > 0){
+                let propRel = result.records[0].get('r').properties;
+                let religion = new Religion(propRel.id, propRel.name);
+                return religion;
+            } else {
+                return null;
+            }
+        }catch(e){
+            throw e;
         }
     }
     async getSkills(){
-        
         let query = `MATCH (u:User {nim: ${this.#nim}})-[:SKILLED_IN]->(s:Skill) RETURN s`;
-        let resultUserSkills = await DB.query(query);
-        let listSkill = [];
-        if(resultUserSkills.records.length > 0){
-            resultUserSkills.records.forEach((item, index) => {
-                let value = item.get('s');
-                let properties = value.properties;
-                let skillObj = new Skill(properties.name, properties.uri);
-                listSkill.push(skillObj);
-            });
+        try{
+            let resultUserSkills = await DB.query(query);
+            let listSkill = [];
+            if(resultUserSkills.records.length > 0){
+                resultUserSkills.records.forEach((item) => {
+                    let propSkill = item.get('s').properties;
+                    let skill = new Skill(propSkill.id, propSkill.name, propSkill.uri);
+                    listSkill.push(skill);
+                });
+            }
+            return listSkill;
+        }catch(e){
+            throw e;
         }
-        
-        return listSkill;
     }
     toObject(){
         let objResult = {
@@ -148,7 +151,6 @@ class User extends Model {
     // Database Related
     // Create new user
     static async create(userData){
-        
         let query = `MERGE (u:User {email: '${userData.email}'})
                      SET u.name = '${userData.name}',
                      u.nim = '${userData.nim}',
@@ -159,23 +161,23 @@ class User extends Model {
                      u.gender = ${userData.gender},
                      u.studyProgram = ${userData.studyProgram.studyProgramId}
                      RETURN u`;
-        let result = await DB.query(query);
-        if(result.records.length > 0){
-            let value = result.records[0].get('u');
-            let properties = value.properties;
-            let userObj = new User(properties.nim, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo, properties.phoneNUmber, properties.gender, properties.studyProgram);
-            
-            return userObj;
-        } else {
-            
-            return null;
+        try{
+            let result = await DB.query(query);
+            if(result.records.length > 0){
+                let propUser = result.records[0].get('u').properties;
+                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNUmber, propUser.gender, propUser.studyProgram);
+                return user;
+            } else {
+                return null;
+            }
+        }catch(e){
+            throw e;
         }
     }
 
     // Save instance to database
     async save(){
-        
-        let query = `MERGE (u:User {nim: ${this.#nim}})
+        let query = `MERGE (u:User {nim: '${this.#nim}'})
                      SET u.name = '${this.#name}', 
                      u.email = '${this.#email}',
                      u.password = '${this.#password}', 
@@ -186,93 +188,93 @@ class User extends Model {
                      u.gender = ${this.#gender},
                      u.studyProgram = ${this.#studyProgram}
                      RETURN u`;
-        let result = await DB.query(query);
-        
-        return result.records.length > 0 ? true : false;
+        try{
+            let result = await DB.query(query);
+            return result.records.length > 0 ? true : false;
+        } catch(e){
+            throw e;
+        }
     }
 
     // Get all users
     static async all(){
         let query = `MATCH (u:User) RETURN u ORDER BY u.nim`;
-
         try{
             let resultListUsers = await DB.query(query);
             let tempList = [];
-            resultListUsers.records.forEach((item, index) => {
-                let value = item.get('u');
-                let properties = value.properties;
-                let objUser = new User(value.identity, properties.nim, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo, properties.phoneNumber, properties.gender, properties.studyProgram);
-                tempList.push(objUser);
+            resultListUsers.records.forEach((item) => {
+                let propUser = item.get('u').properties;
+                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNUmber, propUser.gender, propUser.studyProgram);
+                tempList.push(user);
             });
 
             let listUsers = [];
-            tempList.forEach((item, index) => {
+            tempList.forEach((item) => {
                 let obj = item.toObject();
                 listUsers.push(obj);
             });
-
             return listUsers;
         }catch(e){
             throw e;
         }
-        
     }
 
     // Find user by ID
     static async find(userID){
-        
-        let query = `MATCH (u:User {nim: ${userID}}) RETURN u`;
-        let resultUserData = await DB.query(query);
-        if(resultUserData.records.length > 0){
-            let value = resultUserData.records[0].get('u');
-            let properties = value.properties;
-            let userData = new User(properties.nim, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo, properties.phoneNumber, properties.gender, properties.studyProgram);
-            
-            return userData;
-        } else{            
-            return null;
+        let query = `MATCH (u:User {nim: '${userID}'}) RETURN u`;
+        try{
+            let resultUserData = await DB.query(query);
+            if(resultUserData.records.length > 0){
+                let propUser = resultUserData.records[0].get('u').properties;
+                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNUmber, propUser.gender, propUser.studyProgram);
+                return user;
+            } else{            
+                return null;
+            }
+        }catch(e){
+            throw e;
         }
     }
 
     static async findByEmail(email){
-        
         let query = `MATCH (u:User {email: '${email}'}) RETURN u`;
-        let resultUserData = await DB.query(query);
-        if(resultUserData.records.length > 0){
-            let value = resultUserData.records[0].get('u');
-            let properties = value.properties;
-            let userData = new User(properties.nim, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo, properties.phoneNUmber, properties.gender, properties.studyProgram);
-            
-            return userData;
-        } else{
-            
-            return null;
+        try{
+            let resultUserData = await DB.query(query);
+            if(resultUserData.records.length > 0){
+                let propUser = resultUserData.records[0].get('u').properties;
+                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNUmber, propUser.gender, propUser.studyProgram);
+                return user;
+            } else{
+                return null;
+            }
+        }catch(e){
+            throw e;
         }
     }
 
     // Update user
     async update(userData){
-        
-        let query = `MATCH (u:User {nim: ${this.#nim}}) 
-                     SET u.name = '${userData.name}',
-                     u.email = '${userData.email}',
-                     u.birthDate = '${userData.birth_date}',
-                     u.classYear = '${userData.class_year}',
-                     u.photo = '${userData.photo}',
-                     u.phoneNumber = '${userData.phone_number}',
-                     u.gender = ${userData.gender},
-                     u.studyProgram = ${userData.study_program.study_program_id}
-                     RETURN u`;
-        let resultUpdate = await DB.query(query);
-        if(resultUpdate.records.length > 0){
-            let value = resultUpdate.records[0].get('u');
-            let properties = value.properties;
-            let userData = new User(properties.nim, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo, properties.phoneNUmber, properties.gender, properties.studyProgram);
-            
-            return userData;
-        } else {
-            
-            return null;
+        let query = `MATCH (u:User {nim: '${this.#nim}'}) 
+                    SET u.name = '${userData.name}',
+                    u.email = '${userData.email}',
+                    u.birthDate = '${userData.birthDate}',
+                    u.classYear = '${userData.classYear}',
+                    u.photo = '${userData.photo}',
+                    u.phoneNumber = '${userData.phoneNumber}',
+                    u.gender = ${userData.gender},
+                    u.studyProgram = ${userData.studyProgram.studyProgramId}
+                    RETURN u`;
+        try{
+            let resultUpdate = await DB.query(query);
+            if(resultUpdate.records.length > 0){
+                let propUser = resultUpdate.records[0].get('u').properties;
+                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNUmber, propUser.gender, propUser.studyProgram);
+                return user;
+            } else {
+                return null;
+            }
+        }catch(e){
+            throw e;
         }
     }
 
@@ -280,7 +282,12 @@ class User extends Model {
         let failedToAdd = [];
         let successToAdd = [];
         let length = skillList.length;
-        
+
+        try{
+
+        }catch(e){
+            throw e;
+        }
 
         for(let i=0; i < length; i++){
             let query = `MATCH (u:User), (s:Skill) WHERE u.nim = ${this.#nim} AND ID(s) = ${skillList[i]} MERGE (u)-[:SKILLED_IN]->(s) RETURN s`;
@@ -313,7 +320,11 @@ class User extends Model {
         let failedToAdd = [];
         let successToAdd = [];
         let length = skillList.length;
-        
+        try{
+
+        }catch(e){
+            throw e;
+        }
 
         for(let i=0; i < length; i++){
             let checkRel = `MATCH (u:User {nim: ${this.#nim}})-[re:SKILLED_IN]->(s:Skill) WHERE ID(s) = ${skillList[i]} RETURN re`;
@@ -348,13 +359,12 @@ class User extends Model {
     }
 
     async removeSkill(skillID){
-        
         let query = `MATCH (u:User {nim: ${this.#nim}})-[rel:SKILLED_IN]->(s:Skill) WHERE ID(s) = ${skillID} DELETE rel`;
         try{
             await DB.query(query);
             return 'Success';
         } catch (e) {
-            return 'Failed';
+            throw e;
         }
     }
 }

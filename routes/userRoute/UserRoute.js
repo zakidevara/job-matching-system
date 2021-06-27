@@ -122,23 +122,8 @@ router.get('/users/:userId/skills', async function(req, res) {
     }
 });
 
-
-// Recruiter Route
-router.get('/applicant-recommendation', async function(req, res){
-    let jobID = req.body.jobID;
-    try{
-        let result = await JobController.getApplicantRecommendation(jobID);
-        res.send({
-            status: 1,
-            applicants: result
-        });
-    }catch(e){
-        res.status(400);
-        res.send(e);
-    }
-});
-
 // Job route
+// Create new job
 router.post('/jobs', async function(req, res) {
     let jobData = req.body;
     let jC = new JobController('Job');
@@ -151,7 +136,7 @@ router.post('/jobs', async function(req, res) {
         res.send(e);
     }
 });
-
+// Get all job
 router.get('/jobs', async function(req, res) {
     let jC = new JobController('Job');
 
@@ -163,7 +148,7 @@ router.get('/jobs', async function(req, res) {
         res.send(e);
     }
 });
-
+// Get job by id
 router.get('/jobs/:jobID', async function(req, res) {
     let jC = new JobController('Job');
     let jobID = req.params.jobID;
@@ -175,11 +160,10 @@ router.get('/jobs/:jobID', async function(req, res) {
         res.send(e);
     }
 });
-
+// Delete job
 router.delete('/jobs/:jobID', async function(req, res) {
     let jC = new JobController('Job');
     let jobID = req.params.jobID;
-
     try{
         let result = await jC.deleteJob(jobID);
         res.send({ result });
@@ -188,12 +172,11 @@ router.delete('/jobs/:jobID', async function(req, res) {
         res.send(e);
     }
 });
-
+// Update job
 router.put('/jobs/:jobID', async function(req, res) {
     let jC = new JobController('Job');
     let jobID = req.params.jobID;
     let jobData = req.body;
-
     try{
         let result = await jC.update(jobID, jobData);
         res.send({ result });
@@ -202,13 +185,18 @@ router.put('/jobs/:jobID', async function(req, res) {
         res.send(e);
     }
 });
-
-router.post('/apply-job', async function(req, res){
-    let userId = req.body.userId;
-    let jobID = req.body.jobID;
-
+// Search job
+router.get('/jobs/search', async function(req, res) {
+    let jC = new JobController('Job');
+    let title = req.query.title;
+    let result = jC.searchByName(title);
+});
+// Apply job
+router.post('/jobs/:jobID/apply', async function(req, res){
+    let jobID = req.params.jobID;
+    let jC = new JobController('Job');
     try{
-        let result = await JobController.applyJob(jobID, userId);
+        let result = await jC.applyJob(jobID, userId);
         let message, status;
         if(result === 0){
             status = false;
@@ -239,12 +227,37 @@ router.post('/apply-job', async function(req, res){
         res.send(e);
     }
 });
-router.get('/job-recommendation', async function(req, res){
+// Get applicant
+router.get('/jobs/:jobID/applicants', async function(req, res) {
+    let jC = new JobController('Job');
+    let jobID = req.params.jobID;
+    let result = await jC.getJobApplicant(jobID);
+    res.send({ result });
+});
+// Accept applicant
+router.post('/jobs/:jobID/applicants/accept', async function(req, res) {
+    let jC = new JobController('Job');
+    let jobID = req.params.jobID;
+    let applicantID = req.body.applicantId;
+    let result = await jC.accApplicant(jobID, applicantID);
+    res.send({ result });
+});
+// Refuse applicant
+router.post('/jobs/:jobID/applicants/refuse', async function(req, res) {
+    let jC = new JobController('Job');
+    let jobID = req.params.jobID;
+    let applicantID = req.body.applicantId;
+    let result = await jC.refApplicant(jobID, applicantID);
+    res.send({ result });
+});
+// Recommendation job
+router.get('/jobs/recommendation', async function(req, res) {
     let userId = req.body.userId;
-    let limitJob = req.body.amount;
+    let limitJob = 20;
+    let jC = new JobController('Job');
 
     try{
-        let result = await JobController.getJobRecommendation(userId, limitJob);
+        let result = await jC.getJobRecommendation(userId, limitJob);
         res.send({
             'result' : result
         });
@@ -253,6 +266,22 @@ router.get('/job-recommendation', async function(req, res){
         res.send(e);
     }
 });
+// Recommendation applicant
+router.get('/jobs/:jobID/applicants/recommendation', async function(req, res){
+    let jobID = req.params.jobID;
+    let jC = new JobController('Job');
+    try{
+        let result = await jC.getApplicantRecommendation(jobID);
+        res.send({
+            status: 1,
+            applicants: result
+        });
+    }catch(e){
+        res.status(400);
+        res.send(e);
+    }
+});
+
 
 // Skill route
 router.get('/set-skillID', async function(req, res) {

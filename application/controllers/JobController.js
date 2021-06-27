@@ -64,6 +64,40 @@ class JobController extends ResourceController {
         if(jobData === null) return null;
 
         let updateResult = await jobData.job.update(updatedJobData, jobData.jobReq, jobData.jobType);
+        let requirements = {
+            studyProgramReq: updateResult.jobReq.studyProgramRequirement,
+            classYearRequirement: updateResult.jobReq.classYearRequirement,
+            documentsRequirement: updateResult.jobReq.documentsRequirement,
+            requiredSkills: updateResult.requiredSkills,
+            softSkillRequirment: updateResult.jobReq.softSkillRequirment,
+            maximumAge: updateResult.jobReq.maximumAge,
+            requiredReligion: updateResult.requiredReligion,
+            requiredGender: updateResult.jobReq.requiredGender,
+            description: updateResult.jobReq.description
+        };
+        let jobTypeF = {
+            id: updateResult.jobType.id,
+            name: updateResult.jobType.name
+        };
+        let resultObj = {
+            jobID: updateResult.job.jobID,
+            title: updateResult.job.title,
+            description: updateResult.job.description,
+            jobType: jobTypeF,
+            companyName: updateResult.job.companyName,
+            remote: updateResult.job.remote,
+            location: updateResult.job.location,
+            duration: updateResult.job.duration,
+            benefits: updateResult.job.benefits,
+            contact: updateResult.job.contact,
+            quantity: updateResult.job.quantity,
+            minSalary: updateResult.job.minSalary,
+            maxSalary: updateResult.job.maxSalary,
+            endDate: updateResult.job.endDate,
+            requirements: requirements,
+            status: updateResult.job.status
+        }
+        return resultObj;
     }
 
     async deleteJob(jobID){
@@ -73,21 +107,25 @@ class JobController extends ResourceController {
         return result;
     }
 
-    static async applyJob(jobID, userID){
+    async searchByName(title){
+        let result = await Job.searchByName(title);
+        return result;
+        
+    }
+
+    async applyJob(jobID, userID){
         // Validate user and job in database
         let job = await Job.find(jobID);
         if(job === null) return 2;  // Job not found
-        if(!job.validateJobStatus()){
-            return 4;   // Job not available
-        }
+        
         let user = await User.find(userID);
         if(user === null) return 3; // User not found
 
         let result = await job.apply(user);
-        // return result;
+        return result;
     }
     
-    static async getJobRecommendation(userID, amount){
+    async getJobRecommendation(userID, amount){
         // Get all available job with requires skill
         let listJob = await Job.getAllAvailableJob();
         
@@ -132,16 +170,45 @@ class JobController extends ResourceController {
         }
     }
 
-    static async getApplicantRecommendation(jobID){
+    async getJobApplicant(jobID){
+        let jobData = await Job.find(jobID);
+        if(job == null) return null;
+
+        let applicant = await jobData.job.getApplicant();
+        let listApplicant = [];
+        applicant.forEach((item) => {
+            let apl = item.toObject();
+            listApplicant.push(apl);
+        });
+        return listApplicant;
+    }
+
+    async accApplicant(jobID, applicantID){
+        let jobData = await Job.find(jobID);
+        if(job == null) return null;
+
+        let result = await jobData.job.acceptApplicant(applicantID);
+        return result;
+    }
+
+    async refApplicant(jobID, applicantID){
+        let jobData = await Job.find(jobID);
+        if(job == null) return null;
+
+        let result = await jobData.job.refuseApplicant(applicantID);
+        return result;
+    }
+
+    async getApplicantRecommendation(jobID){
         // Find Job in database
-        let job = await Job.find(jobID);
+        let jobData = await Job.find(jobID);
         if(job == null) return null;
 
         // Get applicants of selected job and match the required skills
-        let applicants = await job.getApplicant();
+        let applicants = await jobData.job.getApplicant();
         for(let i=0; i < applicants.length; i++){
             let objUser = await User.find(applicants[i].getUserID());
-            let similarity = await JobStudentMatcher.match(job, objUser);
+            let similarity = await JobStudentMatcher.match(jobData.job, objUser);
             applicants[i].setSimilarity(similarity);
         }
 

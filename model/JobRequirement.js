@@ -25,11 +25,11 @@ class JobRequirement extends Model{
         this.#description = desc;
     }
 
-    setSkills(newSkillList){
+    setSkills(newSkillList=[]){
         this.#requiredSkills = newSkillList;
     }
 
-    setReligions(newReligionsList){
+    setReligions(newReligionsList=[]){
         this.#requiredReligion = newReligionsList;
     }
 

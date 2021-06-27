@@ -12,7 +12,7 @@ class Religion extends Model{
         this.#name = name;
     }
 
-    getReligionID(){
+    getID(){
         return this.#id;
     }
     getName(){

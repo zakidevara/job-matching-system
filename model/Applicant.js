@@ -3,11 +3,13 @@ class Applicant{
     #userID;
     #dateApplied;
     #similarity;
+    #status;
 
-    constructor(userID, date, sim){
+    constructor(userID, date, sim, stat){
         this.#userID = userID;
         this.#dateApplied = date;
         this.#similarity = sim;
+        this.#status = stat;
     }
 
     setUserID(newID){
@@ -19,6 +21,9 @@ class Applicant{
     setSimilarity(newSim){
         this.#similarity = newSim;
     }
+    setStatus(newStat){
+        this.#status = newStat;
+    }
 
     getUserID(){
         return this.#userID;
@@ -29,12 +34,16 @@ class Applicant{
     getSimilarity(){
         return this.#similarity;
     }
+    getStatus(){
+        return this.#status;
+    }
 
     toObject(){
         let resultObj = {
             userID: this.#userID,
             dateApplied: this.#dateApplied,
-            similarity: this.#similarity
+            similarity: this.#similarity,
+            status: this.#status
         }
         return resultObj;
     }
