@@ -1,11 +1,15 @@
 const express = require('express');
 const router = express.Router();
+const isUser = require('../../middleware/isUser');
 
 // Import controller
 const UserController = require('../../application/controllers/UserController');
 const JobController = require('../../application/controllers/JobController');
 const SkillController = require('../../application/controllers/SkillController');
 
+
+
+router.use(isUser);
 // User route
 // Create new user
 router.post('/users', async function(req, res) {
@@ -14,7 +18,7 @@ router.post('/users', async function(req, res) {
     res.send({ newUser });
 });
 // Get all user
-router.get('/users', async function(req, res) {
+router.get('/users',  async function(req, res) {
     let uC = new UserController('User');
     try{
         let userList = await uC.all();
@@ -297,6 +301,8 @@ router.get('/set-skillID', async function(req, res) {
         res.send(e);
     }
 });
+
+
 
 module.exports = router;
 

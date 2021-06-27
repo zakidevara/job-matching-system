@@ -18,9 +18,10 @@ class User extends Model {
     #phoneNumber;
     #gender;
     #studyProgram;
+    #validationCode;
     #status;
 
-    constructor(nim = '', name = '', email = '', password = '', birthDate = '', classYear = '', photo = '', phoneNumber = '', gender = 0, studyProgram = 0){
+    constructor(nim = '', name = '', email = '', password = '', birthDate = '', classYear = '', photo = '', phoneNumber = '', gender = 0, studyProgram = 0, status = 0){
         super();
         this.#nim = nim;
         this.#name = name;
@@ -32,6 +33,7 @@ class User extends Model {
         this.#phoneNumber = phoneNumber;
         this.#gender = gender;
         this.#studyProgram = studyProgram;
+        this.#status = status;
     }
 
     // Setter
@@ -64,6 +66,12 @@ class User extends Model {
     }
     setStudyProgram(newStudy){
         this.#studyProgram = newStudy;
+    }
+    setValidationCode(newValidationCode){
+        this.#validationCode = newValidationCode;
+    }
+    setStatus(newStatus){
+        this.#status = newStatus;
     }
 
 
@@ -101,6 +109,11 @@ class User extends Model {
     getStudyProgram(){
         return this.#studyProgram;
     }
+    getStatus(){
+        return this.#status;
+    }
+
+
     async getReligion(){
         let query = `MATCH (u:User {nim: '${this.#nim}'})-[:HAS_RELIGION]->(r:Religion) RETURN r`;
         try{
@@ -182,11 +195,11 @@ class User extends Model {
                      u.email = '${this.#email}',
                      u.password = '${this.#password}', 
                      u.birthDate = '${this.#birthDate}',
-                     u.classYear = ${this.#classYear}, 
+                     u.classYear = ${this.#classYear || null}, 
                      u.photo = '${this.#photo}',
                      u.phoneNumber = '${this.#phoneNumber}',
-                     u.gender = ${this.#gender},
-                     u.studyProgram = ${this.#studyProgram}
+                     u.gender = ${this.#gender || null},
+                     u.studyProgram = ${this.#studyProgram || null}
                      RETURN u`;
         try{
             let result = await DB.query(query);
