@@ -89,19 +89,22 @@ class Skill extends Model {
         }
     }
 
-    async getParentofNode(skillName){
-        
-        let listParents =  await DB.query(
-            'MATCH (:Skill {name: $skillName})-[:SUBJECT*0..1]->(:Skill)-[:BROADER*0..1]->(result:Skill) Return result',
-            {
-                skillName: skillName
-            }
-        );
+    static async getParentofNode(skillName){
+        let listParents;
+        try{
+            listParents = await DB.query(
+                `MATCH (:Skill {name: '${skillName}'})-[:SUBJECT*0..1]->(:Skill)-[:BROADER*0..1]->(result:Skill) Return result`
+            );
+
+        }catch(e){
+            console.log(e)
+            throw e;
+        }
         
         return listParents;
     }
     
-    getTotalOfDifferenceSkill(firstArr, secondArr){
+    static getTotalOfDifferenceSkill(firstArr, secondArr){
         var result = [];
         result = firstArr.filter((elements) => {
             return !secondArr.some(item => (item.name === elements.name) && (item.uri === elements.uri));
@@ -109,7 +112,7 @@ class Skill extends Model {
         return result.length;
     }
     
-    getIntersection(firstArr, secondArr){
+    static getIntersection(firstArr, secondArr){
         var result = [];
         result = firstArr.filter((elements) => {
             return secondArr.some(item => (item.name === elements.name) && (item.uri === elements.uri));
@@ -117,7 +120,7 @@ class Skill extends Model {
         return result.length;
     }
     
-    getGamma(firstArr, secondArr) {
+    static getGamma(firstArr, secondArr) {
         var result = 0;
         if(firstArr.length >= secondArr.length){
             result = secondArr.length / (firstArr.length + secondArr.length);
@@ -127,7 +130,7 @@ class Skill extends Model {
         return result;
     }
 
-    async calculateSimilarity(firstSkill, secondSkill){
+    static async calculateSimilarity(firstSkill, secondSkill){
         // Fill up all parents from each skill
         let dataOfParentsFS = await this.getParentofNode(firstSkill);
         let listOfParentsFS = dataOfParentsFS.records;

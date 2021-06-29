@@ -17,6 +17,7 @@ class SkillController extends ResourceController {
         let result = await Skill.setID();
         return result;
     }
+
 }
 
 module.exports = SkillController;

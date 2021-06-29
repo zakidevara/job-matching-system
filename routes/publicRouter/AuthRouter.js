@@ -12,12 +12,13 @@ router.post('/login', async function(req, res) {
 
         res.status(200);
         res.send({
+            message: "Login berhasil",
             result
         });
     }catch(e){
-        console.log(e);
         res.status(400);
-        res.send(e);
+        let {message} = e;
+        res.send({message});
     }
 });
 
@@ -29,12 +30,30 @@ router.post('/register', async function(req, res) {
 
         res.status(200);
         res.send({
+            message: "Registrasi akun berhasil",
             result
         });
     }catch(e){
-        console.log(e);
         res.status(400);
-        res.send(e);
+        let {message} = e;
+        res.send({message});
+    }
+});
+router.post('/validateEmail', async function(req, res) {
+
+    const {email, code} = req.body;
+    try{
+        let result = await AuthController.validateEmail(email, code);
+
+        res.status(200);
+        res.send({
+            message: "Verifikasi email berhasil",
+            result
+        });
+    }catch(e){
+        res.status(400);
+        let {message} = e;
+        res.send({message});
     }
 });
 

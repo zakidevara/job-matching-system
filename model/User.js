@@ -18,7 +18,7 @@ class User extends Model {
     #phoneNumber;
     #gender;
     #studyProgram;
-    #validationCode;
+    #emailVerificationCode;
     #status;
 
     constructor(nim = '', name = '', email = '', password = '', birthDate = '', classYear = '', photo = '', phoneNumber = '', gender = 0, studyProgram = 0, status = 0){
@@ -67,8 +67,8 @@ class User extends Model {
     setStudyProgram(newStudy){
         this.#studyProgram = newStudy;
     }
-    setValidationCode(newValidationCode){
-        this.#validationCode = newValidationCode;
+    setEmailVerificationCode(newCode){
+        this.#emailVerificationCode = newCode;
     }
     setStatus(newStatus){
         this.#status = newStatus;
@@ -111,6 +111,24 @@ class User extends Model {
     }
     getStatus(){
         return this.#status;
+    }
+    
+
+    async verifyEmail(code){
+        try{
+            if(code == this.#emailVerificationCode){
+                this.setStatus(1);
+                await this.save();
+                return true;
+            }else{
+                throw new Error("Kode verifikasi salah");
+            }
+        }catch(e){
+            if(e instanceof Error){
+                console.log(e);
+            }
+            throw e;
+        }
     }
 
 
@@ -198,7 +216,9 @@ class User extends Model {
                      u.photo = '${this.#photo}',
                      u.phoneNumber = '${this.#phoneNumber}',
                      u.gender = ${this.#gender || null},
-                     u.studyProgram = ${this.#studyProgram || null}
+                     u.studyProgram = ${this.#studyProgram || null},
+                     u.emailVerificationCode = ${this.#emailVerificationCode || null},
+                     u.status = ${this.#status}
                      RETURN u`;
         let result = await DB.query(query);
         
@@ -241,7 +261,7 @@ class User extends Model {
             let value = resultUserData.records[0].get('u');
             let properties = value.properties;
             let userData = new User(properties.nim, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo, properties.phoneNumber, properties.gender, properties.studyProgram);
-            
+            userData.setEmailVerificationCode(properties.emailVerificationCode);
             return userData;
         } else{            
             return null;
@@ -251,16 +271,19 @@ class User extends Model {
     static async findByEmail(email){
         
         let query = `MATCH (u:User {email: '${email}'}) RETURN u`;
-        let resultUserData = await DB.query(query);
-        if(resultUserData.records.length > 0){
-            let value = resultUserData.records[0].get('u');
-            let properties = value.properties;
-            let userData = new User(properties.nim, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo, properties.phoneNUmber, properties.gender, properties.studyProgram);
-            
-            return userData;
-        } else{
-            
-            return null;
+        try{
+            let resultUserData = await DB.query(query);
+            if(resultUserData.records.length > 0){
+                let value = resultUserData.records[0].get('u');
+                let properties = value.properties;
+                let userData = new User(properties.nim, properties.name, properties.email, properties.password, properties.birthDate, properties.classYear, properties.photo, properties.phoneNUmber, properties.gender, properties.studyProgram, properties.status);
+                userData.setEmailVerificationCode(properties.emailVerificationCode);
+                return userData;
+            } else{                
+                throw new Error("User tidak ditemukan");
+            }
+        }catch(e){            
+            throw e;
         }
     }
 

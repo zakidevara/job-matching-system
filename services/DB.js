@@ -22,8 +22,8 @@ class DB{
             return queryResult;
         }catch(e){
             await session.close();
-            console.log("DB error: ", e.code);
-            throw e;
+            console.log("DB error: ", e);
+            // throw e;
         }
     }
 }

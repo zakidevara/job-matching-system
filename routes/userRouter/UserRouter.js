@@ -6,10 +6,11 @@ const isUser = require('../../middleware/isUser');
 const UserController = require('../../application/controllers/UserController');
 const JobController = require('../../application/controllers/JobController');
 const SkillController = require('../../application/controllers/SkillController');
+const Skill = require('../../model/Skill');
 
 
 
-router.use(isUser);
+// router.use(isUser);
 // User route
 // Create new user
 router.post('/users', async function(req, res) {
@@ -268,6 +269,20 @@ router.get('/set-skillID', async function(req, res) {
             result
         });
     }catch(e){
+        res.status(400);
+        res.send(e);
+    }
+});
+router.post('/skills/match', async function(req, res) {
+
+    let {s1,s2} = req.body;
+    try{
+        let result = await Skill.calculateSimilarity(s1,s2);
+        res.send({
+            result
+        });
+    }catch(e){
+        console.log(e);
         res.status(400);
         res.send(e);
     }
