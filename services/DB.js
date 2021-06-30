@@ -22,7 +22,7 @@ class DB{
             return queryResult;
         }catch(e){
             await session.close();
-            console.log("DB error: ", e.code);
+            console.log("DB error: ", e);
             throw e;
         }
     }

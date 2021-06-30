@@ -113,7 +113,6 @@ class User extends Model {
         return this.#status;
     }
 
-
     async getReligion(){
         let query = `MATCH (u:User {nim: '${this.#nim}'})-[:HAS_RELIGION]->(r:Religion) RETURN r`;
         try{
@@ -121,7 +120,7 @@ class User extends Model {
             if(result.records.length > 0){
                 let propRel = result.records[0].get('r').properties;
                 let religion = new Religion(propRel.id, propRel.name);
-                return religion;
+                return religion.toObject();
             } else {
                 return null;
             }
@@ -138,7 +137,12 @@ class User extends Model {
                 resultUserSkills.records.forEach((item) => {
                     let propSkill = item.get('s').properties;
                     let skill = new Skill(propSkill.id, propSkill.name, propSkill.uri);
-                    listSkill.push(skill);
+                    if(listSkill.length === 0){
+                        listSkill.push(skill.toObject());
+                    } else {
+                        let validateItem = listSkill.some(sk => sk.skillId === skill.getID());
+                        if(!validateItem) listSkill.push(skill.toObject());
+                    }
                 });
             }
             return listSkill;
@@ -155,39 +159,28 @@ class User extends Model {
             classYear: this.#classYear,
             photo: this.#photo,
             phoneNumber: this.#phoneNumber,
-            gender: Gender.toString(this.#gender),
-            studyProgram: StudyProgram.toString(this.#studyProgram)
+            gender: this.#gender,
+            studyProgram: this.#studyProgram,
+            status: this.#status
         };
         return objResult;
     }
 
-    // Database Related
-    // Create new user
-    static async create(userData){
-        let query = `MERGE (u:User {email: '${userData.email}'})
-                     SET u.name = '${userData.name}',
-                     u.nim = '${userData.nim}',
-                     u.birthDate = '${userData.birthDate}',
-                     u.classYear = ${userData.classYear},
-                     u.photo = '${userData.photo}',
-                     u.phoneNumber = '${userData.phoneNumber}',
-                     u.gender = ${userData.gender},
-                     u.studyProgram = ${userData.studyProgram.studyProgramId}
-                     RETURN u`;
-        try{
-            let result = await DB.query(query);
-            if(result.records.length > 0){
-                let propUser = result.records[0].get('u').properties;
-                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNUmber, propUser.gender, propUser.studyProgram);
-                return user;
-            } else {
-                return null;
-            }
-        }catch(e){
-            throw e;
-        }
+    init(){
+        let genObj = {
+            genderId: this.#gender,
+            name: Gender.toString(this.#gender)
+        };
+        this.#gender = genObj;
+
+        let stuProObj = {
+            studyProgramId: this.#studyProgram,
+            name: StudyProgram.toString(this.#studyProgram)
+        };
+        this.#studyProgram = stuProObj;
     }
 
+    // Database Related
     // Save instance to database
     async save(){
         let query = `MERGE (u:User {nim: '${this.#nim}'})
@@ -199,7 +192,8 @@ class User extends Model {
                      u.photo = '${this.#photo}',
                      u.phoneNumber = '${this.#phoneNumber}',
                      u.gender = ${this.#gender || null},
-                     u.studyProgram = ${this.#studyProgram || null}
+                     u.studyProgram = ${this.#studyProgram || null},
+                     u.status = ${this.#status || null}
                      RETURN u`;
         try{
             let result = await DB.query(query);
@@ -217,7 +211,8 @@ class User extends Model {
             let tempList = [];
             resultListUsers.records.forEach((item) => {
                 let propUser = item.get('u').properties;
-                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNUmber, propUser.gender, propUser.studyProgram);
+                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNUmber, propUser.gender, propUser.studyProgram, propUser.status);
+                user.init();
                 tempList.push(user);
             });
 
@@ -239,7 +234,8 @@ class User extends Model {
             let resultUserData = await DB.query(query);
             if(resultUserData.records.length > 0){
                 let propUser = resultUserData.records[0].get('u').properties;
-                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNUmber, propUser.gender, propUser.studyProgram);
+                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNUmber, propUser.gender, propUser.studyProgram, propUser.status);
+                user.init();
                 return user;
             } else{            
                 return null;
@@ -255,7 +251,8 @@ class User extends Model {
             let resultUserData = await DB.query(query);
             if(resultUserData.records.length > 0){
                 let propUser = resultUserData.records[0].get('u').properties;
-                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNUmber, propUser.gender, propUser.studyProgram);
+                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNUmber, propUser.gender, propUser.studyProgram, propUser.status);
+                user.init();
                 return user;
             } else{
                 return null;
@@ -281,7 +278,8 @@ class User extends Model {
             let resultUpdate = await DB.query(query);
             if(resultUpdate.records.length > 0){
                 let propUser = resultUpdate.records[0].get('u').properties;
-                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNUmber, propUser.gender, propUser.studyProgram);
+                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNUmber, propUser.gender, propUser.studyProgram, propUser.status);
+                user.init();
                 return user;
             } else {
                 return null;
@@ -296,86 +294,54 @@ class User extends Model {
         let successToAdd = [];
         let length = skillList.length;
 
-        try{
-
-        }catch(e){
-            throw e;
-        }
-
         for(let i=0; i < length; i++){
-            let query = `MATCH (u:User), (s:Skill) WHERE u.nim = ${this.#nim} AND ID(s) = ${skillList[i]} MERGE (u)-[:SKILLED_IN]->(s) RETURN s`;
-            let resultAddSkill = await DB.query(query);
-            if(resultAddSkill.records.length > 0){
-                let valueSkill = resultAddSkill.records[0].get('s');
-                let propertiesSkill = valueSkill.properties;
-                let skill = new Skill(propertiesSkill.name, propertiesSkill.uri);
-                successToAdd.push(skill);
-            } else {
-                failedToAdd.push(skillList[i]);
-            }
-        }
-
-        let finalSuccessResult = [];
-        successToAdd.forEach((item, index) => {
-            let obj = item.toObject();
-            finalSuccessResult.push(obj);
-        });
-        
-        let objResult = {
-            success: finalSuccessResult,
-            failed: failedToAdd
-        };
-        
-        return objResult;
-    }
-
-    async addSkillv2(skillList){
-        let failedToAdd = [];
-        let successToAdd = [];
-        let length = skillList.length;
-        try{
-
-        }catch(e){
-            throw e;
-        }
-
-        for(let i=0; i < length; i++){
-            let checkRel = `MATCH (u:User {nim: ${this.#nim}})-[re:SKILLED_IN]->(s:Skill) WHERE ID(s) = ${skillList[i]} RETURN re`;
-            let resultCheckRel = await DB.query(checkRel);
-            if(resultCheckRel.records.length < 1){
-                let queryAddSkill = `MATCH (u:User), (s:Skill) WHERE u.nim = ${this.#nim} AND ID(s) = ${skillList[i]} MERGE (u)-[:SKILLED_IN]->(s) RETURN s`;
-                let resultAddSkill = await DB.query(queryAddSkill);
-                if(resultAddSkill.records.length > 0){
-                    let valueSkill = resultAddSkill.records[0].get('s');
-                    let properties = valueSkill.properties;
-                    let skill = new Skill(properties.name, properties.uri);
-                    successToAdd.push(skill);
+            let checkRel = `MATCH (u:User {nim: ${this.#nim}})-[re:SKILLED_IN]->(s:Skill {id: '${skillList[i]}'}) RETURN re`;
+            try{
+                let resultCheckRel = await DB.query(checkRel);
+                if(resultCheckRel.records.length < 1){
+                    let queryAddSkill = `MATCH (u:User), (s:Skill) WHERE u.nim = '${this.#nim}' AND s.id = '${skillList[i]}' 
+                                         MERGE (u)-[:SKILLED_IN]->(s) RETURN s`;
+                    try{    
+                        let resultAddSkill = await DB.query(queryAddSkill);
+                        if(resultAddSkill.records.length > 0){
+                            let propSkill = resultAddSkill.records[0].get('s').properties;
+                            let skill = new Skill(propSkill.id, propSkill.name, propSkill.uri);
+                            if(successToAdd.length === 0){
+                                successToAdd.push(skill.toObject());
+                            } else {
+                                let validateItem = successToAdd.some(sk => sk.skillId === skill.getID());
+                                if(!validateItem) successToAdd.push(skill.toObject());
+                            }
+                        } else {
+                            failedToAdd.push(skillList[i]);
+                        }
+                    } catch(e){
+                        throw e;
+                    }
                 } else {
                     failedToAdd.push(skillList[i]);
                 }
-            } else {
-                failedToAdd.push(skillList[i]);
+            }catch(e){
+                throw e;
             }
         }
-        let finalSuccessResult = [];
-        successToAdd.forEach((item, index) => {
-            let obj = item.toObject();
-            finalSuccessResult.push(obj);
-        });
-        
+
         let objResult = {
-            success: finalSuccessResult,
+            success: successToAdd,
             failed: failedToAdd
         };
-        
         return objResult;
     }
 
     async removeSkill(skillID){
-        let query = `MATCH (u:User {nim: ${this.#nim}})-[rel:SKILLED_IN]->(s:Skill) WHERE ID(s) = ${skillID} DELETE rel`;
+        let query = `MATCH (u:User {nim: ${this.#nim}})-[rel:SKILLED_IN]->(s:Skill {id: '${skillID}'}) DELETE rel RETURN COUNT(rel)`;
         try{
-            await DB.query(query);
-            return 'Success';
+            let result = await DB.query(query);
+            if(result.records.length > 0){
+                return 'Success';
+            } else {
+                return 'Failed';
+            }
         } catch (e) {
             throw e;
         }

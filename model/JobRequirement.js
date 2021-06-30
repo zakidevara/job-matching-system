@@ -1,12 +1,16 @@
+const Gender = require("./Gender");
 const Model = require("./Model");
+const Religion = require("./Religion");
+const Skill = require("./Skill");
+const StudyProgram = require("./StudyProgram");
 
 class JobRequirement extends Model{
     // Property of job requirement (private)
-    #classYearReq;
-    #studyProgramReq;
-    #docReq;
+    #classYearRequirement;
+    #studyProgramRequirement;
+    #documentRequirement;
     #requiredSkills;
-    #softSkillReq;
+    #softSkillRequirement;
     #maximumAge;
     #requiredReligion;
     #requiredGender;
@@ -14,23 +18,96 @@ class JobRequirement extends Model{
 
     constructor(classYear=[], studyProgram=[], documents='', skills=[], softSkill='', maxAge=0, religions=[], gender=[], desc=''){
         super();
-        this.#classYearReq = classYear;
-        this.#studyProgramReq = studyProgram;
-        this.#docReq = documents;
+        this.#classYearRequirement = classYear; 
+        this.#studyProgramRequirement = studyProgram;
+        this.#documentRequirement = documents;
         this.#requiredSkills = skills;
-        this.#softSkillReq = softSkill;
+        this.#softSkillRequirement = softSkill;
         this.#maximumAge = maxAge;
         this.#requiredReligion = religions;
         this.#requiredGender = gender;
         this.#description = desc;
     }
 
-    setSkills(newSkillList=[]){
-        this.#requiredSkills = newSkillList;
+    async init(){
+        let requiredStuPro = this.#studyProgramRequirement;
+        if(requiredStuPro !== null && requiredStuPro.length > 0){
+            requiredStuPro.forEach((item, index, array) => {
+                if(typeof item !== 'object'){
+                    let objStuPro = {
+                        studyProgramId: item,
+                        name: StudyProgram.toString(item)
+                    };
+                    array[index] = objStuPro;
+                }
+            });
+            this.#studyProgramRequirement = requiredStuPro;
+        }
+        let requiredGenderTemp = this.#requiredGender;
+        if(requiredGenderTemp !== null && requiredGenderTemp.length > 0){
+            requiredGenderTemp.forEach((item, index, array) => {
+                if(typeof item !== 'object'){
+                    let objGen = {
+                        genderId: item,
+                        name: Gender.toString(item)
+                    };
+                    array[index] = objGen;
+                }
+            });
+            this.#requiredGender = requiredGenderTemp;
+        }
+        let requiredSkillsTemp = [];
+        if(this.#requiredSkills !== null && this.#requiredSkills.length > 0){
+            for(let i=0; i < this.#requiredSkills.length; i++){
+                if(!this.#requiredSkills[i].hasOwnProperty('skillId')){
+                    let skill = await Skill.find(this.#requiredSkills[i]);
+                    if(skill !== null) requiredSkillsTemp.push(skill.toObject());
+                }
+                // if(typeof this.#requiredSkills[i] !== 'object'){
+                //     let skill = await Skill.find(this.#requiredSkills[i]);
+                //     if(skill !== null) requiredSkillsTemp.push(skill.toObject());
+                // }
+            }
+            this.#requiredSkills = requiredSkillsTemp;
+        }
+        let requiredReligionTemp = [];
+        if(this.#requiredReligion !== null && this.#requiredReligion.length > 0){
+            for(let i=0; i < this.#requiredReligion.length; i++){
+                if(this.#requiredReligion[i].hasOwnProperty('religionId')){
+                    let religion = await Religion.find(this.#requiredReligion[i]);
+                    if(religion !== null) requiredReligionTemp.push(religion.toObject()); 
+                }
+                // if(typeof this.#requiredReligion[i] !== 'object'){
+                //     let religion = await Religion.find(this.#requiredReligion[i]);
+                //     if(religion !== null) requiredReligionTemp.push(religion.toObject()); 
+                // }
+            }
+            this.#requiredReligion = requiredReligionTemp;
+        }
     }
 
-    setReligions(newReligionsList=[]){
+    setSkills(newSkillList){
+        this.#requiredSkills = newSkillList;
+    }
+    setStudyProgram(newStuPro){
+        this.#studyProgramRequirement = newStuPro;
+    }
+    setGender(newGender){
+        this.#requiredGender = newGender;
+    }
+
+    setReligions(newReligionsList){
         this.#requiredReligion = newReligionsList;
+    }
+
+    getClassYear(){
+        return this.#classYearRequirement;
+    }
+    getStudyProgram(){
+        return this.#studyProgramRequirement;
+    }
+    getGender(){
+        return this.#requiredGender;
     }
 
     getSkills(){
@@ -42,11 +119,11 @@ class JobRequirement extends Model{
 
     toObject(){
         let objResult = {
-            classYearRequirement: this.#classYearReq,
-            studyProgramRequirement: this.#studyProgramReq,
-            documentsRequirement: this.#docReq,
+            classYearRequirement: this.#classYearRequirement,
+            studyProgramRequirement: this.#studyProgramRequirement,
+            documentRequirement: this.#documentRequirement,
             requiredSkills: this.#requiredSkills,
-            softSkillReq: this.#softSkillReq,
+            softSkillRequirement: this.#softSkillRequirement,
             maximumAge: this.#maximumAge,
             requiredReligion: this.#requiredReligion,
             requiredGender: this.#requiredGender,

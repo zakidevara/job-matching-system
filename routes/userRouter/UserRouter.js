@@ -6,10 +6,11 @@ const isUser = require('../../middleware/isUser');
 const UserController = require('../../application/controllers/UserController');
 const JobController = require('../../application/controllers/JobController');
 const SkillController = require('../../application/controllers/SkillController');
+const JobTypeController = require('../../application/controllers/JobTypeController');
 
 
 
-router.use(isUser);
+// router.use(isUser);
 // User route
 // Create new user
 router.post('/users', async function(req, res) {
@@ -152,6 +153,18 @@ router.get('/jobs', async function(req, res) {
         res.send(e);
     }
 });
+// Search job
+router.get('/jobs/search', async function(req, res) {
+    let jC = new JobController('Job');
+    let title = req.query.title;
+    try{
+        let result = await jC.searchByName(title);
+        res.send({ result });
+    }catch(e){
+        res.status(400);
+        res.send(e);
+    }
+});
 // Get job by id
 router.get('/jobs/:jobID', async function(req, res) {
     let jC = new JobController('Job');
@@ -188,13 +201,7 @@ router.put('/jobs/:jobID', async function(req, res) {
         res.status(400);
         res.send(e);
     }
-});
-// Search job
-router.get('/jobs/search', async function(req, res) {
-    let jC = new JobController('Job');
-    let title = req.query.title;
-    let result = jC.searchByName(title);
-});
+}); 
 // Apply job
 router.post('/jobs/:jobID/apply', async function(req, res){
     let jobID = req.params.jobID;
@@ -235,31 +242,45 @@ router.post('/jobs/:jobID/apply', async function(req, res){
 router.get('/jobs/:jobID/applicants', async function(req, res) {
     let jC = new JobController('Job');
     let jobID = req.params.jobID;
-    let result = await jC.getJobApplicant(jobID);
-    res.send({ result });
+    try{
+        let result = await jC.getJobApplicant(jobID);
+        res.send({ result });
+    }catch(e){
+        res.status(400);
+        res.send(e);
+    }
 });
 // Accept applicant
 router.post('/jobs/:jobID/applicants/accept', async function(req, res) {
     let jC = new JobController('Job');
     let jobID = req.params.jobID;
     let applicantID = req.body.applicantId;
-    let result = await jC.accApplicant(jobID, applicantID);
-    res.send({ result });
+    try{
+        let result = await jC.accApplicant(jobID, applicantID);
+        res.send({ result });
+    } catch(e){
+        res.status(400);
+        res.send(e);
+    }
 });
 // Refuse applicant
 router.post('/jobs/:jobID/applicants/refuse', async function(req, res) {
     let jC = new JobController('Job');
     let jobID = req.params.jobID;
     let applicantID = req.body.applicantId;
-    let result = await jC.refApplicant(jobID, applicantID);
-    res.send({ result });
+    try{
+        let result = await jC.refApplicant(jobID, applicantID);
+        res.send({ result });
+    } catch(e){
+        res.status(400);
+        res.send(e);
+    }
 });
 // Recommendation job
 router.get('/jobs/recommendation', async function(req, res) {
     let userId = req.body.userId;
     let limitJob = 20;
     let jC = new JobController('Job');
-
     try{
         let result = await jC.getJobRecommendation(userId, limitJob);
         res.send({
@@ -281,6 +302,30 @@ router.get('/jobs/:jobID/applicants/recommendation', async function(req, res){
             applicants: result
         });
     }catch(e){
+        res.status(400);
+        res.send(e);
+    }
+});
+
+// JobType Route
+router.get('/job-type', async function(req, res) {
+    let jtC = new JobTypeController('JobType');
+    try{
+        let result = await jtC.getAll();
+        res.send({ result });
+    } catch(e){
+        res.status(400);
+        res.send(e);
+    }
+});
+
+router.get('/job-type/:jobTypeID', async function(req, res) {
+    let jtC = new JobTypeController('JobType');
+    let jobTypeID = req.params.jobTypeID;
+    try{
+        let result = await jtC.findByID(jobTypeID);
+        res.send({ result });
+    } catch(e){
         res.status(400);
         res.send(e);
     }

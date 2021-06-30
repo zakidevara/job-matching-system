@@ -1,8 +1,10 @@
 const ResourceController = require("./ResourceController");
 const User = require('../../model/User');
 const Job = require("../../model/Job");
-const Skill = require("../../model/Skill");
 const JobStudentMatcher = require("../matcher/JobStudentMatcher");
+const {v4: uuidv4 } = require('uuid');
+const JobRequirement = require("../../model/JobRequirement");
+const JobType = require("../../model/JobType");
 
 class JobController extends ResourceController {
 
@@ -16,88 +18,35 @@ class JobController extends ResourceController {
     }
 
     async create(jobData){
-        let newJob = await Job.create(jobData);
-        return newJob;
+        let userID = '181511041';
+
+        let newJobReq = new JobRequirement(jobData.requirements.classYearRequirement, jobData.requirements.studyProgramRequirement, jobData.requirements.documentRequirement, jobData.requirements.requiredSkills, jobData.requirements.softSkillRequirement, jobData.requirements.maximumAge, jobData.requirements.requiredReligion, jobData.requirements.requiredGender, jobData.requirements.description);
+        await newJobReq.init();
+
+        let jobType = await JobType.find(jobData.jobType);
+
+        let newJob = new Job(uuidv4(), userID, jobData.title, jobData.quantity, jobData.location, jobData.contact, jobData.benefits, jobData.description, jobData.duration, jobData.remote, jobData.companyName, jobData.endDate, jobData.minSalary, jobData.maxSalary, true, newJobReq, jobType);
+
+        let resultSave = await newJob.save();
+        if(resultSave){
+            return newJob.toObject();
+        } else {
+            return null;
+        }
     }
 
     async find(jobID){
-        let jobData = await Job.find(jobID);
-        let job = jobData.job.toObject();
-        let jobTypeF = jobData.jobType.toObject();
-        let jobReq = jobData.jobReq.toObject();
-
-        let requirements = {
-            studyProgramReq: jobReq.studyProgramRequirement,
-            classYearRequirement: jobReq.classYearRequirement,
-            documentsRequirement: jobReq.documentsRequirement,
-            requiredSkills: jobReq.requiredSkills,
-            softSkillRequirment: jobReq.softSkillRequirment,
-            maximumAge: jobReq.maximumAge,
-            requiredReligion: jobReq.requiredReligion,
-            requiredGender: jobReq.requiredGender,
-            description: jobReq.description
-        };
-
-        let resultObj = {
-            jobID: job.jobID,
-            title: job.title,
-            description: job.description,
-            jobType: jobTypeF,
-            companyName: job.companyName,
-            remote: job.remote,
-            location: job.location,
-            duration: job.duration,
-            benefits: job.benefits,
-            contact: job.contact,
-            quantity: job.quantity,
-            minSalary: job.minSalary,
-            maxSalary: job.maxSalary,
-            endDate: job.endDate,
-            requirements: requirements,
-            status: job.status
-        };
-        return resultObj;
+        let job = await Job.find(jobID);
+        return job.toObject();
     }
 
     async update(jobID, updatedJobData){
         let jobData = await Job.find(jobID);
         if(jobData === null) return null;
 
-        let updateResult = await jobData.job.update(updatedJobData, jobData.jobReq, jobData.jobType);
-        let requirements = {
-            studyProgramReq: updateResult.jobReq.studyProgramRequirement,
-            classYearRequirement: updateResult.jobReq.classYearRequirement,
-            documentsRequirement: updateResult.jobReq.documentsRequirement,
-            requiredSkills: updateResult.requiredSkills,
-            softSkillRequirment: updateResult.jobReq.softSkillRequirment,
-            maximumAge: updateResult.jobReq.maximumAge,
-            requiredReligion: updateResult.requiredReligion,
-            requiredGender: updateResult.jobReq.requiredGender,
-            description: updateResult.jobReq.description
-        };
-        let jobTypeF = {
-            id: updateResult.jobType.id,
-            name: updateResult.jobType.name
-        };
-        let resultObj = {
-            jobID: updateResult.job.jobID,
-            title: updateResult.job.title,
-            description: updateResult.job.description,
-            jobType: jobTypeF,
-            companyName: updateResult.job.companyName,
-            remote: updateResult.job.remote,
-            location: updateResult.job.location,
-            duration: updateResult.job.duration,
-            benefits: updateResult.job.benefits,
-            contact: updateResult.job.contact,
-            quantity: updateResult.job.quantity,
-            minSalary: updateResult.job.minSalary,
-            maxSalary: updateResult.job.maxSalary,
-            endDate: updateResult.job.endDate,
-            requirements: requirements,
-            status: updateResult.job.status
-        }
-        return resultObj;
+        let updatedJob = await jobData.update(updatedJobData);
+        return updatedJob.toObject();
+        
     }
 
     async deleteJob(jobID){
@@ -110,7 +59,6 @@ class JobController extends ResourceController {
     async searchByName(title){
         let result = await Job.searchByName(title);
         return result;
-        
     }
 
     async applyJob(jobID, userID){

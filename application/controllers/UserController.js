@@ -46,7 +46,7 @@ class UserController extends ResourceController{
         let user = await User.find(userID);
         if(user === null) return null;
 
-        let addSkillResult = await user.addSkillv2(skillList);
+        let addSkillResult = await user.addSkill(skillList);
         return addSkillResult;
     }
 

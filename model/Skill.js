@@ -74,18 +74,18 @@ class Skill extends Model {
     }
 
     static async find(skillID){
-        
-        let query = `MATCH (res:Skill) WHERE ID(res) = ${skillID} RETURN res`;
-        let resultSkill = await DB.query(query);
-        if(resultSkill.records.length > 0){
-            let value = resultSkill.records[0].get('res');
-            let properties = value.properties;
-            let skillData = new Skill(properties.name, properties.uri);
-            
-            return skillData;
-        } else {
-            
-            return null;
+        let query = `MATCH (s:Skill {id: '${skillID}'}) RETURN s`;
+        try{
+            let result = await DB.query(query);
+            if(result.records.length > 0){
+                let propSkill = result.records[0].get('s').properties;
+                let skill = new Skill(propSkill.id, propSkill.name, propSkill.uri);
+                return skill;
+            } else {
+                return null;
+            }
+        } catch(e){
+            throw e;
         }
     }
 

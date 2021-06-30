@@ -9,6 +9,8 @@ const Applicant = require("./Applicant");
 const JobRequirement = require("./JobRequirement");
 const Religion = require("./Religion");
 const JobType = require("./JobType");
+const StudyProgram = require("./StudyProgram");
+const Gender = require("./Gender");
 
 class Job extends Model {
     // Property of job (private)
@@ -27,8 +29,10 @@ class Job extends Model {
     #minSalary;
     #maxSalary;
     #status;
+    #requirements;
+    #type;
 
-    constructor(jobID='', userID='', title='', quantity=0, location='', contact='', benefits='', description='', duration='', remote=false, companyName='', endDate='', minSalary=0, maxSalary=0, status=true){
+    constructor(jobID='', userID='', title='', quantity=0, location='', contact='', benefits='', description='', duration='', remote=false, companyName='', endDate='', minSalary=0, maxSalary=0, status=true, jobReq = {}, jobType = {}){
         super();
         this.#jobID = jobID;
         this.#userID = userID;
@@ -45,10 +49,12 @@ class Job extends Model {
         this.#minSalary = minSalary;
         this.#maxSalary = maxSalary;
         this.#status = status;
+        this.#requirements= jobReq;
+        this.#type = jobType;
     }
 
     // Getter
-    getJobID(){
+    getID(){
         return this.#jobID;
     }
     getUserID(){
@@ -63,28 +69,37 @@ class Job extends Model {
     getCompanyName(){
         return this.#companyName;
     }
-    async getRequiredSkills(){
-        let query = `MATCH (j:Job {jobID: '${this.#jobID}'})-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_SKILL]->(s:Skill) RETURN s`;
-        try{
-            let resultListSkill = await DB.query(query);
-            let listSkill = [];
-            resultListSkill.records.forEach((item) => {
-                let propSkill = item.get('s').properties;
-                let skill = new Skill(propSkill.id, propSkill.name, propSkill.uri);
-                if(listSkill.length == 0){
-                    listSkill.push(skill);
-                } else {
-                    let validateItem = listSkill.some(sk => sk.getID() === skill.getID());
-                    if(!validateItem){
-                        listSkill.push(skill);
-                    }
-                }
-            });
-            return listSkill;
-        }catch(e){
-            throw e;
-        }
+    getRequirements(){
+        return this.#requirements;
     }
+    setRequirements(newReq){
+        this.#requirements = newReq;
+    }
+    setJobType(newType){
+        this.#type = newType;
+    }
+    // async getRequiredSkills(){
+    //     let query = `MATCH (j:Job {jobID: '${this.#jobID}'})-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_SKILL]->(s:Skill) RETURN s`;
+    //     try{
+    //         let resultListSkill = await DB.query(query);
+    //         let listSkill = [];
+    //         resultListSkill.records.forEach((item) => {
+    //             let propSkill = item.get('s').properties;
+    //             let skill = new Skill(propSkill.id, propSkill.name, propSkill.uri);
+    //             if(listSkill.length == 0){
+    //                 listSkill.push(skill);
+    //             } else {
+    //                 let validateItem = listSkill.some(sk => sk.getID() === skill.getID());
+    //                 if(!validateItem){
+    //                     listSkill.push(skill);
+    //                 }
+    //             }
+    //         });
+    //         return listSkill;
+    //     }catch(e){
+    //         throw e;
+    //     }
+    // }
     async getApplicant(){
         let query = `MATCH (j:Job {jobID: '${this.#jobID}'})<-[re:APPLY]-(:User) RETURN re`;
         try{
@@ -106,433 +121,262 @@ class Job extends Model {
 
     toObject(){
         let objResult = {
-            jobID: this.#jobID,
-            userID: this.#userID,
+            jobId: this.#jobID,
+            userId: this.#userID,
             title: this.#title,
             quantity: this.#quantity,
             location: this.#location,
             contact: this.#contact,
             benefits: this.#benefits,
             description: this.#description,
+            jobType: this.#type.toObject(),
             duration: this.#duration,
             remote: this.#remote,
             companyName: this.#companyName,
             endDate: this.#endDate,
             minSalary: this.#minSalary,
             maxSalary: this.#maxSalary,
+            requirements: this.#requirements.toObject(),
             status: this.#status
         };
         return objResult;
     }
 
-    // Database related
-
-    // Get all job
-    static async getAllAvailableJob(){
-        let date = new Date();
-        let currentDate = `${date.getFullYear()}-0${date.getMonth()+1}-${date.getDate()}`;
-        let query = `WITH split('${currentDate}', '-') AS cd 
-                    MATCH (j:Job)<-[:POSTS]-(u:User) 
-                    WITH cd, split(j.endDate, '-') AS ed, j, u
-                    WHERE (cd[0] < ed[0]) OR (cd[0] = ed[0] AND ((cd[1] < ed[1]) OR (cd[1] = ed[1] AND (cd[2] < ed[2])))) 
-                    RETURN j, u ORDER BY j.jobID`;
-        try{
-            let resultListJob = await DB.query(query);
-            if(resultListJob.records.length > 0){
-                let jobData = [];
-                resultListJob.records.forEach((item) => {
-                    // Extract every job
-                    let propJob = item.get('j').properties;
-                    let propUser = item.get('u').properties;
-
-                    let job = new Job(propJob.jobID, propUser.nim, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status);
-
-                    let objJob = {};
-                    objJob['job'] = job.toObject();
-                    objJob['jobReq'] = {};
-                    objJob['jobType'] = {};
-                    jobData.push(objJob);
-                });
-    
-                for(let i=0; i<jobData.length; i++){
-                    let value = jobData[i];
-                    // Get the rest of requirement of Job
-                    let queryJobReq = `MATCH (j:Job {jobID : '${value.job.jobID}'})-[:REQUIRES]->(jr:JobReq), (j)-[:CLASSIFIED]->(jt:JobType), (jr)-[:REQUIRES_SKILL]->(s:Skill) RETURN jr, jt, s`;
-                    try{
-                        let resultJobReq = await DB.query(queryJobReq);
-                        let listSkills = [];
-                        let listReligions = [];
-                        let jobReqData = {};
-                        if(resultJobReq.records.length > 0){
-                            resultJobReq.records.forEach((item, index) => {
-                                if(index === 0){
-                                    let propJobReq = item.get('jr').properties;
-                                    let jobReq = new JobRequirement(propJobReq.classYearRequirement, propJobReq.studyProgramRequirement, propJobReq.documentRequirement, [], propJobReq.softSkillRequirment, propJobReq.maximumAge, [], propJobReq.requiredGender, propJobReq.description);
-                                    jobReqData = jobReq;
-        
-                                    let propJobType = item.get('jt').properties;
-                                    let jobType = new JobType(propJobType.id, propJobType.name);
-                                    value.jobType = jobType.toObject();
-                                }
-        
-                                let propSkill = item.get('s').properties;
-                                let skill = new Skill(propSkill.id, propSkill.name, propSkill.uri);
-                                if(listSkills.length === 0){
-                                    listSkills.push(skill.toObject());
-                                } else {
-                                    let validateItem = listSkills.some(sk => sk.id === skill.getID());
-                                    if(!validateItem){
-                                        listSkills.push(skill.toObject());
-                                    }
-                                }
-                            });
-                            jobReqData.setSkills(listSkills);
-        
-                            let queryReligions = `MATCH (j:Job {jobID : '${value.job.jobID}'})-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_RELIGION]->(r:Religion) RETURN r`;
-                            try{
-                                let resultReligions = await DB.query(queryReligions);
-                                if(resultReligions.records.length > 0){
-                                    resultReligions.records.forEach((item) => {
-                                        let propRel = item.get('r').properties;
-                                        let religion = new Religion(propRel.id, propRel.name);
-                                        if(listReligions.length === 0){
-                                            listReligions.push(religion.toObject());
-                                        } else {
-                                            let validateItem = listReligions.some(rl => rl.id === religion.getID());
-                                            if(!validateItem){
-                                                listReligions.push(religion.toObject());
-                                            }
-                                        }
-                                    });
-                                    jobReqData.setReligions(listReligions);
-                                }
-                                value.jobReq = jobReqData.toObject();
-                            } catch(e){
-                                throw e;
-                            }
-                        }
-                        jobData[i] = value;
-                    }catch(e){
-                        throw e;
-                    }
-                }
-                let finalJobData = [];
-                jobData.forEach((item) => {
-                    let requirements = {
-                        studyProgramReq: item.jobReq.studyProgramRequirement,
-                        classYearRequirement: item.jobReq.classYearRequirement,
-                        documentsRequirement: item.jobReq.documentsRequirement,
-                        requiredSkills: item.jobReq.requiredSkills,
-                        softSkillRequirment: item.jobReq.softSkillRequirment,
-                        maximumAge: item.jobReq.maximumAge,
-                        requiredReligion: item.jobReq.requiredReligion,
-                        requiredGender: item.jobReq.requiredGender,
-                        description: item.jobReq.description
-                    };
-                    let objJobType = {
-                        id: item.jobType.id,
-                        name: item.jobType.name
-                    };
-                    let objJob = {
-                        jobID: item.job.jobID,
-                        title: item.job.title,
-                        description: item.job.description,
-                        jobType: objJobType,
-                        companyName: item.job.companyName,
-                        remote: item.job.remote,
-                        location: item.job.location,
-                        duration: item.job.duration,
-                        benefits: item.job.benefits,
-                        contact: item.job.contact,
-                        quantity: item.job.quantity,
-                        minSalary: item.job.minSalary,
-                        maxSalary: item.job.maxSalary,
-                        endDate: item.job.endDate,
-                        requirements: requirements,
-                        status: item.job.status
-                    };
-                    finalJobData.push(objJob);
-                });
-                return finalJobData;
-            } else {
-                return null;
-            }
-        }catch(e){
-            throw e;
-        }
-    }
-
-    // Create new job
-    static async create(jobData){
-        let jobID = uuidv4();
-        let userID = '181511041';
-        let contact = jobData.contact;
-        contact = contact.replace(/\\n/g, function(x) {
+    cleaningStringFormat(stringInput){
+        let result = stringInput;
+        result = result.replace(/\\n/g, function(x) {
             return '\\\\n';
         });
-        contact = contact.replace(/\\r/g, function(x) {
+        result = result.replace(/\\r/g, function(x) {
             return '\\\\r';
         });
+        return result;
+    }
 
-        // First section of query
-        let query = `MERGE (j:Job {jobID: '${jobID}'})
-                     SET j.title = '${jobData.title}',
-                     j.quantity = ${jobData.quantity},
+    // Database related
+    async save(){
+        console.log(this.#jobID);
+        // Formatted string
+        let contact = this.cleaningStringFormat(this.#contact);
+        // Object data
+        let objRequirement = this.#requirements.toObject();
+        let objJob = this.toObject();
+
+        // Create node Job
+        let query = `MERGE (j:Job {jobID: '${this.#jobID}'})
+                     SET j.title = '${this.#title}',
                      j.contact = '${contact}',
-                     j.status = true,
-                     j.endDate = '${jobData.endDate}',`;
+                     j.quantity = ${this.#quantity},
+                     j.endDate = '${this.#endDate}',
+                     j.status = ${this.#status},`;
         
-        // Delete properties from jobData
-        delete jobData['title'];
-        delete jobData['quantity'];
-        delete jobData['contact'];
-        delete jobData['endDate'];
-
-        let jobProperty = Object.keys(jobData);
-        for(let i=0; i < jobProperty.length; i++){
-            let currProp = jobProperty[i];
-            if(jobData[currProp] !== null && currProp !== 'requirements' && currProp !== 'jobType'){
-                let value = jobData[currProp];
-                if(currProp !== 'remote' && currProp !== 'minSalary' && currProp !== 'maxSalary'){
-                    value = value.replace(/\\n/g, function(x) {
-                        return '\\\\n';
-                    });
-                    value = value.replace(/\\r/g, function(x) {
-                        return '\\\\r';
-                    });
-                    query += `j.` + currProp + ` = '${value}',`
+        let restOfJobProperty = ["description", "companyName", "remote", "location", "duration", "benefits", "minSalary", "maxSalary"];
+        for(let i=0; i < restOfJobProperty.length; i++){
+            let property = restOfJobProperty[i];
+            if(objJob[property] !== null && property !== 'requirements' && property !== 'jobType'){
+                let value = objJob[property];
+                if(property !== 'remote' && property !== 'minSalary' && property !== 'maxSalary'){
+                    value = this.cleaningStringFormat(value);
+                    query += `j.` + property + ` = '${value}',`;
                 } else {
-                    query += `j.` + currProp + ` = ${value},`;
+                    query += `j.` + property + ` = ${value},`;
                 }
             }
         }
         // Remove comma at the end of char from current query
         query = query.substr(0, query.length-1);
         
-        // Second section of query 
-        query += ` CREATE (jr:JobReq) 
-                    SET `;
-        let requirementProperty = Object.keys(jobData.requirements);
-        if(jobData.hasOwnProperty('requirements')){
-            requirementProperty.forEach((item, index, array) => {
-                if(jobData.requirements[item] !== null){
-                    if(item !== 'requiredSkills' && item !== 'requiredReligion'){
-                        if(Array.isArray(jobData.requirements[item])){
-                            query += ` jr.` + item + ` = [${jobData.requirements[item].join()}],`;
+        query += `
+                  WITH j
+                  MERGE (j)-[:REQUIRES]->(jr:JobReq)
+                  SET `;
+        
+        // Validate if value is (array, string or null)
+        let jobReqProp = Object.keys(objRequirement);
+        for(let i=0; i < jobReqProp.length; i++){
+            let property = jobReqProp[i];
+            if(objRequirement[property] !== null){
+                let value = objRequirement[property];
+                if(property !== 'requiredSkills' && property !== 'requiredReligion'){
+                    if(Array.isArray(value)){
+                        if(property === 'classYearRequirement'){
+                            query += `jr.` + property + ` = [${value.join()}],`;
                         } else {
-                            let value = jobData.requirements[item];
-                            if(item !== 'maximumAge'){
-                                value = value.replace(/\\n/g, function(x) {
-                                    return '\\\\n';
-                                });
-                                value = value.replace(/\\r/g, function(x) {
-                                    return '\\\\r';
-                                });
-                                query += ` jr.` + item + ` = '${value}',`;
-                            } else {
-                                query += ` jr.` + item + ` = ${value},`;
-                            }
+                            query += `jr. ` + property + ` = [`;
+                            value.forEach((item) => {
+                                if(property === 'studyProgramRequirement'){
+                                    query += item.studyProgramId + `,`;
+                                } else {
+                                    query += item.genderId + `,`;
+                                }
+                            });
+                            query = query.substr(0, query.length-1);
+                            query += `],`;
+                        }
+                    } else {
+                        if(property !== 'maximumAge'){
+                            value = this.cleaningStringFormat(value);
+                            query += `jr.` + property + ` = '${value}',`;
+                        } else {
+                            query += `jr.` + property + ` = ${value},`;
                         }
                     }
-                } else {
-                    delete array[index];
                 }
+            }
+        }
+
+        // Remove comma at the end of char from current query
+        query = query.substr(0, query.length-1);
+
+        // Merge Job dan JobReq
+        // Add relationship with JobReq dan Skill and Religion (if any)
+        let isAddReligion = false;
+        if(objRequirement.requiredSkills.length > 0){
+            let reqSkills = objRequirement.requiredSkills;
+            query += `
+                      WITH j, jr
+                      UNWIND [`;
+            reqSkills.forEach((item) => {
+                query += `"${item.skillId}",`;
             });
 
             // Remove comma at the end of char from current query
             query = query.substr(0, query.length-1);
-
-            // Third section of query
-            query += ` MERGE (j)-[:REQUIRES]->(jr)`;
-            var reqRelStat = false;
-            if(requirementProperty.includes('requiredSkills')){
-                let requiredSkills = jobData.requirements.requiredSkills;
-                query += ` WITH j, jr
-                          UNWIND [`; 
-                for(let i=0; i < requiredSkills.length; i++){
-                    let value = requiredSkills[i];
-                    query += `"${value}",`;
-                }
-                // Remove comma at the end of char from current query
-                query = query.substr(0, query.length-1);
-                query += `] AS sk
-                          MERGE (s:Skill {id: sk})
-                          MERGE (jr)-[:REQUIRES_SKILL]->(s)`;
-            }
-            if(requirementProperty.includes('requiredReligion')){
-                let requiredReligion = jobData.requirements.requiredReligion;
-                query += ` WITH j, jr, s
-                            UNWIND [`;
-                for(let i=0; i < requiredReligion.length; i++){
-                    let value = requiredReligion[i];
-                    query += `"${value}",`;
-                }
-                // Remove comma at the end of char from current query
-                query = query.substr(0, query.length-1);
-                query += `] AS rl
-                            MERGE (r:Religion {id: rl})
-                            MERGE (jr)-[:REQUIRES_RELIGION]->(r)`;
-                reqRelStat = true;
-            }
+            query += `] AS sk
+                      MATCH (s:Skill {id: sk})
+                      MERGE (jr)-[:REQUIRES_SKILL]->(s) `;
         }
-        if(reqRelStat){
-            query += ` WITH j,jr,s,r
-                  MERGE (jt:JobType {id: '${jobData.jobType}'})
-                  MERGE (j)-[:CLASSIFIED]->(jt)
-                  MERGE (u:User {nim: '${userID}'})
-                  MERGE (u)-[:POSTS]->(j)
-                  RETURN j,jr,s,r,jt,u`;
+        if(objRequirement.requiredReligion.length > 0){
+            let reqReligion = objRequirement.requiredReligion;
+            query += `WITH j, jr, s
+                      UNWIND [`;
+            reqReligion.forEach((item) => {
+                query += `"${item.religionId}",`;
+            });
+            // Remove comma at the end of char from current query
+            query = query.substr(0, query.length-1);
+            query += `] AS rl
+                      MATCH (r:Religion {id: rl})
+                      MERGE (jr)-[:REQUIRES_RELIGION]->(r) `;
+            isAddReligion = true;
+        }
+
+        if(isAddReligion){
+            query += `
+                      WITH j, jr, s, r
+                      MATCH (jt:JobType {id: '${this.#type.getID()}'}), (u:User {nim: '${this.#userID}'})
+                      MERGE (j)-[:CLASSIFIED]->(jt)
+                      MERGE (u)-[:POSTS]->(j)
+                      RETURN j, jr, s, r, jt, u`;
         } else {
-            query += ` WITH j,jr,s
-                  MERGE (jt:JobType {id: '${jobData.jobType}'})
-                  MERGE (j)-[:CLASSIFIED]->(jt)
-                  MERGE (u:User {nim: '${userID}'})
-                  MERGE (u)-[:POSTS]->(j)
-                  RETURN j,jr,s,jt,u`;
+            query += `
+                      WITH j, jr, s
+                      MATCH (jt:JobType {id: '${this.#type.getID()}'}), (u:User {nim: '${this.#userID}'})
+                      MERGE (j)-[:CLASSIFIED]->(jt)
+                      MERGE (u)-[:POSTS]->(j)
+                      RETURN j, jr, s, jt, u`;
         }
         try{
-            let resultCreateJob = await DB.query(query);
-            let newJob = {};
-            let jobRequirement = {};
-            let tempJobReq = {};
-            let listSkills = [];
-            let listReligions = [];
-            let jobTypeData = {};
-
-            resultCreateJob.records.forEach((item, index) => {
-                if(reqRelStat){
-                    if(index == 0){
-                        // Job, Job Requirement, Job Type and User data appears in every index of array (same value)
-                        // So... just get at first index 
-                        let propJob = item.get('j').properties;
-                        let propUser = item.get('u').properties;
-                        let job =  new Job(propJob.jobID, propUser.nim, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status);
-                        newJob = job.toObject();
-
-                        let propJobReq = item.get('jr').properties;
-                        tempJobReq = new JobRequirement(propJobReq.classYearRequirement, propJobReq.studyProgramRequirement, propJobReq.documentRequirement, [], propJobReq.softSkillRequirment, propJobReq.maximumAge, [], propJobReq.requiredGender, propJobReq.description);
-
-                        let propJobType = item.get('jt').properties;
-                        let jobType = new JobType(propJobType.id, propJobType.name);
-                        jobTypeData = jobType.toObject();
-                    }
-
-                    let propSkill = item.get('s').properties;
-                    let skill = new Skill(propSkill.id, propSkill.name, propSkill.uri);
-                    if(listSkills.length == 0){
-                        listSkills.push(skill.toObject());
-                    } else {
-                        let validateItem = listSkills.some(sk => sk.id === skill.getID());
-                        if(!validateItem){
-                            listSkills.push(skill.toObject());
-                        }
-                    }
-
-                    let propReligion = item.get('r').properties;
-                    let religion = new Religion(propReligion.id, propReligion.name);
-                    if(listReligions.length == 0){
-                        listReligions.push(religion.toObject());
-                    } else {
-                        let validateItem = listReligions.some(rl => rl.id === religion.getReligionID());
-                        if(!validateItem){
-                            listReligions.push(religion.toObject());
-                        }
-                    }
-                } else {
-                    if(index == 0){
-                        // Job, Job Requirement, Job Type and User data appears in every index of array (same value)
-                        // So... just get at first index 
-                        let propJob = item.get('j').properties;
-                        let propUser = item.get('u').properties;
-                        let job =  new Job(propJob.jobID, propUser.nim, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status);
-                        newJob = job.toObject();
-
-                        let propJobReq = item.get('jr').properties;
-                        tempJobReq = new JobRequirement(propJobReq.classYearRequirement, propJobReq.studyProgramRequirement, propJobReq.documentRequirement, [], propJobReq.softSkillRequirment, propJobReq.maximumAge, [], propJobReq.requiredGender, propJobReq.description);
-
-                        let propJobType = item.get('jt').properties;
-                        let jobType = new JobType(propJobType.id, propJobType.name);
-                        jobTypeData = jobType.toObject();
-                    }
-
-                    let propSkill = item.get('s').properties;
-                    let skill = new Skill(propSkill.id, propSkill.name, propSkill.uri);
-                    if(listSkills.length == 0){
-                        listSkills.push(skill);
-                    } else {
-                        let validateItem = listSkills.some(sk => sk.id === skill.getID());
-                        if(!validateItem){
-                            listSkills.push(skill);
-                        }
-                    }
-                }
-            });
-            tempJobReq.setSkills(listSkills);
-            if(reqRelStat){
-                tempJobReq.setReligions(listReligions);
-            }
-            jobRequirement = tempJobReq.toObject();
-
-            let finalRequirements = {
-                studyProgramReq: jobRequirement.studyProgramRequirement,
-                classYearRequirement: jobRequirement.classYearRequirement,
-                documentsRequirement: jobRequirement.documentsRequirement,
-                requiredSkills: jobRequirement.requiredSkills,
-                softSkillRequirment: jobRequirement.softSkillRequirment,
-                maximumAge: jobRequirement.maximumAge,
-                requiredReligion: jobRequirement.requiredReligion,
-                requiredGender: jobRequirement.requiredGender,
-                description: jobRequirement.description
-            };
-            let resultObj = {
-                jobID: newJob.jobID,
-                title: newJob.title,
-                description: newJob.description,
-                jobType: jobTypeData,
-                companyName: newJob.companyName,
-                remote: newJob.remote,
-                location: newJob.location,
-                duration: newJob.duration,
-                benefits: newJob.benefits,
-                contact: newJob.contact,
-                quantity: newJob.quantity,
-                minSalary: newJob.minSalary,
-                maxSalary: newJob.maxSalary,
-                endDate: newJob.endDate,
-                requirements: finalRequirements,
-                status: newJob.status
-            }
-            return resultObj;
-        }catch(e){
+            let resultSave = await DB.query(query);
+            return resultSave.records.length > 0 ? true : false;
+        } catch(e){
             throw e;
         }
     }
+    // Get all job
+    static async getAllAvailableJob(){
+        let result = await this.searchByName('');
+        return result;
+        // let date = new Date();
+        // let currentDate = `${date.getFullYear()}-0${date.getMonth()+1}-${date.getDate()}`;
+        // let query = `WITH split('${currentDate}', '-') AS cd 
+        //             MATCH (j:Job)<-[:POSTS]-(u:User), (j)-[:CLASSIFIED]->(jt:JobType), (j)-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_SKILL]->(s:Skill) 
+        //             WITH cd, split(j.endDate, '-') AS ed, j, u, jt, jr, s
+        //             WHERE (cd[0] < ed[0]) OR (cd[0] = ed[0] AND ((cd[1] < ed[1]) OR (cd[1] = ed[1] AND (cd[2] < ed[2])))) 
+        //             RETURN j{.*, userId: u.nim, jobType: jt{.*}, requirements: jr{.*, requiredSkills: collect(s{.*})}}`;
+        // try{
+        //     let result = await DB.query(query);
+        //     let jobData = [];
+        //     if(result.records.length > 0){
+        //         let listSkills = [];
+        //         let listReligion = [];
+        //         for(let i=0; i < result.records.length; i++){
+        //             let propJob =  result.records[i].get('j');
+
+        //             let jobType = new JobType(propJob.jobType.id, propJob.jobType.name);
+        //             let jobReq = new JobRequirement(propJob.requirements.classYearRequirement, propJob.requirements.studyProgramRequirement, propJob.requirements.documentRequirement, [], propJob.requirements.softSkillRequirement, propJob.requirements.maximumAge, [], propJob.requirements.requiredGender, propJob.requirements.description);
+        //             await jobReq.init();
+                    
+        //             propJob.requirements.requiredSkills.forEach((item) => {
+        //                 let skill = new Skill(item.id, item.name, item.uri);
+        //                 if(listSkills.length === 0){
+        //                     listSkills.push(skill.toObject());
+        //                 } else {
+        //                     let validateItem = listSkills.some(sk => sk.id === skill.getID());
+        //                     if(!validateItem) listSkills.push(skill.toObject());
+        //                 }
+        //             });
+        //             jobReq.setSkills(listSkills);
+
+        //             let queryReligion = `MATCH (j:Job {jobID: '${propJob.jobID}'})-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_RELIGION]->(r:Religion) RETURN r`;
+        //             try{
+        //                 let resultReligion = await DB.query(queryReligion);
+        //                 if(resultReligion.records.length > 0){
+        //                     resultReligion.records.forEach((item) => {
+        //                         let propRel = item.get('r').properties;
+        //                         let religion = new Religion(propRel.id, propRel.name);
+        //                         if(listReligion.length === 0){
+        //                             listReligion.push(religion.toObject());
+        //                         } else {
+        //                             let validateItem = listReligion.some(rl => rl.id === religion.getID());
+        //                             if(!validateItem) listReligion.push(religion.toObject());
+        //                         }
+        //                     });
+        //                     jobReq.setReligions(listReligion);
+        //                 }
+        //             } catch(e){
+        //                 throw e;
+        //             }
+
+        //             let job = new Job(propJob.jobID, propJob.userId, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status, jobReq, jobType);
+        //             jobData.push(job.toObject());
+        //         }
+        //         return jobData;
+        //     } else {
+        //         return null;
+        //     }
+        // } catch(e){
+        //     throw e;
+        // }
+    }
 
     static async find(jobID){
-        let query = `MATCH (j:Job {jobID: '${jobID}'})-[:REQUIRES]->(jr:JobReq), (j)<-[:POSTS]-(u:User), (j)-[:CLASSIFIED]->(jt:JobType), (jr)-[:REQUIRES_SKILL]->(s:Skill) RETURN j,jr,u,jt,s`;
+        let query = `MATCH (j:Job {jobID: '${jobID}'})-[:REQUIRES]->(jr:JobReq), (j)<-[:POSTS]-(u:User), (j)-[:CLASSIFIED]->(jt:JobType), (jr)-[:REQUIRES_SKILL]->(s:Skill) RETURN j{.*, userID: u.nim, jobType: jt{.*}, requirements: jr{.*, requiredSkills: s{.*}}}`;
         try{
             let result = await DB.query(query);
             if(result.records.length > 0){
-                // Extract the data
-                let propJob = result.records[0].get('j').properties;
-                let propUser = result.records[0].get('u').properties;
-                let propJobType = result.records[0].get('jt').properties;
-                let propJobReq = result.records[0].get('jr').properties;
-
-                let job = new Job(propJob.jobID, propUser.nim, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status);
-
-                let jobType = new JobType(propJobType.id, propJobType.name);
-
-                let jobReq = new JobRequirement(propJobReq.classYearRequirement, propJobReq.studyProgramRequirement, propJobReq.documentRequirement, [], propJobReq.softSkillRequirment, propJobReq.maximumAge, [], propJobReq.requiredGender, propJobReq.description);
-
+                let jobObject = {};
+                let jobReqObject = {};
                 let listSkills = [];
-                result.records.forEach((item) => {
-                    let propSkill = item.get('s').properties;
+                let listReligion = [];
+
+                result.records.forEach((item, index) => {
+                    let jobData = item.get('j');
+                    if(index === 0){
+                        let jobType = new JobType(jobData.jobType.id, jobData.jobType.id);
+                        let jobReq = new JobRequirement(jobData.requirements.classYearRequirement, jobData.requirements.studyProgramRequirement, jobData.requirements.documentRequirement, [], jobData.requirements.softSkillRequirment, jobData.requirements.maximumAge, [], jobData.requirements.requiredGender, jobData.requirements.description);
+                        jobReqObject = jobReq;
+
+                        let job = new Job(jobData.jobID, jobData.userID, jobData.title, jobData.quantity, jobData.location, jobData.contact, jobData.benefits, jobData.description, jobData.duration, jobData.remote, jobData.companyName, jobData.endDate, jobData.minSalary, jobData.maxSalary, jobData.status, {}, jobType);
+                        jobObject = job;
+                    }
+
+                    let propSkill = jobData.requirements.requiredSkills;
                     let skill = new Skill(propSkill.id, propSkill.name, propSkill.uri);
-                    if(listSkills.length == 0){
+                    if(listSkills.length === 0){
                         listSkills.push(skill.toObject());
                     } else {
-                        let validateItem = listSkills.some(sk => sk.id === skill.getID());
+                        let validateItem = listSkills.some(sk => sk.skillId === skill.getID());
                         if(!validateItem){
                             listSkills.push(skill.toObject());
                         }
@@ -541,34 +385,29 @@ class Job extends Model {
 
                 let queryReligions = `MATCH (j:Job {jobID: '${jobID}'})-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_RELIGION]->(r:Religion) RETURN r`;
                 try{
-                    let resultReligions = await DB.query(queryReligions);
-                    let listReligions = [];
-                    if(resultReligions.records.length > 0){
-                        resultReligions.records.forEach((item) => {
-                            let value = item.get('r').properties;
-                            let religion = new Religion(value.id, value.name);
-                            if(listReligions.length == 0){
-                                listReligions.push(religion.toObject());
+                    let resultReligion = await DB.query(queryReligions);
+                    if(resultReligion.records.length > 0){
+                        resultReligion.records.forEach((item) => {
+                            let propRel = item.get('r').properties;
+                            let religion = new Religion(propRel.id, propRel.name);
+                            if(listReligion.length === 0){
+                                listReligion.push(religion.toObject());
                             } else {
-                                let validateItem = listReligions.some(rl => rl.id === religion.getID());
+                                let validateItem = listReligion.some(rl => rl.religionId === religion.getID());
                                 if(!validateItem){
-                                    listReligions.push(religion.toObject());
+                                    listReligion.push(religion.toObject());
                                 }
                             }
                         });
                     }
-                    jobReq.setSkills(listSkills);
-                    jobReq.setReligions(listReligions);
-                    
-                    let resultObj = {
-                        job: job,
-                        jobType: jobType,
-                        jobReq: jobReq
-                    };
-                    return resultObj;
                 } catch(e){
                     throw e;
                 }
+                await jobReqObject.init();
+                jobReqObject.setSkills(listSkills);
+                jobReqObject.setReligions(listReligion);
+                jobObject.setRequirements(jobReqObject);
+                return jobObject;
             } else {
                 return null;
             }
@@ -577,17 +416,20 @@ class Job extends Model {
         }
     }
 
-    async update(updatedJobData, jobReq, jobType){
+    async update(updatedJobData){
+        // First...
         // Update data job and jobRequirement (properties only)
+        // Second...
+        // Update data requiredSkills (if current not in new list deleted)
+        // Last...
+        // Update data requiredReligion (same with skills)  
+
         // Cleaning string data
         let finalUpdatedJobData = {};
         let contact = updatedJobData.contact;
-        contact = contact.replace(/\\n/g, function(x) {
-            return '\\\\n';
-        });
-        contact = contact.replace(/\\r/g, function(x) {
-            return '\\\\r';
-        });
+        contact = this.cleaningStringFormat(contact);
+        let currJobType = this.#type;
+        
 
         // First section of query (update node Job)
         let query = `MATCH (j:Job {jobID: '${this.#jobID}'})-[:REQUIRES]->(jr:JobReq), (j)-[re:CLASSIFIED]->(ojt:JobType)  
@@ -613,12 +455,7 @@ class Job extends Model {
                 let propValue = updatedJobData[currProp];
                 if(currProp !== 'remote' && currProp !== 'minSalary' && currProp !== 'maxSalary'){
                     if(propValue !== null){
-                        propValue = propValue.replace(/\\n/g, function(x) {
-                            return '\\\\n';
-                        });
-                        propValue = propValue.replace(/\\r/g, function(x) {
-                            return '\\\\r';
-                        });
+                        propValue = this.cleaningStringFormat(propValue);
                         query += ` j.` + currProp + ` = '${propValue}',`;
                     } else {
                         query += ` j.` + currProp + ` = null,`;
@@ -638,7 +475,7 @@ class Job extends Model {
 
         // Second section of query (update relationship JobType if changed)
         let isUpdateJobType = false;
-        if(updatedJobData.jobType !== jobType.getID()){
+        if(updatedJobData.jobType !== currJobType.getID()){
             query += `
                       WITH j, jr, re
                       DELETE re
@@ -672,12 +509,7 @@ class Job extends Model {
                     } else {
                         if(item !== 'maximumAge'){
                             if(propValue !== null){
-                                propValue = propValue.replace(/\\n/g, function(x) {
-                                    return '\\\\n';
-                                });
-                                propValue = propValue.replace(/\\r/g, function(x) {
-                                    return '\\\\r';
-                                });
+                                propValue = this.cleaningStringFormat(propValue);
                                 query += ` jr.` + item + ` = '${propValue}',`;
                             } else {
                                 query += ` jr.` + item + ` = null,`;
@@ -708,6 +540,8 @@ class Job extends Model {
                     let propJob = resultUpdateJobdata.records[0].get('j').properties;
                     let propJobReq = resultUpdateJobdata.records[0].get('jr').properties;
                     let propJobType = null;
+                    let listSkills = [];
+                    let listReligion = [];
 
                     if(isUpdateJobType){
                         propJobType = resultUpdateJobdata.records[0].get('jt').properties;
@@ -715,13 +549,9 @@ class Job extends Model {
                         propJobType = resultUpdateJobdata.records[0].get('ojt').properties;
                     }
 
-                    let updatedJob = new Job(this.#jobID, this.#userID, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status);
-                    let updatedJobReq = new JobRequirement(propJobReq.classYearRequirement, propJobReq.studyProgramRequirement, propJobReq.documentRequirement, [], propJobReq.softSkillRequirment, propJobReq.maximumAge, [], propJobReq.requiredGender, propJobReq.description);
                     let updatedJobType = new JobType(propJobType.id, propJobType.name);
-
-                    finalUpdatedJobData.job = updatedJob.toObject();
-                    finalUpdatedJobData.jobReq = updatedJobReq.toObject();
-                    finalUpdatedJobData.jobType = updatedJobType.toObject();
+                    let updatedJobReq = new JobRequirement(propJobReq.classYearRequirement, propJobReq.studyProgramRequirement, propJobReq.documentRequirement, [], propJobReq.softSkillRequirement, propJobReq.maximumAge, [], propJobReq.requiredGender, propJobReq.description);
+                    await updatedJobReq.init();
 
                     // Update requires skill
                     if(requirementsProp.includes('requiredSkills')){
@@ -729,9 +559,9 @@ class Job extends Model {
                         // Check current requires skill from database
                         // Get every value in currListSkill that is not in newListSkills
                         let newReqSkills = updatedJobData.requirements.requiredSkills;
-                        let currReqSkills = jobReq.getSkills();
+                        let currReqSkills = this.#requirements.getSkills();
                         let diffSkill = currReqSkills.filter(el => {
-                            return !newReqSkills.some(sk => sk === el.id);
+                            return !newReqSkills.some(sk => sk === el.skillId);
                         });
                         // Delete relationship with that skills from database
                         if(diffSkill.length > 0){
@@ -773,25 +603,25 @@ class Job extends Model {
                         try{
                             let resultUpdateSkill = await DB.query(scndQuery);
                             if(resultUpdateSkill.records.length > 0){
-                                let listSkill = [];
+                                let tempListSkill = [];
                                 resultUpdateSkill.records.forEach((item) => {
                                     let propSkill = item.get('s').properties;
                                     let skill = new Skill(propSkill.id, propSkill.name, propSkill.uri);
-                                    if(listSkill.length == 0){
-                                        listSkill.push(skill.toObject());
+                                    if(tempListSkill.length == 0){
+                                        tempListSkill.push(skill.toObject());
                                     } else {
-                                        let validateItem = listSkill.some(sk => sk.id === skill.getID());
+                                        let validateItem = tempListSkill.some(sk => sk.id === skill.getID());
                                         if(!validateItem){
-                                            listSkill.push(skill.toObject());
+                                            tempListSkill.push(skill.toObject());
                                         }
                                     }
                                 });
-                                finalUpdatedJobData.requiredSkills = listSkill;
+                                listSkills = tempListSkill;
                                 // Update religion (if exist)
                                 if(requirementsProp.includes('requiredReligion')){
                                     if(updatedJobData.requirements.requiredReligion !== null){
                                         // Add or update current required religion
-                                        let currReqReligion = jobReq.getReligion();
+                                        let currReqReligion = this.#requirements.getReligion();
                                         let newReqReligion = updatedJobData.requirements.requiredReligion;
                                         let thirdQuery = `MATCH (j:Job {jobID: '${this.#jobID}'})-[:REQUIRES]->(jr:JobReq) `;
                                         if(currReqReligion.length == 0){
@@ -811,13 +641,20 @@ class Job extends Model {
                                             try{
                                                 let resultUpdateReligion = await DB.query(thirdQuery);
                                                 if(resultUpdateReligion.records.length > 0){
-                                                    let listReligions = [];
+                                                    let templistReligion = [];
                                                     resultUpdateReligion.records.forEach((item) => {
                                                         let propRel = item.get('r').properties;
                                                         let religion = new Religion(propRel.id, propRel.name);
-                                                        listReligions.push(religion.toObject());
+                                                        if(templistReligion.length === 0){
+                                                            templistReligion.push(religion.toObject());
+                                                        } else {
+                                                            let validateItem = templistReligion.some(rl => rl.id === religion.getID());
+                                                            if(!validateItem){
+                                                                templistReligion.push(religion.toObject());
+                                                            }
+                                                        }
                                                     });
-                                                    finalUpdatedJobData.requiredReligion = listReligions;
+                                                    listReligion = templistReligion;
                                                 }
                                             }catch(e){
                                                 throw e;
@@ -825,7 +662,7 @@ class Job extends Model {
                                         } else {
                                             // Check if current required religion are same
                                             let diffReligion = currReqReligion.filter(el => {
-                                                return !newReqReligion.some(rl => rl === el.id);
+                                                return !newReqReligion.some(rl => rl === el.religionId);
                                             });
                                             if(diffReligion.length > 0){
                                                 if(diffReligion.length == 1){
@@ -865,34 +702,34 @@ class Job extends Model {
                                             try{
                                                 let resultUpdateReligion = await DB.query(thirdQuery);
                                                 if(resultUpdateReligion.records.length > 0){
-                                                    let listReligions = [];
+                                                    let templistReligion = [];
                                                     resultUpdateReligion.records.forEach((item) => {
                                                         let propRel = item.get('r').properties;
                                                         let religion = new Religion(propRel.id, propRel.name);
-                                                        if(listReligions.length == 0){
-                                                            listReligions.push(religion.toObject());
+                                                        if(templistReligion.length == 0){
+                                                            templistReligion.push(religion.toObject());
                                                         } else {
-                                                            let validateItem = listReligions.some(rl => rl === religion.getID());
+                                                            let validateItem = templistReligion.some(rl => rl.id === religion.getID());
                                                             if(!validateItem){
-                                                                listReligions.push(religion.toObject());
+                                                                templistReligion.push(religion.toObject());
                                                             }
                                                         }
                                                     });
-                                                    finalUpdatedJobData.requiredReligion = listReligions;
+                                                    listReligion = templistReligion;
                                                 }
                                             }catch(e){
                                                 throw e;
                                             }
                                         }
                                     } else {
-                                        let currReqReligion = jobReq.getReligion();
+                                        let currReqReligion = this.#requirements.getReligion();
                                         if(currReqReligion.length > 0){
                                             // Remove every relationship with node religion
                                             let forthQuery = `MATCH (j:Job {jobID: '${this.#jobID}'})-[:REQUIRES]->(jr:JobReq), (jr)-[re:REQUIRES_RELIGION]->(r:Religion) DELETE re RETURN COUNT(re)`;
                                             try{
                                                 let resultDeleteRel = await DB.query(forthQuery);
                                                 if(resultDeleteRel.records.length > 0){
-                                                    finalUpdatedJobData.requiredReligion = [];
+                                                    listReligion = [];
                                                 }
                                             }catch(e){
                                                 throw e;
@@ -900,6 +737,10 @@ class Job extends Model {
                                         }
                                     }
                                 }
+                                updatedJobReq.setSkills(listSkills);
+                                updatedJobReq.setReligions(listReligion);
+                                let updatedJob = new Job(this.#jobID, this.#userID, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status, updatedJobReq, updatedJobType);
+                                finalUpdatedJobData = updatedJob;
                             }
                         }catch(e){
                             throw e;
@@ -931,133 +772,63 @@ class Job extends Model {
         let date = new Date();
         let currentDate = `${date.getFullYear()}-0${date.getMonth()+1}-${date.getDate()}`;
         let query = `WITH split('${currentDate}', '-') AS cd 
-                    MATCH (j:Job)<-[:POSTS]-(u:User), (j)-[:CLASSIFIED]->(jt:JobType)
-                    WITH cd, split(j.endDate, '-') AS ed, j, u, jt
-                    WHERE (cd[0] < ed[0]) OR (cd[0] = ed[0] AND ((cd[1] < ed[1]) OR (cd[1] = ed[1] AND (cd[2] < ed[2])))) AND j.title CONTAINS '${title}'
-                    RETURN j, u, jt ORDER BY j.jobID`;
+                    MATCH (j:Job)<-[:POSTS]-(u:User), (j)-[:CLASSIFIED]->(jt:JobType), (j)-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_SKILL]->(s:Skill) 
+                    WHERE j.title CONTAINS '${title}'
+                    WITH cd, split(j.endDate, '-') AS ed, j, u, jt, jr, s
+                    WHERE (cd[0] < ed[0]) OR (cd[0] = ed[0] AND ((cd[1] < ed[1]) OR (cd[1] = ed[1] AND (cd[2] < ed[2])))) 
+                    RETURN j{.*, userId: u.nim, jobType: jt{.*}, requirements: jr{.*, requiredSkills: collect(s{.*})}}`;
         try{
             let result = await DB.query(query);
+            let jobData = [];
             if(result.records.length > 0){
-                let jobData = [];
-                // Extract every job
-                result.records.forEach((item) => {
-                    let propJob = item.get('j').properties;
-                    let propUser = item.get('u').properties;
-                    let propJobType = item.get('jt').properties;
+                for(let i=0; i < result.records.length; i++){
+                    let listSkills = [];
+                    let listReligion = [];
+                    let propJob =  result.records[i].get('j');
 
-                    let job = new Job(propJob.jobID, propUser.nim, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status);
-                    let jobType = new JobType(propJobType.id, propJobType.name);
+                    let jobType = new JobType(propJob.jobType.id, propJob.jobType.name);
+                    let jobReq = new JobRequirement(propJob.requirements.classYearRequirement, propJob.requirements.studyProgramRequirement, propJob.requirements.documentRequirement, [], propJob.requirements.softSkillRequirement, propJob.requirements.maximumAge, [], propJob.requirements.requiredGender, propJob.requirements.description);
+                    await jobReq.init();
+                    
+                    propJob.requirements.requiredSkills.forEach((item) => {
+                        let skill = new Skill(item.id, item.name, item.uri);
+                        if(listSkills.length === 0){
+                            listSkills.push(skill.toObject());
+                        } else {
+                            let validateItem = listSkills.some(sk => sk.id === skill.getID());
+                            if(!validateItem) listSkills.push(skill.toObject());
+                        }
+                    });
+                    jobReq.setSkills(listSkills);
 
-                    let objJob = {};
-                    objJob['job'] = job.toObject();
-                    objJob['jobReq'] = {};
-                    objJob['jobType'] = jobType.toObject();
-                    jobData.push(objJob);
-                });
-
-                // Get job requirement
-                for(let i=0; i < jobData.length; i++){
-                    let value = jobData[i];
-
-                    let queryJobReq = `MATCH (j:Job {jobID: '${value.job.jobID}'})-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_SKILL]->(s:Skill) RETURN jr, s`;
-                    try {
-                        let resultJobReq = await DB.query(queryJobReq);
-                        let listSkills = [];
-                        let listReligions = [];
-                        let jobReqData = {};
-
-                        if(resultJobReq.records.length > 0){
-                            resultJobReq.records.forEach((item, index) => {
-                                if(index === 0){
-                                    let propJobReq = item.get('jr').properties;
-                                    let jobReq = new JobRequirement(propJobReq.classYearRequirement, propJobReq.studyProgramRequirement, propJobReq.documentRequirement, [], propJobReq.softSkillRequirment, propJobReq.maximumAge, [], propJobReq.requiredGender, propJobReq.description);
-                                    jobReqData = jobReq;
-                                }
-
-                                let propSkill = item.get('s').properties;
-                                let skill = new Skill(propSkill.id, propSkill.name, propSkill.uri);
-                                if(listSkills.length === 0){
-                                    listSkills.push(skill.toObject());
+                    let queryReligion = `MATCH (j:Job {jobID: '${propJob.jobID}'})-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_RELIGION]->(r:Religion) RETURN r`;
+                    try{
+                        let resultReligion = await DB.query(queryReligion);
+                        if(resultReligion.records.length > 0){
+                            resultReligion.records.forEach((item) => {
+                                let propRel = item.get('r').properties;
+                                let religion = new Religion(propRel.id, propRel.name);
+                                if(listReligion.length === 0){
+                                    listReligion.push(religion.toObject());
                                 } else {
-                                    let validateItem = listSkills.some(sk => sk.id === skill.getID());
-                                    if(!validateItem){
-                                        listSkills.push(skill.toObject());
-                                    }
+                                    let validateItem = listReligion.some(rl => rl.id === religion.getID());
+                                    if(!validateItem) listReligion.push(religion.toObject());
                                 }
                             });
-                            jobReqData.setSkills(listSkills);
-
-                            // Get required religion (if exist)
-                            let queryReligion = `MATCH (j:Job {jobID: '${value.job.jobID}'})-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_RELIGION]->(r:Religion) RETURN r`;
-                            try {
-                                let resultRel = await DB.query(queryReligion);
-                                if(resultRel.records.length > 0){
-                                    resultRel.records.forEach((item) => {
-                                        let propRel = item.get('r').properties;
-                                        let religion = new Religion(propRel.id, propRel.name);
-                                        if(listReligions.length === 0){
-                                            listReligions.push(religion.toObject());
-                                        } else {
-                                            let validateItem = listReligions.some(rl => rl.id === religion.getID());
-                                            if(!validateItem){
-                                                listReligions.push(religion.toObject());
-                                            }
-                                        }
-                                    });
-                                    jobReqData.setReligions(listReligions);
-                                }
-                                value.jobReq = jobReqData.toObject();
-                            } catch (e) {
-                                throw e;
-                            }
+                            jobReq.setReligions(listReligion);
                         }
-                        jobData[i] = value;
-                    } catch (e) {
+                    } catch(e){
                         throw e;
                     }
+
+                    let job = new Job(propJob.jobID, propJob.userId, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status, jobReq, jobType);
+                    jobData.push(job.toObject());
                 }
-                let finalJobData = [];
-                jobData.forEach((item) => {
-                    let requirements = {
-                        studyProgramReq: item.jobReq.studyProgramRequirement,
-                        classYearRequirement: item.jobReq.classYearRequirement,
-                        documentsRequirement: item.jobReq.documentsRequirement,
-                        requiredSkills: item.jobReq.requiredSkills,
-                        softSkillRequirment: item.jobReq.softSkillRequirment,
-                        maximumAge: item.jobReq.maximumAge,
-                        requiredReligion: item.jobReq.requiredReligion,
-                        requiredGender: item.jobReq.requiredGender,
-                        description: item.jobReq.description
-                    };
-                    let objJobType = {
-                        id: item.jobType.id,
-                        name: item.jobType.name
-                    };
-                    let objJob = {
-                        jobID: item.job.jobID,
-                        title: item.job.title,
-                        description: item.job.description,
-                        jobType: objJobType,
-                        companyName: item.job.companyName,
-                        remote: item.job.remote,
-                        location: item.job.location,
-                        duration: item.job.duration,
-                        benefits: item.job.benefits,
-                        contact: item.job.contact,
-                        quantity: item.job.quantity,
-                        minSalary: item.job.minSalary,
-                        maxSalary: item.job.maxSalary,
-                        endDate: item.job.endDate,
-                        requirements: requirements,
-                        status: item.job.status
-                    };
-                    finalJobData.push(objJob);
-                });
-                return finalJobData;
+                return jobData;
             } else {
                 return null;
             }
-        }catch(e){
+        } catch(e){
             throw e;
         }
     }

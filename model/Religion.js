@@ -41,17 +41,18 @@ class Religion extends Model{
     }
 
     static async find(id){
-        
-        let query = `MATCH (r:Religion {id: ${id}}) RETURN r`;
-        let result = await DB.query(query);
-        if(result.records.length > 0){
-            let value = result.records[0].get('r').properties;
-            let obj = new Religion(value.id, value.name);
-            
-            return obj;
-        } else {
-            
-            return null;
+        let query = `MATCH (r:Religion {id: '${id}'}) RETURN r`;
+        try{
+            let result = await DB.query(query);
+            if(result.records.length > 0){
+                let propRel = result.records[0].get('r').properties;
+                let religion = new Religion(propRel.id, propRel.name);
+                return religion;
+            } else {
+                return null;
+            }
+        } catch(e){
+            throw e;
         }
     }
 }
