@@ -9,11 +9,20 @@ class Skill extends Model {
     #name;
     #uri;
 
-    constructor(id, name, uri){
-        super();
+    constructor(id='', name='', uri=''){
+        super("id");
         this.#id = id;
         this.#name = name;
         this.#uri = uri;
+    }
+
+    constructFromObject(obj){
+        let {
+            id,
+            name,
+            uri
+        } = obj;
+        return new this.constructor(id, name, uri)
     }
 
     getID(){
@@ -37,63 +46,11 @@ class Skill extends Model {
         return objResult;
     }
 
-    // Database Related
-
-    // Set UUID for every Skill node
-    static async setID(){
-        
-        let query = `MATCH (s:Skill) RETURN s`;
-        let result = await DB.query(query);
-        
-        let skillData = [];
-        result.records.forEach((item) => {
-            let value = item.get('s').properties;
-            let skill = new Skill(value.name, value.uri);
-            skillData.push(skill);
-        });
-
-        let exampleData = {};
-        for(let i=0; i < skillData.length; i++){
-            let skillID = uuidv4();
-            let value = skillData[i];
-            console.log('curr skill: ', value.getName());
-            let query = `MATCH (s:Skill {uri: "${value.getUri()}"}) SET s.id = '${skillID}' RETURN s`;
-            let result = await DB.query(query);
-            if(result.records.length > 0){
-                if(i === 0){
-                    let value = result.records[0].get('s').properties;
-                    exampleData['id'] = value.id;
-                    exampleData['name'] = value.name;
-                    exampleData['uri'] = value.uri;
-                } else {
-                    continue;
-                }
-            }
-        }
-        return exampleData;
-    }
-
-    static async find(skillID){
-        
-        let query = `MATCH (res:Skill) WHERE ID(res) = ${skillID} RETURN res`;
-        let resultSkill = await DB.query(query);
-        if(resultSkill.records.length > 0){
-            let value = resultSkill.records[0].get('res');
-            let properties = value.properties;
-            let skillData = new Skill(properties.name, properties.uri);
-            
-            return skillData;
-        } else {
-            
-            return null;
-        }
-    }
-
-    static async getParentofNode(skillName){
+    async getParentNodes(){
         let listParents;
         try{
             listParents = await DB.query(
-                `MATCH (:Skill {name: '${skillName}'})-[:SUBJECT*0..1]->(:Skill)-[:BROADER*0..1]->(result:Skill) Return result`
+                `MATCH (:Skill {name: '${this.#name}'})-[:SUBJECT|BROADER*0..2]->(result:Skill) Return result`
             );
 
         }catch(e){
@@ -104,7 +61,7 @@ class Skill extends Model {
         return listParents;
     }
     
-    static getTotalOfDifferenceSkill(firstArr, secondArr){
+    getTotalOfDifferenceSkill(firstArr, secondArr){
         var result = [];
         result = firstArr.filter((elements) => {
             return !secondArr.some(item => (item.name === elements.name) && (item.uri === elements.uri));
@@ -112,7 +69,7 @@ class Skill extends Model {
         return result.length;
     }
     
-    static getIntersection(firstArr, secondArr){
+    getIntersection(firstArr, secondArr){
         var result = [];
         result = firstArr.filter((elements) => {
             return secondArr.some(item => (item.name === elements.name) && (item.uri === elements.uri));
@@ -120,7 +77,7 @@ class Skill extends Model {
         return result.length;
     }
     
-    static getGamma(firstArr, secondArr) {
+    getGamma(firstArr, secondArr) {
         var result = 0;
         if(firstArr.length >= secondArr.length){
             result = secondArr.length / (firstArr.length + secondArr.length);
@@ -130,11 +87,11 @@ class Skill extends Model {
         return result;
     }
 
-    static async calculateSimilarity(firstSkill, secondSkill){
+    async calculateSimilarity(secondSkill){
         // Fill up all parents from each skill
-        let dataOfParentsFS = await this.getParentofNode(firstSkill);
+        let dataOfParentsFS = await this.getParentNodes();
         let listOfParentsFS = dataOfParentsFS.records;
-        let dataOfParentsSS = await this.getParentofNode(secondSkill);
+        let dataOfParentsSS = await secondSkill.getParentNodes();
         let listOfParentsSS = dataOfParentsSS.records;
 
         let listOfObjFS = [];

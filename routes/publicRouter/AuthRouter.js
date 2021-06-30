@@ -8,7 +8,8 @@ const AuthController = require('../../application/controllers/AuthController');
 router.post('/login', async function(req, res) {
     const {email, password} = req.body;
     try{
-        let result = await AuthController.login(email, password);
+        const authController = new AuthController();
+        let result = await authController.login(email, password);
 
         res.status(200);
         res.send({
@@ -26,7 +27,8 @@ router.post('/register', async function(req, res) {
 
     const {email, password} = req.body;
     try{
-        let result = await AuthController.register(email, password);
+        const authController = new AuthController();
+        let result = await authController.register(email, password);
 
         res.status(200);
         res.send({
@@ -43,7 +45,8 @@ router.post('/validateEmail', async function(req, res) {
 
     const {email, code} = req.body;
     try{
-        let result = await AuthController.validateEmail(email, code);
+        const authController = new AuthController();
+        let result = await authController.validateEmail(email, code);
 
         res.status(200);
         res.send({

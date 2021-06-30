@@ -1,45 +1,68 @@
-// Database
-const neo4j = require('neo4j-driver');
-const userDb = 'neo4j';
-const passwordDb = 'fakboi3';
-const uri = 'bolt://localhost:7687';
-const driver = neo4j.driver(uri, neo4j.auth.basic(userDb, passwordDb));
+const DB = require("../../services/DB");
 
 class ResourceController {
     // Property of controller (private)
-    #dataLabel;
+    #model;
 
-    constructor(label){
-        this.#dataLabel = label;
-        if(new.target == ResourceController){
-            throw new TypeError("Jangan langsung ke sini bruh");
+    constructor(model){
+        this.#model = model;
+        if(this.constructor == ResourceController){
+            throw new TypeError(`Kelas abstrak "${this.constructor.name}" tidak bisa diinstansiasikan secara langsung`);
+        }
+        if (this.getAll === undefined) {
+            throw new TypeError(`Classes extending the "${this.constructor.name}" abstract class`);
+        }
+        if (this.getByID === undefined) {
+            throw new TypeError(`Classes extending the "${this.constructor.name}" abstract class`);
+        }
+        if (this.create === undefined) {
+            throw new TypeError(`Classes extending the "${this.constructor.name}" abstract class`);
+        }
+        if (this.update === undefined) {
+            throw new TypeError(`Classes extending the "${this.constructor.name}" abstract class`);
+        }
+        if (this.delete === undefined) {
+            throw new TypeError(`Classes extending the "${this.constructor.name}" abstract class`);
+        }
+        if (this.validate === undefined) {
+            throw new TypeError(`Classes extending the "${this.constructor.name}" abstract class`);
         }
     }
 
+    getModel(){
+        return this.#model;
+    }
+
+    getModelAttributes(){
+        let instance = new this.#model();
+        return Object.keys(instance.toObject());
+    }
+
     // Validate target of class
-    validate(Model){
-        if(Model == ResourceController){
-            return false;
-        }
+    validate(){
         return true;
     }
 
     // Return all data based on label
     async getAll(){
-        let session = driver.session();
-        let query = `MATCH (res:${this.#dataLabel}) RETURN res`;
-        let result = await session.run(query);
-        await session.close();
-        return result.records;
+        try {
+            let modelInstance = new this.#model();
+            let result = await modelInstance.all();
+            return result.map((val) => val.toObject());
+        } catch (error) {
+            throw error;
+        }
     }
 
     // Get data by id
-    async getByID(idName, idData){
-        let session = driver.session();
-        let query = `MATCH (res:${this.#dataLabel} {${idName}: '${idData}'}) RETURN res`;
-        let result = await session.run(query);
-        await session.close();
-        return result.records;
+    async getByID(idData){
+        let modelInstance = new this.#model();
+        try {
+            let result = await modelInstance.findById(idData);
+            return result.toObject();
+        } catch (error) {
+            throw error;
+        }
     }
 
     // Create new data to database based on Model
@@ -56,14 +79,14 @@ class ResourceController {
         }
     }
 
-    async delete(idName, idData){
-        let session = driver.session();
-        let result = await session.run(`MATCH (res:$label {$idName: $idData}) DELETE res`, {
-            label: this.#dataLabel,
-            idName: idName,
-            idData: idData
-        });
-        // Belum tau kembalian dari neo4j gimana kalo delete
+    async delete(idData){
+        let modelInstance = new this.#model();        
+        try {
+            let result = await modelInstance.deleteById(idData);
+            return result.toObject() || result;
+        } catch (error) {
+            throw error;
+        }
     }
 
 

@@ -11,12 +11,12 @@ class AuthController{
 
     }
 
-    static async generateAccessToken(email) {
+    async generateAccessToken(email) {
         let user = await User.findByEmail(email);
         let nim = user.getNim();
         return jwt.sign({email, nim}, process.env.TOKEN_SECRET, { expiresIn: '1800s' });
     }
-    static async generateEmailVerificationCode(email) {
+    async generateEmailVerificationCode(email) {
         let code = Math.floor(100000 + Math.random() * 900000);
         let user;
         try{
@@ -29,11 +29,11 @@ class AuthController{
         }
     }
 
-    static validate(email, password){
+    validate(email, password){
         return true;
     }
 
-    static async isEmailExists(email){
+    async isEmailExists(email){
         
         try{
             let user = await User.findByEmail(email);
@@ -44,7 +44,7 @@ class AuthController{
         
     }
 
-    static async authorize(email, password){
+    async authorize(email, password){
         let isAuthorized = false; 
         try{
             let user = await User.findByEmail(email);
@@ -60,7 +60,7 @@ class AuthController{
         }
     }
 
-    static async validateEmail(email, code){
+    async validateEmail(email, code){
         try{            
             let user = await User.findByEmail(email);
             if(user){
@@ -73,7 +73,7 @@ class AuthController{
         }
     }
     
-    static async login(email, password){
+    async login(email, password){
         try{
             const isAuthorized = await this.authorize(email, password);
             if(isAuthorized){
@@ -87,7 +87,7 @@ class AuthController{
         }
     }
 
-    static async register(email, password){
+    async register(email, password){
         try{
             // Cek apakah email sudah terdaftar?
             let emailExists = await this.isEmailExists(email);

@@ -22,7 +22,7 @@ class User extends Model {
     #status;
 
     constructor(nim = '', name = '', email = '', password = '', birthDate = '', classYear = '', photo = '', phoneNumber = '', gender = 0, studyProgram = 0, status = 0){
-        super();
+        super("nim");
         this.#nim = nim;
         this.#name = name;
         this.#email = email;

@@ -14,13 +14,13 @@ const Skill = require('../../model/Skill');
 // User route
 // Create new user
 router.post('/users', async function(req, res) {
-    let uC = new UserController('User');
+    let uC = new UserController();
     let newUser = await uC.create(req.body);
     res.send({ newUser });
 });
 // Get all user
 router.get('/users',  async function(req, res) {
-    let uC = new UserController('User');
+    let uC = new UserController();
     try{
         let userList = await uC.all();
         res.send({ userList });
@@ -33,7 +33,7 @@ router.get('/users',  async function(req, res) {
 // Get user by ID
 router.get('/users/:userId', async function(req, res) {
     let userId = req.params.userId;
-    let uC = new UserController('User');
+    let uC = new UserController();
 
     try{
         let user = await uC.findByID(userId);
@@ -48,7 +48,7 @@ router.get('/users/:userId', async function(req, res) {
 router.put('/users/:userId', async function(req, res) {
     let userId = req.params.userId;
     let userData = req.body;
-    let uC = new UserController('User');
+    let uC = new UserController();
 
     try{
         let result = await uC.updateData(userId, userData);
@@ -74,7 +74,7 @@ router.put('/users/:userId', async function(req, res) {
 router.post('/users/:userId/skills/add', async function(req, res) {
     let userId = req.params.userId;
     let skillList = req.body.skill_id;
-    let uC = new UserController('User');
+    let uC = new UserController();
 
     try{
         let result = await uC.addSkill(userId, skillList);
@@ -100,7 +100,7 @@ router.post('/users/:userId/skills/add', async function(req, res) {
 router.post('/users/:userId/skills/remove', async function(req, res) {
     let userId = req.params.userId;
     let skillID = req.body.skill_id;
-    let uC = new UserController('User');
+    let uC = new UserController();
 
     try{
         let result = await uC.removeSkill(userId, skillID);
@@ -116,7 +116,7 @@ router.post('/users/:userId/skills/remove', async function(req, res) {
 // Get user skills
 router.get('/users/:userId/skills', async function(req, res) {
     let userId = req.params.userId;
-    let uC = new UserController('User');
+    let uC = new UserController();
 
     try{
         let userSkills = await uC.getUserSkills(userId);
@@ -277,8 +277,12 @@ router.post('/skills/match', async function(req, res) {
 
     let {s1,s2} = req.body;
     try{
-        let result = await Skill.calculateSimilarity(s1,s2);
+        let objSkill = new Skill();
+        let skill1 = await objSkill.findByID(s1);
+        let skill2 = await objSkill.findByID(s2);
+        let result = await skill1.calculateSimilarity(skill2);
         res.send({
+            message: "Berhasil",
             result
         });
     }catch(e){
