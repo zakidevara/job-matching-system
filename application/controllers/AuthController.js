@@ -2,6 +2,8 @@
 const User = require('../../model/User');
 const jwt = require('jsonwebtoken');
 const DB = require('../../services/DB');
+const EmailService = require('../../services/EmailService');
+const verificationCodeEmailTemplate = require('../emailTemplate/verificationCodeEmailTemplate');
 
 class AuthController{
 
@@ -9,15 +11,29 @@ class AuthController{
 
     }
 
-    static generateAccessToken(email) {
-        return jwt.sign({email}, process.env.TOKEN_SECRET, { expiresIn: '1800s' });
+    async generateAccessToken(email) {
+        let user = await User.findByEmail(email);
+        let nim = user.getNim();
+        return jwt.sign({email, nim}, process.env.TOKEN_SECRET, { expiresIn: '1800s' });
+    }
+    async generateEmailVerificationCode(email) {
+        let code = Math.floor(100000 + Math.random() * 900000);
+        let user;
+        try{
+            user = await User.findByEmail(email);
+            user.setEmailVerificationCode(code);
+            await user.save();
+            return code;
+        }catch(e){
+            throw e;
+        }
     }
 
-    static validate(email, password){
+    validate(email, password){
         return true;
     }
 
-    static async isEmailExists(email){
+    async isEmailExists(email){
         
         try{
             let user = await User.findByEmail(email);
@@ -28,54 +44,54 @@ class AuthController{
         
     }
 
-    static async authorize(email, password){
+    async authorize(email, password){
         let isAuthorized = false; 
         try{
             let user = await User.findByEmail(email);
             if(user){
+                if(user.getStatus() !== 1) throw new Error("Email user belum terverifikasi");
                 isAuthorized = password === user.getPassword();
+                if(!isAuthorized) throw new Error("Password salah");
             }
             return isAuthorized;
         }catch(e){
+            if (e instanceof Error) console.log(e);
             throw e;
         }
     }
 
-    static async validateEmail(email, code){
+    async validateEmail(email, code){
         try{            
             let user = await User.findByEmail(email);
-            
             if(user){
-                //cek kode validasinya, kalo sama set status user jadi aktif
-                
-
-                user.setStatus(1);
-                let saveStatus = await user.save();
+                let saveStatus = await user.verifyEmail(code);
                 return saveStatus;
             }
-
             return false;
         }catch(e){
             throw e;
         }
     }
     
-    static async login(email, password){
-        const isAuthorized = await this.authorize(email, password);
-        if(isAuthorized){
-            let accessToken = this.generateAccessToken(email);
-            return {
-                accessToken
-            };
+    async login(email, password){
+        try{
+            const isAuthorized = await this.authorize(email, password);
+            if(isAuthorized){
+                let accessToken = await this.generateAccessToken(email);
+                return {
+                    accessToken
+                };
+            }
+        }catch(e){
+            throw e;
         }
-        return false;
     }
 
-    static async register(email, password){
+    async register(email, password){
         try{
             // Cek apakah email sudah terdaftar?
             let emailExists = await this.isEmailExists(email);
-            if(emailExists) return false;
+            if(emailExists) throw new Error("Email sudah terdaftar");
 
             // Cek apakah data input sudah memenuhi syarat
             let isValid = this.validate(email, password);
@@ -93,14 +109,31 @@ class AuthController{
                     undefined,
                     undefined,
                     undefined,
-                    undefined
+                    0
                 );
-                await user.save();
+                let saveStatus = await user.save();
+                if(saveStatus){
+                    // generate email verification code
+                    let code = await this.generateEmailVerificationCode(email);
+                    console.log(code);
+
+                    // send verification code via email
+                    const subject = "Kode Verifikasi Email JobMatcher";
+                    let sendEmailStatus = await EmailService.sendEmail(email, subject, verificationCodeEmailTemplate(code));
+                    console.log("send verification email status: ", sendEmailStatus);
+
+                    return saveStatus && sendEmailStatus;
+                }
             }
 
-            return !emailExists && isValid && (user !== undefined);
+            return false;
         }catch(e){
-            throw e;
+            if(e instanceof Error) {
+                console.log(e);
+                throw e;
+            }else{
+                throw new Error("Registrasi akun gagal");
+            }
         }
         
     }

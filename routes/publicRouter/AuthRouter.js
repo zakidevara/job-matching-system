@@ -8,16 +8,18 @@ const AuthController = require('../../application/controllers/AuthController');
 router.post('/login', async function(req, res) {
     const {email, password} = req.body;
     try{
-        let result = await AuthController.login(email, password);
+        const authController = new AuthController();
+        let result = await authController.login(email, password);
 
         res.status(200);
         res.send({
+            message: "Login berhasil",
             result
         });
     }catch(e){
-        console.log(e);
         res.status(400);
-        res.send(e);
+        let {message} = e;
+        res.send({message});
     }
 });
 
@@ -25,16 +27,36 @@ router.post('/register', async function(req, res) {
 
     const {email, password} = req.body;
     try{
-        let result = await AuthController.register(email, password);
+        const authController = new AuthController();
+        let result = await authController.register(email, password);
 
         res.status(200);
         res.send({
+            message: "Registrasi akun berhasil",
             result
         });
     }catch(e){
-        console.log(e);
         res.status(400);
-        res.send(e);
+        let {message} = e;
+        res.send({message});
+    }
+});
+router.post('/validateEmail', async function(req, res) {
+
+    const {email, code} = req.body;
+    try{
+        const authController = new AuthController();
+        let result = await authController.validateEmail(email, code);
+
+        res.status(200);
+        res.send({
+            message: "Verifikasi email berhasil",
+            result
+        });
+    }catch(e){
+        res.status(400);
+        let {message} = e;
+        res.send({message});
     }
 });
 

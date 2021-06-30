@@ -3,7 +3,8 @@ const User = require('../../model/User');
 
 class UserController extends ResourceController{
 
-    constructor(label){
+    constructor(){
+        const label = "User";
         super(label);
     }
 

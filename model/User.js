@@ -18,11 +18,11 @@ class User extends Model {
     #phoneNumber;
     #gender;
     #studyProgram;
-    #validationCode;
+    #emailVerificationCode;
     #status;
 
     constructor(nim = '', name = '', email = '', password = '', birthDate = '', classYear = '', photo = '', phoneNumber = '', gender = 0, studyProgram = 0, status = 0){
-        super();
+        super("nim");
         this.#nim = nim;
         this.#name = name;
         this.#email = email;
@@ -67,8 +67,8 @@ class User extends Model {
     setStudyProgram(newStudy){
         this.#studyProgram = newStudy;
     }
-    setValidationCode(newValidationCode){
-        this.#validationCode = newValidationCode;
+    setEmailVerificationCode(newCode){
+        this.#emailVerificationCode = newCode;
     }
     setStatus(newStatus){
         this.#status = newStatus;
@@ -111,6 +111,24 @@ class User extends Model {
     }
     getStatus(){
         return this.#status;
+    }
+    
+
+    async verifyEmail(code){
+        try{
+            if(code == this.#emailVerificationCode){
+                this.setStatus(1);
+                await this.save();
+                return true;
+            }else{
+                throw new Error("Kode verifikasi salah");
+            }
+        }catch(e){
+            if(e instanceof Error){
+                console.log(e);
+            }
+            throw e;
+        }
     }
 
     async getReligion(){
@@ -193,7 +211,8 @@ class User extends Model {
                      u.phoneNumber = '${this.#phoneNumber}',
                      u.gender = ${this.#gender || null},
                      u.studyProgram = ${this.#studyProgram || null},
-                     u.status = ${this.#status || null}
+                     u.emailVerificationCode = ${this.#emailVerificationCode || null},
+                     u.status = ${this.#status}
                      RETURN u`;
         try{
             let result = await DB.query(query);
@@ -211,7 +230,7 @@ class User extends Model {
             let tempList = [];
             resultListUsers.records.forEach((item) => {
                 let propUser = item.get('u').properties;
-                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNUmber, propUser.gender, propUser.studyProgram, propUser.status);
+                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNumber, propUser.gender, propUser.studyProgram, propUser.status);
                 user.init();
                 tempList.push(user);
             });
@@ -234,7 +253,8 @@ class User extends Model {
             let resultUserData = await DB.query(query);
             if(resultUserData.records.length > 0){
                 let propUser = resultUserData.records[0].get('u').properties;
-                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNUmber, propUser.gender, propUser.studyProgram, propUser.status);
+                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNumber, propUser.gender, propUser.studyProgram, propUser.status);
+                userData.setEmailVerificationCode(propUser.emailVerificationCode);
                 user.init();
                 return user;
             } else{            
@@ -242,7 +262,7 @@ class User extends Model {
             }
         }catch(e){
             throw e;
-        }
+       }
     }
 
     static async findByEmail(email){
@@ -251,13 +271,14 @@ class User extends Model {
             let resultUserData = await DB.query(query);
             if(resultUserData.records.length > 0){
                 let propUser = resultUserData.records[0].get('u').properties;
-                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNUmber, propUser.gender, propUser.studyProgram, propUser.status);
+                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNumber, propUser.gender, propUser.studyProgram, propUser.status);
+                userData.setEmailVerificationCode(propUser.emailVerificationCode);
                 user.init();
                 return user;
             } else{
-                return null;
+                throw new Error("User tidak ditemukan");
             }
-        }catch(e){
+        }catch(e){            
             throw e;
         }
     }
@@ -278,7 +299,7 @@ class User extends Model {
             let resultUpdate = await DB.query(query);
             if(resultUpdate.records.length > 0){
                 let propUser = resultUpdate.records[0].get('u').properties;
-                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNUmber, propUser.gender, propUser.studyProgram, propUser.status);
+                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNumber, propUser.gender, propUser.studyProgram, propUser.status);
                 user.init();
                 return user;
             } else {
