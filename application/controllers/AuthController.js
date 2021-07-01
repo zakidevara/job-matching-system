@@ -14,7 +14,7 @@ class AuthController{
     async generateAccessToken(email) {
         let user = await User.findByEmail(email);
         let nim = user.getNim();
-        return jwt.sign({email, nim}, process.env.TOKEN_SECRET, { expiresIn: '1800s' });
+        return jwt.sign({email, nim}, process.env.TOKEN_SECRET, { expiresIn: '48h' });
     }
     async generateEmailVerificationCode(email) {
         let code = Math.floor(100000 + Math.random() * 900000);
@@ -29,7 +29,7 @@ class AuthController{
         }
     }
 
-    validate(email, password){
+    validate(nim, email, password){
         return true;
     }
 
@@ -39,7 +39,17 @@ class AuthController{
             let user = await User.findByEmail(email);
             return user !== null;
         }catch(e){
-            throw e;
+            return false;
+        }
+        
+    }
+    async isNimExists(nim){
+        
+        try{
+            let user = await User.find(nim);
+            return user !== null;
+        }catch(e){
+            return false;
         }
         
     }
@@ -87,20 +97,23 @@ class AuthController{
         }
     }
 
-    async register(email, password){
+    async register(nim, email, password){
         try{
             // Cek apakah email sudah terdaftar?
             let emailExists = await this.isEmailExists(email);
             if(emailExists) throw new Error("Email sudah terdaftar");
+            // cek apakah nim sudah terdaftar
+            let nimExists = await this.isNimExists(nim);
+            if(nimExists) throw new Error("NIM sudah terdaftar");
 
             // Cek apakah data input sudah memenuhi syarat
-            let isValid = this.validate(email, password);
+            let isValid = this.validate(nim, email, password);
     
             let user;
             if(isValid){
                 //create user di database
                 user = new User(
-                    undefined, 
+                    nim, 
                     undefined,
                     email, 
                     password, 

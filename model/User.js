@@ -209,8 +209,8 @@ class User extends Model {
                      u.classYear = ${this.#classYear || null}, 
                      u.photo = '${this.#photo}',
                      u.phoneNumber = '${this.#phoneNumber}',
-                     u.gender = ${this.#gender || null},
-                     u.studyProgram = ${this.#studyProgram || null},
+                     u.gender = ${this.#gender.genderId || null},
+                     u.studyProgram = ${this.#studyProgram.studyProgramId || null},
                      u.emailVerificationCode = ${this.#emailVerificationCode || null},
                      u.status = ${this.#status}
                      RETURN u`;

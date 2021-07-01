@@ -25,10 +25,10 @@ router.post('/login', async function(req, res) {
 
 router.post('/register', async function(req, res) {
 
-    const {email, password} = req.body;
+    const {nim, email, password} = req.body;
     try{
         const authController = new AuthController();
-        let result = await authController.register(email, password);
+        let result = await authController.register(nim, email, password);
 
         res.status(200);
         res.send({
