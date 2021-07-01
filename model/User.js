@@ -254,7 +254,7 @@ class User extends Model {
             if(resultUserData.records.length > 0){
                 let propUser = resultUserData.records[0].get('u').properties;
                 let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNumber, propUser.gender, propUser.studyProgram, propUser.status);
-                userData.setEmailVerificationCode(propUser.emailVerificationCode);
+                user.setEmailVerificationCode(propUser.emailVerificationCode);
                 user.init();
                 return user;
             } else{            
@@ -272,7 +272,7 @@ class User extends Model {
             if(resultUserData.records.length > 0){
                 let propUser = resultUserData.records[0].get('u').properties;
                 let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNumber, propUser.gender, propUser.studyProgram, propUser.status);
-                userData.setEmailVerificationCode(propUser.emailVerificationCode);
+                user.setEmailVerificationCode(propUser.emailVerificationCode);
                 user.init();
                 return user;
             } else{

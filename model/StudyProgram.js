@@ -2,7 +2,14 @@ const StudyProgram = {
     D3_TEKNIK_INFORMATIKA: 1,
     D4_TEKNIK_INFORMATIKA: 2,
     toString: function(studyProgram){
-        return studyProgram === StudyProgram.D3_TEKNIK_INFORMATIKA ? 'D3 Teknik Informatika' : 'D4 Teknik Informatika';
+        switch(studyProgram){
+            case this.D3_TEKNIK_INFORMATIKA:
+                return 'D3 Teknik Informatika';
+            case this.D4_TEKNIK_INFORMATIKA:
+                return 'D4 Teknik Informatika';
+            default:
+                return 'Tidak ada';
+        }
     }
 };
 
