@@ -12,11 +12,8 @@ class Education extends Model{
     #fieldOfStudy;
     #startYear;
     #endYear;
-    #grade;
-    #activity;
-    #description;
 
-    constructor(educationID, userID, schoolName, degree, fieldOfStudy, startYear, endYear, grade, activity, description){
+    constructor(educationID, userID, schoolName, degree, fieldOfStudy, startYear, endYear){
         super();
         this.#educationID = educationID;
         this.#userID = userID;
@@ -25,16 +22,17 @@ class Education extends Model{
         this.#fieldOfStudy = fieldOfStudy;
         this.#startYear = startYear;
         this.#endYear = endYear;
-        this.#grade = grade;
-        this.#activity = activity;
-        this.#description = description;
     }
+
     // Getter
     getID(){
         return this.#educationID;
     }
     setDegree(newDegree){
         this.#degree = newDegree;
+    }
+    getDegree(){
+        return this.#degree;
     }
 
     cleaningStringFormat(stringInput){
@@ -56,27 +54,22 @@ class Education extends Model{
             degree: this.#degree.toObject(),
             fieldOfStudy: this.#fieldOfStudy,
             startYear: this.#startYear,
-            endYear: this.#endYear,
-            grade: this.#grade,
-            activity: this.#activity,
-            description: this.#description
+            endYear: this.#endYear
         };
         return result;
     }
 
     // Database related
     async save(){
+        let degreeObj = this.#degree.toObject();
         let query = `MATCH (u:User {nim: '${this.#userID}'})
                      MERGE (u)-[:STUDIED_AT]->(e:Education)
                      SET e.schoolName = '${this.#schoolName}',
                      e.fieldOfStudy = '${this.#fieldOfStudy}',
                      e.startYear = '${this.#startYear}',
-                     e.endYear = '${this.#endYear}',
-                     e.grade = ${this.#grade},
-                     e.activity = '${this.#activity}',
-                     e.description = '${this.#description}'
+                     e.endYear = '${this.#endYear}'
                      WITH e
-                     MATCH (d:Degree {id: '${this.#degree.degreeId}'})
+                     MATCH (d:Degree {id: '${degreeObj.id}'})
                      MERGE (e)-[:HAS_DEGREE]->(d)
                      RETURN e, d`;
         try{
@@ -97,12 +90,12 @@ class Education extends Model{
                 result.records.forEach((item) => {
                     let propEdu = item.get('e');
                     let degree = new Degree(propEdu.degree.id, propEdu.degree.name);
-                    let education = new Education(propEdu.id, userID, propEdu.schoolName, degree.toObject(), propEdu.fieldOfStudy, propEdu.startYear, propEdu.endYear, propEdu.grade, propEdu.activity, propEdu.description);
+                    let education = new Education(propEdu.id, userID, propEdu.schoolName, degree, propEdu.fieldOfStudy, propEdu.startYear, propEdu.endYear, propEdu.grade, propEdu.activity, propEdu.description);
                     if(listEdu.length === 0){
-                        listEdu.push(education.toObject());
+                        listEdu.push(education);
                     } else {
-                        let validateItem = listEdu.some(e => e.educationId === education.getID());
-                        if(!validateItem) listEdu.push(education.toObject());
+                        let validateItem = listEdu.some(e => e.getID() === education.getID());
+                        if(!validateItem) listEdu.push(education);
                     }
                 });
                 return listEdu;
@@ -122,7 +115,7 @@ class Education extends Model{
             if(result.records.length > 0){
                 let propEdu = result.records[0].get('e');
                 let degree = new Degree(propEdu.degree.id, propEdu.degree.name);
-                let education = new Education(propEdu.id, propEdu.userId, propEdu.schoolName, degree.toObject(), propEdu.fieldOfStudy, propEdu.startYear, propEdu.endYear, propEdu.grade, propEdu.activity, propEdu.description);
+                let education = new Education(propEdu.id, propEdu.userId, propEdu.schoolName, degree, propEdu.fieldOfStudy, propEdu.startYear, propEdu.endYear, propEdu.grade, propEdu.activity, propEdu.description);
                 return education;
             } else {
                 return null;
@@ -139,7 +132,7 @@ class Education extends Model{
             if(result.records.length > 0){
                 return 'Success';
             } else {
-                return 'Failed';
+                throw new Error('Data pendidikan gagal dihapus');
             }
         } catch(e){
             throw e;

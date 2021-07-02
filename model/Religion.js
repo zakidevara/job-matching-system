@@ -12,6 +12,14 @@ class Religion extends Model{
         this.#name = name;
     }
 
+    constructFromObject(obj){
+        let {
+            id,
+            name
+        } = obj;
+        return new this.constructor(id, name);
+    }
+
     getID(){
         return this.#id;
     }
