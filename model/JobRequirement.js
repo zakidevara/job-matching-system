@@ -59,31 +59,27 @@ class JobRequirement extends Model{
         let requiredSkillsTemp = [];
         if(this.#requiredSkills !== null && this.#requiredSkills.length > 0){
             for(let i=0; i < this.#requiredSkills.length; i++){
-                if(!this.#requiredSkills[i].hasOwnProperty('skillId')){
-                    let skill = await Skill.find(this.#requiredSkills[i]);
-                    if(skill !== null) requiredSkillsTemp.push(skill.toObject());
+                let value = this.#requiredSkills[i];
+                if(typeof value !== Skill){
+                    let skill = await Skill.find(value);
+                    if(skill !== null) requiredSkillsTemp.push(skill);
                 }
-                // if(typeof this.#requiredSkills[i] !== 'object'){
-                //     let skill = await Skill.find(this.#requiredSkills[i]);
-                //     if(skill !== null) requiredSkillsTemp.push(skill.toObject());
-                // }
             }
             this.#requiredSkills = requiredSkillsTemp;
         }
+        console.log(this.#requiredSkills);
         let requiredReligionTemp = [];
         if(this.#requiredReligion !== null && this.#requiredReligion.length > 0){
             for(let i=0; i < this.#requiredReligion.length; i++){
-                if(this.#requiredReligion[i].hasOwnProperty('religionId')){
-                    let religion = await Religion.find(this.#requiredReligion[i]);
-                    if(religion !== null) requiredReligionTemp.push(religion.toObject()); 
+                let value = this.#requiredReligion[i];
+                if(typeof value !== Religion){
+                    let religion = await Religion.find(value);
+                    if(religion !== null) requiredReligionTemp.push(religion);
                 }
-                // if(typeof this.#requiredReligion[i] !== 'object'){
-                //     let religion = await Religion.find(this.#requiredReligion[i]);
-                //     if(religion !== null) requiredReligionTemp.push(religion.toObject()); 
-                // }
             }
             this.#requiredReligion = requiredReligionTemp;
         }
+        console.log(this.#requiredReligion);
     }
 
     setSkills(newSkillList){
@@ -118,14 +114,32 @@ class JobRequirement extends Model{
     }
 
     toObject(){
+        let listSkillsObj = [];
+        if(this.#requiredSkills.length > 0){
+            for(let i=0; i < this.#requiredSkills.length; i++){
+                let value = this.#requiredSkills[i];
+                let skill = value.toObject();
+                listSkillsObj.push(skill);
+            }
+        }
+
+        let listReligionObj = [];
+        if(this.#requiredReligion.length > 0){
+            for(let i=0; i < this.#requiredReligion.length; i++){
+                let value = this.#requiredReligion[i];
+                let religion = value.toObject();
+                listReligionObj.push(religion);
+            }
+        }
+
         let objResult = {
             classYearRequirement: this.#classYearRequirement,
             studyProgramRequirement: this.#studyProgramRequirement,
             documentRequirement: this.#documentRequirement,
-            requiredSkills: this.#requiredSkills,
+            requiredSkills: listSkillsObj,
             softSkillRequirement: this.#softSkillRequirement,
             maximumAge: this.#maximumAge,
-            requiredReligion: this.#requiredReligion,
+            requiredReligion: listReligionObj,
             requiredGender: this.#requiredGender,
             description: this.#description
         };

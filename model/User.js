@@ -147,24 +147,26 @@ class User extends Model {
         }
     }
     async getSkills(){
-        let query = `MATCH (u:User {nim: ${this.#nim}})-[:SKILLED_IN]->(s:Skill) RETURN s`;
+        let query = `MATCH (u:User {nim: '${this.#nim}'})-[:SKILLED_IN]->(s:Skill) RETURN s`;
         try{
             let resultUserSkills = await DB.query(query);
             let listSkill = [];
             if(resultUserSkills.records.length > 0){
                 resultUserSkills.records.forEach((item) => {
                     let propSkill = item.get('s').properties;
+                    console.log(propSkill);
                     let skill = new Skill(propSkill.id, propSkill.name, propSkill.uri);
                     if(listSkill.length === 0){
-                        listSkill.push(skill.toObject());
+                        listSkill.push(skill);
                     } else {
-                        let validateItem = listSkill.some(sk => sk.skillId === skill.getID());
-                        if(!validateItem) listSkill.push(skill.toObject());
+                        let validateItem = listSkill.some(sk => sk.getID() === skill.getID());
+                        if(!validateItem) listSkill.push(skill);
                     }
                 });
             }
             return listSkill;
         }catch(e){
+            console.log(e);
             throw e;
         }
     }
@@ -261,6 +263,7 @@ class User extends Model {
                 return null;
             }
         }catch(e){
+            console.log(e);
             throw e;
        }
     }
@@ -366,6 +369,10 @@ class User extends Model {
         } catch (e) {
             throw e;
         }
+    }
+
+    async addEducation(education){
+        
     }
 }
 

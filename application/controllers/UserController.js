@@ -1,5 +1,8 @@
 const ResourceController = require('./ResourceController');
 const User = require('../../model/User');
+const Degree = require('../../model/Degree');
+const Education = require('../../model/Education');
+const {v4: uuidv4 } = require('uuid');
 
 class UserController extends ResourceController{
 
@@ -72,6 +75,39 @@ class UserController extends ResourceController{
             listSkills.push(obj);
         });
         return listSkills;
+    }
+
+    async addEducation(educationData){
+        try{
+            let degree = await Degree.find(educationData.degreeId);
+
+            let newEdu = new Education(uuidv4(), educationData.userId, educationData.schoolName, degree, educationData.fieldOfStudy, educationData.startYear, educationData.endYear);
+
+            try{
+                let result = await newEdu.save();
+                if(result){
+                    return newEdu.toObject();
+                } else {
+                    throw new Error('Gagal menambahkan data pendidikan');
+                }
+            } catch(e){
+                throw e;
+            }
+        } catch(e){
+            throw e;
+        }
+    }
+
+    async deleteEducation(educationId){
+        try{
+            let education = await Education.find(educationId);
+            if(education === null) throw new Error('Data pendidikan tidak ditemukan');
+
+            let result = await education.delete();
+            return result;
+        } catch(e){
+            throw e;
+        }
     }
 
 }

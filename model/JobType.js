@@ -3,13 +3,22 @@ const Model = require("./Model");
 const {v4: uuidv4 } = require('uuid');
 
 class JobType extends Model {
+    // Property of job type (private)
     #id;
     #name;
 
     constructor(id, name){
-        super();
+        super("id");
         this.#id = id;
         this.#name = name;
+    }
+
+    constructFromObject(obj){
+        let {
+            id,
+            name
+        } = obj;
+        return new this.constructor(id, name);
     }
 
     setName(newName){
@@ -24,7 +33,7 @@ class JobType extends Model {
 
     toObject(){
         let objResult = {
-            jobTypeId: this.#id,
+            id: this.#id,
             name: this.#name
         };
         return objResult;
@@ -93,10 +102,9 @@ class JobType extends Model {
         }
     }
 
-    static async update(updatedJobType){
-        let jobTypeID = updatedJobType.jobTypeID;
+    async update(updatedJobType){
         let newName = updatedJobType.name;
-        let query = `MATCH (jt:JobType {id: '${jobTypeID}'}) SET jt.name = '${newName}' RETURN jt`;
+        let query = `MATCH (jt:JobType {id: '${this.#id}'}) SET jt.name = '${newName}' RETURN jt`;
         try{
             let result = await DB.query(query);
             
@@ -105,7 +113,7 @@ class JobType extends Model {
                 let jobType = new JobType(propJobType.id, propJobType.name);
                 return jobType;
             } else {
-                return null;
+                throw new Error('TIdak ada data JobType yang diupdate');
             }
         } catch(e){
             throw e;
@@ -120,7 +128,7 @@ class JobType extends Model {
             if(result.records.length > 0){
                 return 'Success';
             } else {
-                return 'Failed';
+                throw new Error('Tidak ada data JobType yang dihapus');
             }
         } catch(e){
             throw e;

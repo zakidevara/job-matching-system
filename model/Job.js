@@ -237,7 +237,7 @@ class Job extends Model {
                       WITH j, jr
                       UNWIND [`;
             reqSkills.forEach((item) => {
-                query += `"${item.skillId}",`;
+                query += `"${item.id}",`;
             });
 
             // Remove comma at the end of char from current query
@@ -251,7 +251,7 @@ class Job extends Model {
             query += `WITH j, jr, s
                       UNWIND [`;
             reqReligion.forEach((item) => {
-                query += `"${item.religionId}",`;
+                query += `"${item.id}",`;
             });
             // Remove comma at the end of char from current query
             query = query.substr(0, query.length-1);
@@ -285,69 +285,13 @@ class Job extends Model {
     }
     // Get all job
     static async getAllAvailableJob(){
-        let result = await this.searchByName('');
-        return result;
-        // let date = new Date();
-        // let currentDate = `${date.getFullYear()}-0${date.getMonth()+1}-${date.getDate()}`;
-        // let query = `WITH split('${currentDate}', '-') AS cd 
-        //             MATCH (j:Job)<-[:POSTS]-(u:User), (j)-[:CLASSIFIED]->(jt:JobType), (j)-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_SKILL]->(s:Skill) 
-        //             WITH cd, split(j.endDate, '-') AS ed, j, u, jt, jr, s
-        //             WHERE (cd[0] < ed[0]) OR (cd[0] = ed[0] AND ((cd[1] < ed[1]) OR (cd[1] = ed[1] AND (cd[2] < ed[2])))) 
-        //             RETURN j{.*, userId: u.nim, jobType: jt{.*}, requirements: jr{.*, requiredSkills: collect(s{.*})}}`;
-        // try{
-        //     let result = await DB.query(query);
-        //     let jobData = [];
-        //     if(result.records.length > 0){
-        //         let listSkills = [];
-        //         let listReligion = [];
-        //         for(let i=0; i < result.records.length; i++){
-        //             let propJob =  result.records[i].get('j');
-
-        //             let jobType = new JobType(propJob.jobType.id, propJob.jobType.name);
-        //             let jobReq = new JobRequirement(propJob.requirements.classYearRequirement, propJob.requirements.studyProgramRequirement, propJob.requirements.documentRequirement, [], propJob.requirements.softSkillRequirement, propJob.requirements.maximumAge, [], propJob.requirements.requiredGender, propJob.requirements.description);
-        //             await jobReq.init();
-                    
-        //             propJob.requirements.requiredSkills.forEach((item) => {
-        //                 let skill = new Skill(item.id, item.name, item.uri);
-        //                 if(listSkills.length === 0){
-        //                     listSkills.push(skill.toObject());
-        //                 } else {
-        //                     let validateItem = listSkills.some(sk => sk.id === skill.getID());
-        //                     if(!validateItem) listSkills.push(skill.toObject());
-        //                 }
-        //             });
-        //             jobReq.setSkills(listSkills);
-
-        //             let queryReligion = `MATCH (j:Job {jobID: '${propJob.jobID}'})-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_RELIGION]->(r:Religion) RETURN r`;
-        //             try{
-        //                 let resultReligion = await DB.query(queryReligion);
-        //                 if(resultReligion.records.length > 0){
-        //                     resultReligion.records.forEach((item) => {
-        //                         let propRel = item.get('r').properties;
-        //                         let religion = new Religion(propRel.id, propRel.name);
-        //                         if(listReligion.length === 0){
-        //                             listReligion.push(religion.toObject());
-        //                         } else {
-        //                             let validateItem = listReligion.some(rl => rl.id === religion.getID());
-        //                             if(!validateItem) listReligion.push(religion.toObject());
-        //                         }
-        //                     });
-        //                     jobReq.setReligions(listReligion);
-        //                 }
-        //             } catch(e){
-        //                 throw e;
-        //             }
-
-        //             let job = new Job(propJob.jobID, propJob.userId, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status, jobReq, jobType);
-        //             jobData.push(job.toObject());
-        //         }
-        //         return jobData;
-        //     } else {
-        //         return null;
-        //     }
-        // } catch(e){
-        //     throw e;
-        // }
+        try{
+            let result = await this.searchByName('');
+            return result;
+        } catch(e){
+            console.log(e);
+            throw e;
+        }
     }
 
     static async find(jobID){
@@ -761,7 +705,7 @@ class Job extends Model {
             if(result.records.length > 0){
                 return 'Success';
             } else {
-                return 'Failed';
+                throw new Error('Gagal menghapus job');
             }
         }catch(e){
             throw e;
@@ -793,10 +737,10 @@ class Job extends Model {
                     propJob.requirements.requiredSkills.forEach((item) => {
                         let skill = new Skill(item.id, item.name, item.uri);
                         if(listSkills.length === 0){
-                            listSkills.push(skill.toObject());
+                            listSkills.push(skill);
                         } else {
-                            let validateItem = listSkills.some(sk => sk.id === skill.getID());
-                            if(!validateItem) listSkills.push(skill.toObject());
+                            let validateItem = listSkills.some(sk => sk.getID() === skill.getID());
+                            if(!validateItem) listSkills.push(skill);
                         }
                     });
                     jobReq.setSkills(listSkills);
@@ -809,26 +753,28 @@ class Job extends Model {
                                 let propRel = item.get('r').properties;
                                 let religion = new Religion(propRel.id, propRel.name);
                                 if(listReligion.length === 0){
-                                    listReligion.push(religion.toObject());
+                                    listReligion.push(religion);
                                 } else {
-                                    let validateItem = listReligion.some(rl => rl.id === religion.getID());
-                                    if(!validateItem) listReligion.push(religion.toObject());
+                                    let validateItem = listReligion.some(rl => rl.getID() === religion.getID());
+                                    if(!validateItem) listReligion.push(religion);
                                 }
                             });
                             jobReq.setReligions(listReligion);
                         }
                     } catch(e){
+                        console.log(e);
                         throw e;
                     }
 
                     let job = new Job(propJob.jobID, propJob.userId, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status, jobReq, jobType);
-                    jobData.push(job.toObject());
+                    jobData.push(job);
                 }
                 return jobData;
             } else {
                 return null;
             }
         } catch(e){
+            console.log(e);
             throw e;
         }
     }

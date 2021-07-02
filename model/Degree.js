@@ -13,16 +13,40 @@ class Degree extends Model{
         this.#name = name;
     }
 
+    constructFromObject(obj){
+        let {
+            id,
+            name
+        } = obj;
+        return new this.constructor(id, name);
+    }
+
     getID(){
         return this.#id;
     }
 
     toObject(){
         let objResult = {
-            degreeId: this.#id,
+            id: this.#id,
             name: this.#name
         };
         return objResult;
+    }
+
+    static async find(degreeId){
+        let query = `MATCH (d:Degree {id: '${degreeId}'}) RETURN d`;
+        try{
+            let result = await DB.query(query);
+            if(result.records.length > 0){
+                let propDeg = result.records[0].get('d').properties;
+                let degree = new Degree(propDeg.id, propDeg.name);
+                return degree;
+            } else {
+                return null;
+            }
+        } catch(e){
+            throw e;
+        }
     }
 
     
