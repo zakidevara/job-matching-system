@@ -18,10 +18,6 @@ class Applicant{
     setStatus(newStat){
         this.#status = newStat;
     }
-
-    getUserID(){
-        return this.#userID;
-    }
     getDateApplied(){
         return this.#dateApplied;
     }
