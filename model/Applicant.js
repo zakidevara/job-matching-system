@@ -1,23 +1,17 @@
 class Applicant{
     // Property of applicant (private)
-    #userID;
+    #user;
     #dateApplied;
     #similarity;
     #status;
 
-    constructor(userID, date, sim, stat){
-        this.#userID = userID;
+    constructor(user, date, sim, stat){
+        this.#user = user;
         this.#dateApplied = date;
         this.#similarity = sim;
         this.#status = stat;
     }
 
-    setUserID(newID){
-        this.#userID = newID;
-    }
-    setDateApplied(newDate){
-        this.#dateApplied = newDate;
-    }
     setSimilarity(newSim){
         this.#similarity = newSim;
     }
@@ -40,7 +34,7 @@ class Applicant{
 
     toObject(){
         let resultObj = {
-            userID: this.#userID,
+            user: this.#user.toObject(),
             dateApplied: this.#dateApplied,
             similarity: this.#similarity,
             status: this.#status

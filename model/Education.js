@@ -48,7 +48,7 @@ class Education extends Model{
 
     toObject(){
         let result = {
-            educationId: this.#educationID,
+            id: this.#educationID,
             userId: this.#userID,
             schoolName: this.#schoolName,
             degree: this.#degree.toObject(),

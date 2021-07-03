@@ -1,5 +1,6 @@
 const Model = require("./Model");
 const Skill = require('./Skill');
+const User = require('./User');
 // UUID
 const {v4: uuidv4 } = require('uuid');
 const DB = require("../services/DB");
@@ -60,15 +61,6 @@ class Job extends Model {
     getUserID(){
         return this.#userID;
     }
-    getTitle(){
-        return this.#title;
-    }
-    getDesc(){
-        return this.#description;
-    }
-    getCompanyName(){
-        return this.#companyName;
-    }
     getRequirements(){
         return this.#requirements;
     }
@@ -78,36 +70,17 @@ class Job extends Model {
     setJobType(newType){
         this.#type = newType;
     }
-    // async getRequiredSkills(){
-    //     let query = `MATCH (j:Job {jobID: '${this.#jobID}'})-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_SKILL]->(s:Skill) RETURN s`;
-    //     try{
-    //         let resultListSkill = await DB.query(query);
-    //         let listSkill = [];
-    //         resultListSkill.records.forEach((item) => {
-    //             let propSkill = item.get('s').properties;
-    //             let skill = new Skill(propSkill.id, propSkill.name, propSkill.uri);
-    //             if(listSkill.length == 0){
-    //                 listSkill.push(skill);
-    //             } else {
-    //                 let validateItem = listSkill.some(sk => sk.getID() === skill.getID());
-    //                 if(!validateItem){
-    //                     listSkill.push(skill);
-    //                 }
-    //             }
-    //         });
-    //         return listSkill;
-    //     }catch(e){
-    //         throw e;
-    //     }
-    // }
     async getApplicant(){
-        let query = `MATCH (j:Job {jobID: '${this.#jobID}'})<-[re:APPLY]-(:User) RETURN re`;
+        let query = `MATCH (j:Job {id: '${this.#jobID}'})<-[re:APPLY]-(u:User) RETURN re{.*, user: u{.*}}`;
         try{
             let resultApplicant = await DB.query(query);
             let listApplicant = [];
             resultApplicant.records.forEach((item) => {
-                let propApl = item.get('re').properties;
-                let applicant = new Applicant(propApl.userID, propApl.dateApplied, propApl.similarity, propApl.status);
+                let propApl = item.get('re');
+                let user = new User(propApl.user.nim, propApl.user.name, propApl.user.email, propApl.user.password, propApl.user.birthDate, propApl.user.classYear, propApl.user.photo, propApl.user.phoneNumber, propApl.user.gender, propApl.user.studyProgram, propApl.user.status);
+                user.init();
+
+                let applicant = new Applicant(user, propApl.dateApplied, propApl.similarity, propApl.status);
                 listApplicant.push(applicant);
             });
             return listApplicant;
@@ -121,7 +94,7 @@ class Job extends Model {
 
     toObject(){
         let objResult = {
-            jobId: this.#jobID,
+            id: this.#jobID,
             userId: this.#userID,
             title: this.#title,
             quantity: this.#quantity,
@@ -163,7 +136,7 @@ class Job extends Model {
         let objJob = this.toObject();
 
         // Create node Job
-        let query = `MERGE (j:Job {jobID: '${this.#jobID}'})
+        let query = `MERGE (j:Job {id: '${this.#jobID}'})
                      SET j.title = '${this.#title}',
                      j.contact = '${contact}',
                      j.quantity = ${this.#quantity},
@@ -295,7 +268,7 @@ class Job extends Model {
     }
 
     static async find(jobID){
-        let query = `MATCH (j:Job {jobID: '${jobID}'})-[:REQUIRES]->(jr:JobReq), (j)<-[:POSTS]-(u:User), (j)-[:CLASSIFIED]->(jt:JobType), (jr)-[:REQUIRES_SKILL]->(s:Skill) RETURN j{.*, userID: u.nim, jobType: jt{.*}, requirements: jr{.*, requiredSkills: s{.*}}}`;
+        let query = `MATCH (j:Job {id: '${jobID}'})-[:REQUIRES]->(jr:JobReq), (j)<-[:POSTS]-(u:User), (j)-[:CLASSIFIED]->(jt:JobType), (jr)-[:REQUIRES_SKILL]->(s:Skill) RETURN j{.*, userID: u.nim, jobType: jt{.*}, requirements: jr{.*, requiredSkills: s{.*}}}`;
         try{
             let result = await DB.query(query);
             if(result.records.length > 0){
@@ -318,16 +291,16 @@ class Job extends Model {
                     let propSkill = jobData.requirements.requiredSkills;
                     let skill = new Skill(propSkill.id, propSkill.name, propSkill.uri);
                     if(listSkills.length === 0){
-                        listSkills.push(skill.toObject());
+                        listSkills.push(skill);
                     } else {
-                        let validateItem = listSkills.some(sk => sk.skillId === skill.getID());
+                        let validateItem = listSkills.some(sk => sk.getID() === skill.getID());
                         if(!validateItem){
-                            listSkills.push(skill.toObject());
+                            listSkills.push(skill);
                         }
                     }
                 });
 
-                let queryReligions = `MATCH (j:Job {jobID: '${jobID}'})-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_RELIGION]->(r:Religion) RETURN r`;
+                let queryReligions = `MATCH (j:Job {id: '${jobID}'})-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_RELIGION]->(r:Religion) RETURN r`;
                 try{
                     let resultReligion = await DB.query(queryReligions);
                     if(resultReligion.records.length > 0){
@@ -335,11 +308,11 @@ class Job extends Model {
                             let propRel = item.get('r').properties;
                             let religion = new Religion(propRel.id, propRel.name);
                             if(listReligion.length === 0){
-                                listReligion.push(religion.toObject());
+                                listReligion.push(religion);
                             } else {
-                                let validateItem = listReligion.some(rl => rl.religionId === religion.getID());
+                                let validateItem = listReligion.some(rl => rl.getID() === religion.getID());
                                 if(!validateItem){
-                                    listReligion.push(religion.toObject());
+                                    listReligion.push(religion);
                                 }
                             }
                         });
@@ -376,7 +349,7 @@ class Job extends Model {
         
 
         // First section of query (update node Job)
-        let query = `MATCH (j:Job {jobID: '${this.#jobID}'})-[:REQUIRES]->(jr:JobReq), (j)-[re:CLASSIFIED]->(ojt:JobType)  
+        let query = `MATCH (j:Job {id: '${this.#jobID}'})-[:REQUIRES]->(jr:JobReq), (j)-[re:CLASSIFIED]->(ojt:JobType)  
                     SET j.title = '${updatedJobData.title}',
                     j.quantity = ${updatedJobData.quantity},
                     j.contact = '${contact}',
@@ -499,7 +472,7 @@ class Job extends Model {
 
                     // Update requires skill
                     if(requirementsProp.includes('requiredSkills')){
-                        let scndQuery = `MATCH (j:Job {jobID: '${this.#jobID}'})-[:REQUIRES]->(jr:JobReq) `;
+                        let scndQuery = `MATCH (j:Job {id: '${this.#jobID}'})-[:REQUIRES]->(jr:JobReq) `;
                         // Check current requires skill from database
                         // Get every value in currListSkill that is not in newListSkills
                         let newReqSkills = updatedJobData.requirements.requiredSkills;
@@ -567,7 +540,7 @@ class Job extends Model {
                                         // Add or update current required religion
                                         let currReqReligion = this.#requirements.getReligion();
                                         let newReqReligion = updatedJobData.requirements.requiredReligion;
-                                        let thirdQuery = `MATCH (j:Job {jobID: '${this.#jobID}'})-[:REQUIRES]->(jr:JobReq) `;
+                                        let thirdQuery = `MATCH (j:Job {id: '${this.#jobID}'})-[:REQUIRES]->(jr:JobReq) `;
                                         if(currReqReligion.length == 0){
                                             thirdQuery += ` 
                                                            WITH jr
@@ -669,7 +642,7 @@ class Job extends Model {
                                         let currReqReligion = this.#requirements.getReligion();
                                         if(currReqReligion.length > 0){
                                             // Remove every relationship with node religion
-                                            let forthQuery = `MATCH (j:Job {jobID: '${this.#jobID}'})-[:REQUIRES]->(jr:JobReq), (jr)-[re:REQUIRES_RELIGION]->(r:Religion) DELETE re RETURN COUNT(re)`;
+                                            let forthQuery = `MATCH (j:Job {id: '${this.#jobID}'})-[:REQUIRES]->(jr:JobReq), (jr)-[re:REQUIRES_RELIGION]->(r:Religion) DELETE re RETURN COUNT(re)`;
                                             try{
                                                 let resultDeleteRel = await DB.query(forthQuery);
                                                 if(resultDeleteRel.records.length > 0){
@@ -699,7 +672,7 @@ class Job extends Model {
     }
 
     async delete(){
-        let query = `MATCH (j:Job {jobID: '${this.#jobID}'})-[:REQUIRES]->(jr:JobReq) DETACH DELETE j,jr RETURN COUNT(j)`;
+        let query = `MATCH (j:Job {id: '${this.#jobID}'})-[:REQUIRES]->(jr:JobReq) DETACH DELETE j,jr RETURN COUNT(j)`;
         try{
             let result = await DB.query(query);
             if(result.records.length > 0){
@@ -715,12 +688,15 @@ class Job extends Model {
     static async searchByName(title){
         let date = new Date();
         let currentDate = `${date.getFullYear()}-0${date.getMonth()+1}-${date.getDate()}`;
-        let query = `WITH split('${currentDate}', '-') AS cd 
-                    MATCH (j:Job)<-[:POSTS]-(u:User), (j)-[:CLASSIFIED]->(jt:JobType), (j)-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_SKILL]->(s:Skill) 
-                    WHERE j.title CONTAINS '${title}'
-                    WITH cd, split(j.endDate, '-') AS ed, j, u, jt, jr, s
-                    WHERE (cd[0] < ed[0]) OR (cd[0] = ed[0] AND ((cd[1] < ed[1]) OR (cd[1] = ed[1] AND (cd[2] < ed[2])))) 
-                    RETURN j{.*, userId: u.nim, jobType: jt{.*}, requirements: jr{.*, requiredSkills: collect(s{.*})}}`;
+        let query = `MATCH (j:Job)<-[:POSTS]-(u:User), (j)-[:CLASSIFIED]->(jt:JobType), (j)-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_SKILL]->(s:Skill) 
+                     WHERE j.title CONTAINS '${title}'
+                     RETURN j{.*, userId: u.nim, jobType: jt{.*}, requirements: jr{.*, requiredSkills: collect(s{.*})}}`;
+        // let query = `WITH split('${currentDate}', '-') AS cd 
+        //             MATCH (j:Job)<-[:POSTS]-(u:User), (j)-[:CLASSIFIED]->(jt:JobType), (j)-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_SKILL]->(s:Skill) 
+        //             WHERE j.title CONTAINS '${title}'
+        //             WITH cd, split(j.endDate, '-') AS ed, j, u, jt, jr, s
+        //             WHERE (cd[0] < ed[0]) OR (cd[0] = ed[0] AND ((cd[1] < ed[1]) OR (cd[1] = ed[1] AND (cd[2] < ed[2])))) 
+        //             RETURN j{.*, userId: u.nim, jobType: jt{.*}, requirements: jr{.*, requiredSkills: collect(s{.*})}}`;
         try{
             let result = await DB.query(query);
             let jobData = [];
@@ -745,7 +721,7 @@ class Job extends Model {
                     });
                     jobReq.setSkills(listSkills);
 
-                    let queryReligion = `MATCH (j:Job {jobID: '${propJob.jobID}'})-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_RELIGION]->(r:Religion) RETURN r`;
+                    let queryReligion = `MATCH (j:Job {id: '${propJob.id}'})-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_RELIGION]->(r:Religion) RETURN r`;
                     try{
                         let resultReligion = await DB.query(queryReligion);
                         if(resultReligion.records.length > 0){
@@ -766,7 +742,7 @@ class Job extends Model {
                         throw e;
                     }
 
-                    let job = new Job(propJob.jobID, propJob.userId, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status, jobReq, jobType);
+                    let job = new Job(propJob.id, propJob.userId, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status, jobReq, jobType);
                     jobData.push(job);
                 }
                 return jobData;
@@ -782,7 +758,7 @@ class Job extends Model {
     async apply(user){
         let userID = user.getNim();
         let jobID = this.#jobID;
-        let query = `MATCH (u:User {nim: '${userID}'})-[:APPLY]->(j:Job {jobID: '${jobID}'}) RETURN u,j`;
+        let query = `MATCH (u:User {nim: '${userID}'})-[:APPLY]->(j:Job {id: '${jobID}'}) RETURN u,j`;
         try{
             let validateUserAndJob = await DB.query(query);
             if(validateUserAndJob.records.length != 0){
@@ -795,7 +771,7 @@ class Job extends Model {
                                 (currentDate.getMonth()+1) + "-" +
                                 currentDate.getDate();    
                 
-                let secQuery = `MATCH (u:User), (j:Job) WHERE u.nim = '${userID}' AND j.jobID = '${jobID}' CREATE (u)-[rel:APPLY {userID: '${userID}', dateApplied: '${dateApplied}', similarity: ${similarity}, status: false}]->(j) RETURN rel`;
+                let secQuery = `MATCH (u:User), (j:Job) WHERE u.nim = '${userID}' AND j.id = '${jobID}' CREATE (u)-[rel:APPLY {userId: '${userID}', dateApplied: '${dateApplied}', similarity: ${similarity}, status: false}]->(j) RETURN rel`;
                 try{
                     let result = await DB.query(secQuery);
                     if(result.records.length > 0){
@@ -813,7 +789,7 @@ class Job extends Model {
     }
 
     async acceptApplicant(applicantId){
-        let query = `MATCH (j:Job {jobID: '${this.#jobID}'})<-[re:APPLY]-(u:User) WHERE re.userID = '${applicantId}' SET re.status = true RETURN re, u`;
+        let query = `MATCH (j:Job {id: '${this.#jobID}'})<-[re:APPLY]-(u:User) WHERE re.userId = '${applicantId}' SET re.status = true RETURN re, u`;
         try{
             let result = await DB.query(query);
             if(result.records.length > 0){
@@ -831,7 +807,7 @@ class Job extends Model {
     }
 
     async refuseApplicant(applicantId){
-        let query = `MATCH (j:Job {jobID: '${this.#jobID}'})<-[re:APPLY]-(u:User) WHERE re.userID = '${applicantId}' AND re.status = false RETURN re, u`;
+        let query = `MATCH (j:Job {id: '${this.#jobID}'})<-[re:APPLY]-(u:User) WHERE re.userID = '${applicantId}' AND re.status = false RETURN re, u`;
         try{
             let result = await DB.query(query);
             if(result.records.length > 0){
