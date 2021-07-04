@@ -19,6 +19,22 @@ router.get('/', async function(req, res) {
     }
 });
 
+// Admin section
+router.post('/', async function(req, res) {
+    const degreeData = req.body;
+    try{
+        const degreeController = new DegreeController();
+        let result = await degreeController.create(degreeData);
+
+        res.status(200);
+        res.send({ result });
+    } catch(e){
+        res.status(400);
+        let {message} = e;
+        res.send({message});
+    }
+});
+
 router.get('/:degreeId', async function(req, res) {
     const {degreeId} = req.params;
     try{
@@ -30,6 +46,38 @@ router.get('/:degreeId', async function(req, res) {
             message: "Berhasil",
             result
         });
+    } catch(e){
+        res.status(400);
+        let {message} = e;
+        res.send({message});
+    }
+});
+
+// Admin section
+router.put('/:degreeId', async function(req, res) {
+    const {degreeId} = req.params;
+    const degreeData = req.body;
+    try{
+        const degreeController = new DegreeController();
+        let result = await degreeController.update(degreeId, degreeData);
+
+        res.status(200);
+        res.send({ result });
+    } catch(e){
+        res.status(400);
+        let {message} = e;
+        res.send({message});
+    }
+});
+
+router.delete('/:degreeId', async function(req, res) {
+    const {degreeId} = req.params;
+    try{
+        const degreeController = new DegreeController();
+        let result = await degreeController.delete(degreeId);
+
+        res.status(200);
+        res.send({ result });
     } catch(e){
         res.status(400);
         let {message} = e;

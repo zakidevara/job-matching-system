@@ -98,7 +98,7 @@ class JobController extends ResourceController {
             let jobData = await Job.find(jobId);
             if(jobData === null) throw new Error('Data job tidak ditemukan');
             try{
-                let result = await jobData.delete(jobId);
+                let result = await jobData.delete();
                 return result;
             } catch(e){
                 throw e;

@@ -1,5 +1,4 @@
 const Model = require("./Model");
-const {v4: uuidv4 } = require('uuid');
 const DB = require("../services/DB");
 
 class Degree extends Model{
@@ -43,6 +42,51 @@ class Degree extends Model{
                 return degree;
             } else {
                 return null;
+            }
+        } catch(e){
+            throw e;
+        }
+    }
+
+    // Admin section
+    async save(){
+        let query = `MERGE (d:Degree {id: '${this.#id}'})
+                     SET d.name = '${this.#name}'
+                     RETURN d`;
+        try{
+            let result = await DB.query(query);
+            return result.records.length > 0 ? true : false;
+        } catch(e){
+            throw e;
+        }
+    }
+
+    async update(updatedDegData){
+        let query = `MATCH (d:Degree {id: '${this.#id}'})
+                     SET d.name = '${updatedDegData.name}'
+                     RETURN d`;
+        try{
+            let result = await DB.query(query);
+            if(result.records.length > 0){
+                let propDeg = result.records[0].get('d').properties;
+                let degree = new Degree(propDeg.id, propDeg.name);
+                return degree;
+            } else {
+                return null;
+            }
+        } catch(e){
+            throw e;
+        }
+    }
+
+    async delete(){
+        let query = `MATCH (d:Degree {id: '${this.#id}'}) DETACH DELETE r RETURN COUNT(r)`;
+        try{
+            let result = await DB.query(query);
+            if(result.records.length > 0){
+                return 'Success';
+            } else {
+                throw new Error('Gagal menghapus gelar');
             }
         } catch(e){
             throw e;
