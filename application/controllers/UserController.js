@@ -101,8 +101,30 @@ class UserController extends ResourceController{
             let education = await Education.find(educationId);
             if(education === null) throw new Error('Data pendidikan tidak ditemukan');
 
-            let result = await education.delete();
-            return result;
+            try{
+                let result = await education.delete();
+                return result;
+            } catch(e){
+                throw e;
+            }
+        } catch(e){
+            throw e;
+        }
+    }
+
+    async updateEducation(educationId, updatedEduData){
+        try{
+            let education = await Education.find(educationId);
+            if(education === null) throw new Error('Data pendidikan tidak ditemukan');
+
+            try{
+                let resultUpdate = await education.update(updatedEduData);
+                if(resultUpdate === null) throw new Error('Data pendidikan gagal diperbarui');
+                
+                return resultUpdate.toObject();
+            } catch(e){
+                throw e;
+            }
         } catch(e){
             throw e;
         }

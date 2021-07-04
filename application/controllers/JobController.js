@@ -277,13 +277,8 @@ class JobController extends ResourceController {
                 let applicants = await jobData.getApplicant();
                 for(let i=0; i < applicants.length; i++){
                     try{
-                        let user = await User.find(applicants[i].getNim());
-                        try{
-                            let similarity = await JobStudentMatcher.match(jobData, user);
-                            applicants[i].setSimilarity(similarity);
-                        } catch(e){
-                            throw e;
-                        }
+                        let similarity = await JobStudentMatcher.match(jobData, applicants[i].getUser());
+                        applicants[i].setSimilarity(similarity);
                     } catch(e){
                         throw e;
                     }

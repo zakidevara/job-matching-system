@@ -13,7 +13,7 @@ class Education extends Model{
     #startYear;
     #endYear;
 
-    constructor(educationID, userID, schoolName, degree, fieldOfStudy, startYear, endYear){
+    constructor(educationID='', userID='', schoolName='', degree, fieldOfStudy='', startYear=0, endYear=0){
         super();
         this.#educationID = educationID;
         this.#userID = userID;
@@ -66,8 +66,8 @@ class Education extends Model{
                      MERGE (u)-[:STUDIED_AT]->(e:Education)
                      SET e.schoolName = '${this.#schoolName}',
                      e.fieldOfStudy = '${this.#fieldOfStudy}',
-                     e.startYear = '${this.#startYear}',
-                     e.endYear = '${this.#endYear}'
+                     e.startYear = ${this.#startYear},
+                     e.endYear = ${this.#endYear}
                      WITH e
                      MATCH (d:Degree {id: '${degreeObj.id}'})
                      MERGE (e)-[:HAS_DEGREE]->(d)
@@ -80,30 +80,55 @@ class Education extends Model{
         }
     }
 
-    static async getAllUserEducation(userID){
-        let query = `MATCH (u:User {nim: '${userID}'})-[:STUDIED_AT]-(e:Education), (e)-[:HAS_DEGREE]->(d:Degree) RETURN e{.*, degree: d{.*}}`;
-        try{
-            let result = await DB.query(query);
-            let listEdu = [];
+    static async getEdu(userId){
+        if(userId === undefined){
+            let query = `MATCH (e:Education)-[:HAS_DEGREE]->(d:Degree), (e)<-[:STUDIED_AT]-(u:User) RETURN e{.*, userId: u.nim, degree: d{.*}}`;
+            try{
+                let result = await DB.query(query);
+                let listEdu = [];
+                if(result.records.length > 0){
+                    result.records.forEach((item) => {
+                        let propEdu = item.get('e');
+                        let degree = new Degree(propEdu.degree.id, propEdu.degree.name);
+                        let education = new Education(propEdu.id, propEdu.userId, propEdu.schoolName, degree, propEdu.fieldOfStudy, propEdu.startYear, propEdu.endYear);
+                        if(listEdu.length === 0){
+                            listEdu.push(education);
+                        } else {
+                            let validateItem = listEdu.some(ed => ed.getID() === education.getID());
+                            if(!validateItem) listEdu.push(education);
+                        }
+                    });
+                }
 
-            if(result.records.length > 0){
-                result.records.forEach((item) => {
-                    let propEdu = item.get('e');
-                    let degree = new Degree(propEdu.degree.id, propEdu.degree.name);
-                    let education = new Education(propEdu.id, userID, propEdu.schoolName, degree, propEdu.fieldOfStudy, propEdu.startYear, propEdu.endYear, propEdu.grade, propEdu.activity, propEdu.description);
-                    if(listEdu.length === 0){
-                        listEdu.push(education);
-                    } else {
-                        let validateItem = listEdu.some(e => e.getID() === education.getID());
-                        if(!validateItem) listEdu.push(education);
-                    }
-                });
                 return listEdu;
-            } else {
-                return null;
+            } catch(e){
+                throw e;
             }
-        } catch(e) {
-            throw e;
+        } else {
+            let query = `MATCH (u:User {nim: '${userId}'})-[:STUDIED_AT]->(e:Education), (e)-[:HAS_DEGREE]->(d:Degree) RETURN e{.*, degree: d{.*}}`;
+            try{
+                let result = await DB.query(query);
+                let listEdu = [];
+    
+                if(result.records.length > 0){
+                    result.records.forEach((item) => {
+                        let propEdu = item.get('e');
+                        let degree = new Degree(propEdu.degree.id, propEdu.degree.name);
+                        let education = new Education(propEdu.id, userId, propEdu.schoolName, degree, propEdu.fieldOfStudy, propEdu.startYear, propEdu.endYear, propEdu.grade, propEdu.activity, propEdu.description);
+                        if(listEdu.length === 0){
+                            listEdu.push(education);
+                        } else {
+                            let validateItem = listEdu.some(e => e.getID() === education.getID());
+                            if(!validateItem) listEdu.push(education);
+                        }
+                    });
+                    return listEdu;
+                } else {
+                    return null;
+                }
+            } catch(e) {
+                throw e;
+            }
         }
     }
 
@@ -115,7 +140,7 @@ class Education extends Model{
             if(result.records.length > 0){
                 let propEdu = result.records[0].get('e');
                 let degree = new Degree(propEdu.degree.id, propEdu.degree.name);
-                let education = new Education(propEdu.id, propEdu.userId, propEdu.schoolName, degree, propEdu.fieldOfStudy, propEdu.startYear, propEdu.endYear, propEdu.grade, propEdu.activity, propEdu.description);
+                let education = new Education(propEdu.id, propEdu.userId, propEdu.schoolName, degree, propEdu.fieldOfStudy, propEdu.startYear, propEdu.endYear);
                 return education;
             } else {
                 return null;
@@ -140,23 +165,53 @@ class Education extends Model{
     }
 
     async update(updatedEducation){
-        let query = `MATCH (e:Education {id: '${this.#educationID}'})
+        let curDeg = this.#degree;
+        let query = `MATCH (e:Education {id: '${this.#educationID}'}), (e)-[re:HAS_DEGREE]->(od:Degree), (e)<-[:STUDIED_AT]-(u:User)  
                      SET `;
-
-        let eduProperty = Object.keys(updatedEducation);
-        eduProperty.forEach((item) => {
-            let value = updatedEducation[item];
-            if(value !== null){
-                if(item !== 'grade'){
-                    value = this.cleaningStringFormat(value);
-                    query += `e.` + item + ` = '${value}',`;
+        let eduPropList = Object.keys(updatedEducation);
+        for(let i=0; i < eduPropList.length; i++){
+            let prop = eduPropList[i];
+            let value = updatedEducation[prop];
+            if(value !== null && prop !== 'degreeId'){
+                if(prop === 'startYear' && prop === 'endYear'){
+                    query += `e.` + prop + ` = ${value},`;
                 } else {
-                    query += `e.` + item + ` = ${value},`;
+                    value = this.cleaningStringFormat(value);
+                    query += `e. ` + prop + ` = '${value}',`;
                 }
             }
-        });
+        }
 
         query = query.substr(0, query.length-1);
+        let isDegreeChanged = false;
+        if(updatedEducation.degreeId !== curDeg.getID()){
+            query += `
+                      WITH e, u, re 
+                      DELETE re
+                      MATCH (d:Degree {id: '${updatedEducation.degreeId}'})
+                      MERGE (e)-[:HAS_DEGREE]->(d)`;
+            isDegreeChanged = true;
+        }
+
+        if(isDegreeChanged){
+            query += `RETURN e{.*, userId: u.nim, degree: d{.*}}`;
+        } else {
+            query += `RETURN e{.*, userId: u.nim, degree: od{.*}}`;
+        }
+
+        try{
+            let result = await DB.query(query);
+            if(result.records.length > 0){
+                let propEdu = result.records[0].get('e');
+                let degree = new Degree(propEdu.degree.id, propEdu.degree.name);
+                let education = new Education(propEdu.id, propEdu.userId, propEdu.schoolName, degree, propEdu.fieldOfStudy, propEdu.startYear, propEdu.endYear);
+                return education;
+            } else {
+                return null;
+            }
+        } catch(e){
+            throw e;
+        }
     }
 }
 

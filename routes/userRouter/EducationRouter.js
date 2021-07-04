@@ -65,4 +65,20 @@ router.delete('/:educationId', async function(req, res) {
     }
 });
 
+router.put('/:educationId', async function(req, res) {
+    const {educationId} = req.params;
+    const educationData = req.body;
+    try{
+        const userController = new UserController();
+        let result = await userController.updateEducation(educationId, educationData);
+
+        res.status(200);
+        res.send({ result });
+    } catch(e){
+        res.status(400);
+        let {message} = e;
+        res.send({ message });
+    } 
+});
+
 module.exports = router;

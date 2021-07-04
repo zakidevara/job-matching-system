@@ -8,7 +8,7 @@ class EducationController extends ResourceController{
 
     async all(userId){
         try{
-            let eduList = await Education.getAllUserEducation(userId);
+            let eduList = await Education.getEdu(userId);
             eduList.forEach((item, index, array) => {
                 let value = item.toObject();
                 array[index] = value;
@@ -22,7 +22,8 @@ class EducationController extends ResourceController{
     async find(educationId){
         try{
             let result = await Education.find(educationId);
-            if(result === null) throw new Error('Tidak ada data pendidikan');
+            if(result === null) throw new Error('Data pendidikan tidak ditemukan');
+
             return result.toObject();
         } catch(e){
             throw e;
