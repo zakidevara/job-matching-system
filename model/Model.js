@@ -193,9 +193,10 @@ class Model {
     // Array of Model hasil pencarian
     async find(queryObj){
         // Build Cypher Query
-        let query = `MATCH (res:${this.constructor.name} `;
+        let query = `MATCH (res:${this.constructor.name}) `;
 
         if(queryObj && Object.keys(queryObj).length > 0){
+            query = `MATCH (res:${this.constructor.name} `
             query += "{";
             Object.keys(queryObj).forEach((val, index, arr) => {
                 if(queryObj[val] == undefined) return;
@@ -207,13 +208,16 @@ class Model {
                     }
                 }else{
                     if(typeof queryObj[val] == "string"){
-                        query += `${val}: '${queryObj[val]}'})`;
+                        query += `${val}: '${queryObj[val]}'`;
                     }else{
-                        query += `${val}: ${queryObj[val]}})`;
+                        query += `${val}: ${queryObj[val]}`;
                     }
                 }
             });
-            query += ' RETURN res{';
+            
+            //remove the last comma
+            query = query.replace(/,\s*$/, "");
+            query += '}) RETURN res{';
             this.getAttributes().forEach((val, index, arr) => {
                 if(index+1 !== arr.length){
                     query += `.${val}, `;
@@ -232,6 +236,7 @@ class Model {
             });
         }
 
+        console.log('QUERY', queryObj);
         // Run Query in Database
         try {
             let result = await DB.query(query);
@@ -262,20 +267,19 @@ class Model {
             if(obj[val] == undefined) return;
             if(obj[val] == null) return;
             if(val == this.#idName) return;
-            if(index+1 !== arr.length){
-                if(typeof obj[val] == "string"){
-                    query += `res.${val} = '${obj[val]}', `;
-                }else{
-                    query += `res.${val} = ${obj[val]}, `;
-                }
+            
+            if(typeof obj[val] == "string"){
+                query += `res.${val} = '${obj[val]}'`;
             }else{
-                if(typeof obj[val] == "string"){
-                    query += `res.${val} = '${obj[val]}'`;
-                }else{
-                    query += `res.${val} = ${obj[val]}`;
-                }
+                query += `res.${val} = ${obj[val]}`;
+            }
+            
+            if(index+1 !== arr.length){
+                query += ', ';
             }
         });
+        //remove the last comma
+        query = query.replace(/,\s*$/, "");
         query += ' RETURN res';
 
         // Run Query in Database

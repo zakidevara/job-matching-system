@@ -40,6 +40,22 @@ router.post('/match', async function(req, res) {
         res.send(e);
     }
 });
+router.get('/search', async function(req, res) {
+    let skillQuery = req.params.skillQuery;
+    console.log(skillQuery);
+    try{
+        const skillController = new SkillController();
+        let result = await skillController.searchByName(skillQuery);
+        res.send({
+            message: "Berhasil",
+            result
+        });
+    }catch(e){
+        console.log(e);
+        res.status(400);
+        res.send(e);
+    }
+});
 
 router.get('/:skillId', async function(req, res) {
     const {skillId} = req.params;

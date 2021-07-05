@@ -4,6 +4,7 @@ const Religion = require("./Religion");
 const Skill = require("./Skill");
 const StudyProgram = require("./StudyProgram");
 const Gender = require("./Gender");
+const WorkExperience = require("./WorkExperience");
 
 
 class User extends Model {
@@ -20,6 +21,7 @@ class User extends Model {
     #studyProgram;
     #emailVerificationCode;
     #status;
+    #workExpList;
 
     constructor(nim = '', name = '', email = '', password = '', birthDate = '', classYear = '', photo = '', phoneNumber = '', gender = 0, studyProgram = 0, status = 0){
         super("nim");
@@ -34,6 +36,7 @@ class User extends Model {
         this.#gender = gender;
         this.#studyProgram = studyProgram;
         this.#status = status;
+        this.#workExpList = [];
     }
 
     setEmailVerificationCode(newCode){
@@ -45,6 +48,9 @@ class User extends Model {
 
 
     // Getter
+    getId(){
+        return this.#nim;
+    }
     getNim(){
         return this.#nim;
     }
@@ -62,6 +68,12 @@ class User extends Model {
     }
     getStatus(){
         return this.#status;
+    }
+    async getWorkExpList(){
+        let workExpObj = new WorkExperience();
+        let result = await workExpObj.all(this.getId());
+        this.#workExpList = result;
+        return result;
     }
     
 
@@ -175,7 +187,7 @@ class User extends Model {
     }
 
     // Get all users
-    static async all(){
+    async all(){
         let query = `MATCH (u:User) RETURN u ORDER BY u.nim`;
         try{
             let resultListUsers = await DB.query(query);
@@ -194,7 +206,7 @@ class User extends Model {
     }
 
     // Find user by ID
-    static async find(userID){
+    async findById(userID){
         let query = `MATCH (u:User {nim: '${userID}'}) RETURN u`;
         try{
             let resultUserData = await DB.query(query);
@@ -205,7 +217,7 @@ class User extends Model {
                 user.init();
                 return user;
             } else{            
-                return null;
+                throw new Error("User tidak ditemukan");
             }
         }catch(e){
             console.log(e);
@@ -213,7 +225,7 @@ class User extends Model {
        }
     }
 
-    static async findByEmail(email){
+    async findByEmail(email){
         let query = `MATCH (u:User {email: '${email}'}) RETURN u`;
         try{
             let resultUserData = await DB.query(query);
@@ -314,6 +326,24 @@ class User extends Model {
             }
         } catch (e) {
             throw e;
+        }
+    }
+
+    async addWorkExp(workExp){
+        let workExpObj = new WorkExperience();
+        try {
+            let result = await workExpObj.create(workExp.toObject());
+            this.#workExpList.push(result);
+
+            let createRelationshipResult = await DB.query(
+                `MATCH 
+                    (u:User {nim: '${this.getId()}'}), 
+                    (w:WorkExperience {id: '${result.getId()}'})
+                CREATE
+                    (u)-[:WORKED_AT]->(w)`);
+            return result;
+        } catch (error) {
+            console.log('User Model Error: ', error);
         }
     }
 }

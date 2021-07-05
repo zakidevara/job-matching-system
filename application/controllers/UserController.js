@@ -3,6 +3,8 @@ const User = require('../../model/User');
 const Degree = require('../../model/Degree');
 const Education = require('../../model/Education');
 const {v4: uuidv4 } = require('uuid');
+const WorkExperience = require('../../model/WorkExperience');
+const WorkExperienceType = require('../../model/WorkExperienceType');
 
 class UserController extends ResourceController{
 
@@ -12,7 +14,8 @@ class UserController extends ResourceController{
     // Get all user
     async all(){
         try{
-            let userList = await User.all();
+            let userModel = new User();
+            let userList = await userModel.all();
             userList.forEach((item, index, array) => {
                 let user = item.toObject();
                 array[index] = user;
@@ -27,7 +30,8 @@ class UserController extends ResourceController{
     // Get user by ID
     async findByID(userID){
         try{
-            let userData = await User.find(userID);
+            let userModel = new User();
+            let userData = await userModel.findById(userID);
             if(userData === null) throw new Error('User tidak ditemukan');
 
             return userData.toObject();
@@ -38,7 +42,9 @@ class UserController extends ResourceController{
 
     // Update data user
     async updateData(userID, userData){
-        let user = await User.find(userID);
+        
+        let userModel = new User();
+        let user = await userModel.findById(userID);
         if(user === null) throw new Error('User tidak ditemukan');
 
         let updateResult = await user.update(userData);
@@ -47,7 +53,9 @@ class UserController extends ResourceController{
 
     // Add new skill
     async addSkill(userID, skillList){
-        let user = await User.find(userID);
+        
+        let userModel = new User();
+        let user = await userModel.findById(userID);
         if(user === null) throw new Error('User tidak ditemukan');
 
         let addSkillResult = await user.addSkill(skillList);
@@ -56,7 +64,10 @@ class UserController extends ResourceController{
 
     // Remove skill
     async removeSkill(userID, skillID){
-        let user = await User.find(userID);
+        
+        let userModel = new User();
+        
+        let user = await userModel.findById(userID);
         if(user === null) throw new Error('User tidak ditemukan');
 
         let removeSkillResult = await user.removeSkill(skillID);
@@ -65,7 +76,9 @@ class UserController extends ResourceController{
 
     // Get all skill
     async getUserSkills(userID){
-        let user = await User.find(userID);
+        
+        let userModel = new User();
+        let user = await userModel.findById(userID);
         if(user == null) throw new Error('User tidak ditemukan');
 
         let tempSkills = await user.getSkills();
@@ -129,6 +142,28 @@ class UserController extends ResourceController{
             throw e;
         }
     }
+
+    async addWorkExperience(workExperience, userId){
+        try{
+            let workExpTypeObj = new WorkExperienceType('', '');
+            let userModel = new User();
+            userModel = await userModel.findById(userId);
+            let workExpType = await workExpTypeObj.findById(workExperience.workExperienceType.id);
+            let newWorkExp = new WorkExperience(uuidv4(), workExperience.title, workExpType, workExperience.companyName, workExperience.startDate, workExperience.endDate);
+
+            console.log(userModel);
+            let result = await userModel.addWorkExp(newWorkExp);
+            if(result){
+                return newWorkExp.toObject();
+            } else {
+                throw new Error('Gagal menambahkan data pengalaman kerja');
+            }
+        } catch(e){
+            throw e;
+        }
+    }
+
+
 
 }
 

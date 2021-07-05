@@ -39,10 +39,15 @@ class ResourceController {
     }
 
     // Return all data based on label
-    async getAll(){
+    async getAll(userId){
         try {
             let modelInstance = new this.#model();
-            let result = await modelInstance.all();
+            let result = [];
+            if(userId){
+                result = await modelInstance.all(userId);
+            }else{
+                result = await modelInstance.all();
+            }
             return result.map((val) => val.toObject());
         } catch (error) {
             throw error;
@@ -86,7 +91,7 @@ class ResourceController {
         let modelInstance = new this.#model();        
         try {
             let result = await modelInstance.deleteById(idData);
-            return result.toObject() || result;
+            return result;
         } catch (error) {
             throw error;
         }

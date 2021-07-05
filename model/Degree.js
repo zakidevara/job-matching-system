@@ -104,19 +104,4 @@ class Degree extends Model{
 }
 
 
-// TEST FUNCTION
-// Test Command: `node model/Degree.js`
-async function test(){
-    let degree = new Degree('', '');
-
-    // TESTING CREATE NEW DATA FUNCTIONALITY
-    // let createResult = await degree.create({id: uuidv4(), name: "S1"});
-    // console.log(createResult);
-
-    // TESTING GET ALL DATA FUNCTIONALITY
-    let getAllResult = await degree.all();
-    console.log(getAllResult.map((item) => item.toObject()));
-}
-test();
-
 module.exports = Degree;

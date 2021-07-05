@@ -12,7 +12,8 @@ class AuthController{
     }
 
     async generateAccessToken(email) {
-        let user = await User.findByEmail(email);
+        let userModel = new User();
+        let user = await userModel.findByEmail(email);
         let nim = user.getNim();
         return jwt.sign({email, nim}, process.env.TOKEN_SECRET, { expiresIn: '48h' });
     }
@@ -20,7 +21,9 @@ class AuthController{
         let code = Math.floor(100000 + Math.random() * 900000);
         let user;
         try{
-            user = await User.findByEmail(email);
+            
+            let userModel = new User();
+            user = await userModel.findByEmail(email);
             user.setEmailVerificationCode(code);
             await user.save();
             return code;
@@ -36,7 +39,9 @@ class AuthController{
     async isEmailExists(email){
         
         try{
-            let user = await User.findByEmail(email);
+            
+            let userModel = new User();
+            let user = await userModel.findByEmail(email);
             return user !== null;
         }catch(e){
             return false;
@@ -46,7 +51,9 @@ class AuthController{
     async isNimExists(nim){
         
         try{
-            let user = await User.find(nim);
+            
+            let userModel = new User();
+            let user = await userModel.findById(nim);
             return user !== null;
         }catch(e){
             return false;
@@ -57,7 +64,8 @@ class AuthController{
     async authorize(email, password){
         let isAuthorized = false; 
         try{
-            let user = await User.findByEmail(email);
+            let userModel = new User();
+            let user = await userModel.findByEmail(email);
             if(user){
                 if(user.getStatus() !== 1) throw new Error("Email user belum terverifikasi");
                 isAuthorized = password === user.getPassword();
@@ -72,7 +80,8 @@ class AuthController{
 
     async validateEmail(email, code){
         try{            
-            let user = await User.findByEmail(email);
+            let userModel = new User();
+            let user = await userModel.findByEmail(email);
             if(user){
                 let saveStatus = await user.verifyEmail(code);
                 return saveStatus;

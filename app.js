@@ -10,6 +10,8 @@ const JobRouter = require('./routes/userRouter/JobRouter');
 const JobTypeRouter = require('./routes/userRouter/JobTypeRouter');
 const DegreeRouter = require('./routes/userRouter/DegreeRouter');
 const ReligionRouter = require('./routes/userRouter/ReligionRouter');
+const WorkExperienceTypeRouter = require('./routes/userRouter/WorkExperienceTypeRouter');
+const WorkExperienceRouter = require('./routes/userRouter/WorkExperienceRouter');
 const bodyParser = require('body-parser');
 const baseUrl = '/v1';
 
@@ -23,6 +25,8 @@ app.use(`${baseUrl}/degrees`, DegreeRouter);
 app.use(`${baseUrl}/religions`, ReligionRouter);
 app.use(`${baseUrl}/auth`, AuthRouter);
 app.use(`${baseUrl}/skills`, SkillRouter);
+app.use(`${baseUrl}/work-experience-type`, WorkExperienceTypeRouter);
+app.use(`${baseUrl}/work-experience`, WorkExperienceRouter);
 app.use(baseUrl, UserRouter);
 
 
