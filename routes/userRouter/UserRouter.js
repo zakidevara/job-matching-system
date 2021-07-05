@@ -72,7 +72,7 @@ router.put('/users/:userId', async function(req, res) {
 // Add new skill
 router.post('/users/:userId/skills/add', async function(req, res) {
     let userId = req.params.userId;
-    let skillList = req.body.skill_id;
+    let skillList = req.body.skillId;
     let uC = new UserController();
 
     try{

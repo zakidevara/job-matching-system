@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const isUser = require('../../middleware/isUser');
 
 const JobController = require('../../application/controllers/JobController');
 
-// router.use(isUser);
+router.use(isUser);
 // Job route
 // Create new job
 router.post('/', async function(req, res) {
@@ -172,10 +173,10 @@ router.get('/:jobId/applicants', async function(req, res) {
 // Accept applicant
 router.post('/:jobId/applicants/accept', async function(req, res) {
     const {jobId} = req.params;
-    const {applicantId} = req.body;
+    const applicantData = req.body;
     try{
         const jobController = new JobController();
-        let result = await jobController.accApplicant(jobId, applicantId);
+        let result = await jobController.accApplicant(jobId, applicantData);
 
         res.status(200);
         res.send({ result });
@@ -188,10 +189,10 @@ router.post('/:jobId/applicants/accept', async function(req, res) {
 // Refuse applicant
 router.post('/:jobId/applicants/refuse', async function(req, res) {
     const {jobId} = req.params;
-    const {applicantId} = req.body;
+    const applicantData = req.body;
     try{
         const jobController = new JobController();
-        let result = await jobController.refApplicant(jobId, applicantId);
+        let result = await jobController.refApplicant(jobId, applicantData);
 
         res.status(200)
         res.send({ result });

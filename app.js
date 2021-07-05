@@ -10,6 +10,7 @@ const JobRouter = require('./routes/userRouter/JobRouter');
 const JobTypeRouter = require('./routes/userRouter/JobTypeRouter');
 const DegreeRouter = require('./routes/userRouter/DegreeRouter');
 const ReligionRouter = require('./routes/userRouter/ReligionRouter');
+const EducationRouter = require('./routes/userRouter/EducationRouter');
 const bodyParser = require('body-parser');
 const baseUrl = '/v1';
 
@@ -23,6 +24,7 @@ app.use(`${baseUrl}/degrees`, DegreeRouter);
 app.use(`${baseUrl}/religions`, ReligionRouter);
 app.use(`${baseUrl}/auth`, AuthRouter);
 app.use(`${baseUrl}/skills`, SkillRouter);
+app.use(`${baseUrl}/educations`, EducationRouter);
 app.use(baseUrl, UserRouter);
 
 

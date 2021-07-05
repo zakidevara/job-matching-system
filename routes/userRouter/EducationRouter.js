@@ -3,10 +3,14 @@ const EducationController = require('../../application/controllers/EducationCont
 const UserController = require('../../application/controllers/UserController');
 const router = express.Router();
 
+const isUser = require('../../middleware/isUser');
+
+router.use(isUser);
+
 router.get('/', async function(req, res) {
     try{
         const educationController = new EducationController();
-        let userId = req.user.nim;
+        let userId = req.query.userId;
         let result = await educationController.all(userId);
 
         res.status(200);

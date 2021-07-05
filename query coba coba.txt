@@ -18,50 +18,14 @@ MERGE (u)-[:HAS_RELIGION]->(r)
 
 
 /-- Query Import Job dari JSON --/
-CALL apoc.load.json("file:/dummy_dataset_job_v9.json") YIELD value AS job
-MERGE (j:Job {jobID: toString(job.job_id)})
+CALL apoc.load.json("file:/dummy_dataset_job_v10.json") YIELD value AS job
+MERGE (j:Job {id: toString(job.job_id)})
 SET j.contact = job.contact,
 j.title = job.title,
 j.description = job.description,
 j.quantity = job.quantity,
 j.location = job.location,
-j.endDate = job.endDate,
-j.benefits = job.benefits,
-j.duration = job.duration,
-j.companyName = job.companyName,
-j.remote = job.remote,
-j.minSalary = job.minSalary,
-j.maxSalary = job.maxSalary,
-j.status = true 
-WITH j, job, job.perekrut AS perekrut, job.jobType AS jtype
-MERGE (jt:JobType {id: jtype})
-MERGE (jt)<-[:CLASSIFIED]-(j)
-MERGE (u:User {nim: toString(perekrut)})
-MERGE (u)-[:POSTS]->(j)
-WITH j, job, job.genderReq AS genderReq, job.descriptionAddition AS description
-WHERE genderReq IS NOT NULL OR description IS NOT NULL
-CREATE (jr:JobReq)
-SET jr.genderReq = genderReq,
-jr.description = description  
-MERGE (j)-[:REQUIRES]->(jr) 
-WITH jr, job, job.religionReq AS religionReq WHERE religionReq IS NOT NULL
-UNWIND religionReq as rr 
-MERGE (r:Religion {id: rr})
-MERGE (jr)-[:REQUIRES_RELIGION]->(r)
-WITH jr, job.skills_req AS skills 
-UNWIND skills as sk
-MERGE (s:Skill {name: sk})   
-MERGE (jr)-[:REQUIRES_SKILL]->(s)
-
-
-CALL apoc.load.json("file:/dummy_dataset_job_v9.json") YIELD value AS job
-MERGE (j:Job {jobID: toString(job.job_id)})
-SET j.contact = job.contact,
-j.title = job.title,
-j.description = job.description,
-j.quantity = job.quantity,
-j.location = job.location,
-j.endDate = job.endDate,
+j.endDate = '2021-08-10',
 j.benefits = job.benefits,
 j.duration = job.duration,
 j.companyName = job.companyName,
@@ -69,9 +33,10 @@ j.remote = job.remote,
 j.minSalary = job.minSalary,
 j.maxSalary = job.maxSalary,
 j.status = true
-WITH j, job, job.perekrut AS perekrut, job.jobType AS jtype
-MERGE (jt:JobType {id: jtype})
-MERGE (jt)<-[:CLASSIFIED]-(j)
+WITH j, job, job.jobType AS jtype
+MERGE (jt:JobType {id: toString(jtype)})
+MERGE (j)-[:CLASSIFIED]->(jt)
+WITH j, job, job.perekrut AS perekrut 
 MERGE (u:User {nim: toString(perekrut)})
 MERGE (u)-[:POSTS]->(j)
 WITH j, job, job.genderReq AS genderReq, job.descriptionAddition AS description
@@ -85,24 +50,7 @@ MERGE (s:Skill {name: sk})
 MERGE (jr)-[:REQUIRES_SKILL]->(s)
 WITH jr, job.religionReq AS religionReq WHERE religionReq IS NOT NULL
 UNWIND religionReq as rr 
-MERGE (r:Religion {id: rr})
-MERGE (jr)-[:REQUIRES_RELIGION]->(r)
-
-CALL apoc.load.json("file:/dummy_dataset_job_v9.json") YIELD value AS job
-MERGE (j:Job {jobID: toString(job.job_id)})
-WITH j, job, job.genderReq AS genderReq, job.descriptionAddition AS description
-WHERE genderReq IS NOT NULL OR description IS NOT NULL
-CREATE (jr:JobReq)
-SET jr.genderReq = genderReq,
-jr.description = description  
-MERGE (j)-[:REQUIRES]->(jr) 
-WITH jr, job, job.skills_req AS skills 
-UNWIND skills as sk
-MERGE (s:Skill {name: sk})   
-MERGE (jr)-[:REQUIRES_SKILL]->(s)
-WITH jr, job.religionReq AS religionReq WHERE religionReq IS NOT NULL
-UNWIND religionReq as rr 
-MERGE (r:Religion {id: rr})
+MATCH (r:Religion {id: rr})
 MERGE (jr)-[:REQUIRES_RELIGION]->(r)
 
 

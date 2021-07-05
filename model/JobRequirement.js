@@ -67,7 +67,6 @@ class JobRequirement extends Model{
             }
             this.#requiredSkills = requiredSkillsTemp;
         }
-        console.log(this.#requiredSkills);
         let requiredReligionTemp = [];
         if(this.#requiredReligion !== null && this.#requiredReligion.length > 0){
             for(let i=0; i < this.#requiredReligion.length; i++){
@@ -79,7 +78,6 @@ class JobRequirement extends Model{
             }
             this.#requiredReligion = requiredReligionTemp;
         }
-        console.log(this.#requiredReligion);
     }
 
     setSkills(newSkillList){
