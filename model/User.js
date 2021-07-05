@@ -121,7 +121,7 @@ class User extends Model {
                     if(listSkill.length === 0){
                         listSkill.push(skill);
                     } else {
-                        let validateItem = listSkill.some(sk => sk.getID() === skill.getID());
+                        let validateItem = listSkill.some(sk => sk.getId() === skill.getId());
                         if(!validateItem) listSkill.push(skill);
                     }
                 });
@@ -291,7 +291,7 @@ class User extends Model {
                             if(successToAdd.length === 0){
                                 successToAdd.push(skill.toObject());
                             } else {
-                                let validateItem = successToAdd.some(sk => sk.skillId === skill.getID());
+                                let validateItem = successToAdd.some(sk => sk.skillId === skill.getId());
                                 if(!validateItem) successToAdd.push(skill.toObject());
                             }
                         } else {
