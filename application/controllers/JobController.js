@@ -162,7 +162,7 @@ class JobController extends ResourceController {
         
         try{
             // Get all available job with requires skill
-            let listJob = await Job.getAllAvailableJob();
+            let listJob = await Job.getJobs(userID);
             try{
                 // Get user data
                 let userData = await User.find(userID);
