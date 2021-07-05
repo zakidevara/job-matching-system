@@ -12,6 +12,7 @@ const Religion = require("./Religion");
 const JobType = require("./JobType");
 const StudyProgram = require("./StudyProgram");
 const Gender = require("./Gender");
+const EmailService = require("../services/EmailService");
 
 class Job extends Model {
     // Property of job (private)
@@ -351,7 +352,7 @@ class Job extends Model {
                         let jobReq = new JobRequirement(jobData.requirements.classYearRequirement, jobData.requirements.studyProgramRequirement, jobData.requirements.documentRequirement, [], jobData.requirements.softSkillRequirment, jobData.requirements.maximumAge, [], jobData.requirements.requiredGender, jobData.requirements.description);
                         jobReqObject = jobReq;
 
-                        let job = new Job(jobData.jobID, jobData.userID, jobData.title, jobData.quantity, jobData.location, jobData.contact, jobData.benefits, jobData.description, jobData.duration, jobData.remote, jobData.companyName, jobData.endDate, jobData.minSalary, jobData.maxSalary, jobData.status, {}, jobType);
+                        let job = new Job(jobData.id, jobData.userID, jobData.title, jobData.quantity, jobData.location, jobData.contact, jobData.benefits, jobData.description, jobData.duration, jobData.remote, jobData.companyName, jobData.endDate, jobData.minSalary, jobData.maxSalary, jobData.status, {}, jobType);
                         jobObject = job;
                     }
 
@@ -826,7 +827,7 @@ class Job extends Model {
         let query = `MATCH (u:User {nim: '${userID}'})-[:APPLY]->(j:Job {id: '${jobID}'}) RETURN u,j`;
         try{
             let validateUserAndJob = await DB.query(query);
-            if(validateUserAndJob.records.length != 0){
+            if(validateUserAndJob.records.length > 0){
                 return 5;   // User already apply to selected job
             } else {
                 // Calculate similarity applicant with selected job
@@ -836,7 +837,9 @@ class Job extends Model {
                                 (currentDate.getMonth()+1) + "-" +
                                 currentDate.getDate();    
                 
-                let secQuery = `MATCH (u:User), (j:Job) WHERE u.nim = '${userID}' AND j.id = '${jobID}' CREATE (u)-[rel:APPLY {userId: '${userID}', dateApplied: '${dateApplied}', similarity: ${similarity}, status: false}]->(j) RETURN rel`;
+                let secQuery = `MATCH (u:User), (j:Job) WHERE u.nim = '${userID}' AND j.id = '${jobID}' 
+                                MERGE (u)-[rel:APPLY {userId: '${userID}', dateApplied: '${dateApplied}', similarity: ${similarity}, status: false}]->(j) 
+                                RETURN rel`;
                 try{
                     let result = await DB.query(secQuery);
                     if(result.records.length > 0){
@@ -853,35 +856,72 @@ class Job extends Model {
         }
     }
 
-    async acceptApplicant(applicantId){
-        let query = `MATCH (j:Job {id: '${this.#jobID}'})<-[re:APPLY]-(u:User) WHERE re.userId = '${applicantId}' SET re.status = true RETURN re, u`;
+    async acceptApplicant(applicantData){
+        let query = `MATCH (j:Job {id: '${this.#jobID}'})<-[re:APPLY]-(u:User) 
+                     WHERE re.userId = '${applicantData.applicantId}' SET re.status = true 
+                     RETURN re{.*, userData: u{.*}}`;
         try{
             let result = await DB.query(query);
             if(result.records.length > 0){
-                let value = result.records[0].get('re').properties;
-                if(value.status){
-                    // Do email things
-                    return 'Success';
+                let propRel = result.records[0].get('re');
+                if(propRel.status){
+                    let emailMessage = '';
+                    if(applicantData.message.length === 0){
+                        emailMessage += '<p>Selamat anda diterima pada lowongan pekerjaan ' + this.#title + '.</p>';
+                    } else {
+                        emailMessage += '<p>' + applicantData.message + '</p>';
+                    }
+                    const subject = "Hasil Lamaran Lowongan Pekerjaan";
+                    try{
+                        let sendEmailStatus = await EmailService.sendEmail(propRel.userData.email, subject, emailMessage);
+                        if(sendEmailStatus){
+                            return 'Success';
+                        } else {
+                            throw new Error('Ai kamu gagal');
+                        }
+                    } catch(e){
+                        console.log(e);
+                        throw e;
+                    }
                 } else {
-                    return 'Failed';
+                    throw new Error('Ai kamu gagal');
                 }
             }
         } catch(e){
+            console.log(e);
             throw e;
         }
     }
 
-    async refuseApplicant(applicantId){
-        let query = `MATCH (j:Job {id: '${this.#jobID}'})<-[re:APPLY]-(u:User) WHERE re.userID = '${applicantId}' AND re.status = false RETURN re, u`;
+    async refuseApplicant(applicantData){
+        let query = `MATCH (j:Job {id: '${this.#jobID}'})<-[re:APPLY]-(u:User) 
+                     WHERE re.userId = '${applicantData.applicantId}' AND re.status = false 
+                     RETURN re{.*, userData: u{.*}}`;
         try{
             let result = await DB.query(query);
             if(result.records.length > 0){
-                let value = result.records[0].get('re').properties;
-                if(!value.status){
-                    // Do email things
-                    return 'Success';
+                let propRel = result.records[0].get('re');
+                if(!propRel.status){
+                    let emailMessage = '';
+                    if(applicantData.message.length === 0){
+                        emailMessage += '<p>Sangat disayangkan anda tidak diterima di lowongan pekerjaan ' + this.#title + '. Coba lagi di lain kesempatan oke.</p>';
+                    } else {
+                        emailMessage += '<p>' + applicantData.message + '</p>';
+                    }
+                    const subject = "Hasil Lamaran Lowongan Pekerjaan";
+                    try{
+                        let sendEmailStatus = await EmailService.sendEmail(propRel.userData.email, subject, emailMessage);
+                        if(sendEmailStatus){
+                            return 'Success';
+                        } else {
+                            throw new Error('Ai kamu gagal');
+                        }
+                    } catch(e){
+                        console.log(e);
+                        throw e;
+                    }
                 } else {
-                    return 'Failed';
+                    throw new Error('Ai kamu gagal');
                 }
             }
         } catch(e){

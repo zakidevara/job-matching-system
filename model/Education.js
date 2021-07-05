@@ -63,7 +63,8 @@ class Education extends Model{
     async save(){
         let degreeObj = this.#degree.toObject();
         let query = `MATCH (u:User {nim: '${this.#userID}'})
-                     MERGE (u)-[:STUDIED_AT]->(e:Education)
+                     MERGE (e:Education {id: '${this.#educationID}'})
+                     MERGE (u)-[:STUDIED_AT]->(e)
                      SET e.schoolName = '${this.#schoolName}',
                      e.fieldOfStudy = '${this.#fieldOfStudy}',
                      e.startYear = ${this.#startYear},
@@ -122,10 +123,9 @@ class Education extends Model{
                             if(!validateItem) listEdu.push(education);
                         }
                     });
-                    return listEdu;
-                } else {
-                    return null;
                 }
+
+                return listEdu;
             } catch(e) {
                 throw e;
             }
@@ -188,6 +188,7 @@ class Education extends Model{
             query += `
                       WITH e, u, re 
                       DELETE re
+                      WITH e, u
                       MATCH (d:Degree {id: '${updatedEducation.degreeId}'})
                       MERGE (e)-[:HAS_DEGREE]->(d)`;
             isDegreeChanged = true;

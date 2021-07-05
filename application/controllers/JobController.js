@@ -139,6 +139,7 @@ class JobController extends ResourceController {
         // Validate user and job in database
         try{
             let job = await Job.find(jobId);
+            console.log(job.toObject());
             if(job === null) return 2;  // Job not found
             try{
                 let user = await User.find(userID);
@@ -161,7 +162,7 @@ class JobController extends ResourceController {
         
         try{
             // Get all available job with requires skill
-            let listJob = await Job.getAllAvailableJob();
+            let listJob = await Job.getJobs(userID);
             try{
                 // Get user data
                 let userData = await User.find(userID);
@@ -236,27 +237,29 @@ class JobController extends ResourceController {
         }
     }
 
-    async accApplicant(jobId, applicantId){
+    async accApplicant(jobId, applicantData){
         try{
             let jobData = await Job.find(jobId);
-            if(job === null) throw new Error('Data job tidak ditemukan');
+            if(jobData === null) throw new Error('Data job tidak ditemukan');
             try{
-                let result = await jobData.acceptApplicant(applicantId);
+                let result = await jobData.acceptApplicant(applicantData);
                 return result;
             } catch(e){
+                console.log(e);
                 throw e;
             }
         } catch(e){
+            console.log(e);
             throw e;
         }
     }
 
-    async refApplicant(jobId, applicantId){
+    async refApplicant(jobId, applicantData){
         try{
             let jobData = await Job.find(jobId);
-            if(job === null) throw new Error('Data job tidak ditemukan');
+            if(jobData === null) throw new Error('Data job tidak ditemukan');
             try{
-                let result = await jobData.refuseApplicant(applicantId);
+                let result = await jobData.refuseApplicant(applicantData);
                 return result;
             } catch(e){
                 throw e;
