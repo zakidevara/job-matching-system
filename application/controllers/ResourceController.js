@@ -33,11 +33,6 @@ class ResourceController {
         return this.#model;
     }
 
-    getModelAttributes(){
-        let instance = new this.#model();
-        return Object.keys(instance.toObject());
-    }
-
     // Validate target of class
     validate(){
         return true;
@@ -66,16 +61,24 @@ class ResourceController {
     }
 
     // Create new data to database based on Model
-    async create(Model){
-        if(Model !== ModelClass){
-            throw new TypeError("Type nya salah bruh");
+    async create(obj){
+        let modelInstance = new this.#model();
+        try {
+            let result = await modelInstance.create(obj);
+            return result.toObject();
+        } catch (error) {
+            throw error;
         }
     }
 
     // Update selection data to database based on Model
-    async update(Model){
-        if(Model !== ModelClass){
-            throw new TypeError("Type nya salah bruh");
+    async update(obj){
+        let modelInstance = new this.#model();
+        try {
+            let result = await modelInstance.update(obj);
+            return result.toObject();
+        } catch (error) {
+            throw error;
         }
     }
 
