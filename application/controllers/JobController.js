@@ -12,27 +12,30 @@ class JobController extends ResourceController {
         super(Job);
     }
 
-    async all(){
+    async all(userId){
         try{
-            let jobList = await Job.getAllAvailableJob();
+            let jobList = await Job.getJobs(userId);
             let finalJobList = [];
+            
+            if(jobList.length > 0){
+                for(let i=0; i < jobList.length; i++){
+                    let value = jobList[i];
+                    let requirements = value.getRequirements();
+        
+                    try{
+                        await requirements.init();
+                    } catch(e){
+                        throw e;
+                    }
     
-            for(let i=0; i < jobList.length; i++){
-                let value = jobList[i];
-                let requirements = value.getRequirements();
-    
-                try{
-                    await requirements.init();
-                } catch(e){
-                    throw e;
+                    value.setRequirements(requirements);
+                    let objJob = value.toObject();
+                    finalJobList.push(objJob);
                 }
-
-                value.setRequirements(requirements);
-                let objJob = value.toObject();
-                finalJobList.push(objJob);
             }
             return finalJobList;
         } catch(e){
+            console.log(e);
             throw e;
         }
     }
@@ -95,7 +98,7 @@ class JobController extends ResourceController {
             let jobData = await Job.find(jobId);
             if(jobData === null) throw new Error('Data job tidak ditemukan');
             try{
-                let result = await jobData.delete(jobId);
+                let result = await jobData.delete();
                 return result;
             } catch(e){
                 throw e;
@@ -110,19 +113,21 @@ class JobController extends ResourceController {
             let jobList = await Job.searchByName(title);
             let finalJobList = [];
     
-            for(let i=0; i < jobList.length; i++){
-                let value = jobList[i];
-                let requirements = value.getRequirements();
-    
-                try{
-                    await requirements.init();
-                } catch(e){
-                    throw e;
+            if(jobList.length > 0){
+                for(let i=0; i < jobList.length; i++){
+                    let value = jobList[i];
+                    let requirements = value.getRequirements();
+        
+                    try{
+                        await requirements.init();
+                    } catch(e){
+                        throw e;
+                    }
+                    value.setRequirements(requirements);
+        
+                    let objJob = value.toObject();
+                    finalJobList.push(objJob);
                 }
-                value.setRequirements(requirements);
-    
-                let objJob = value.toObject();
-                finalJobList.push(objJob);
             }
             return finalJobList;
         } catch(e){
@@ -272,13 +277,8 @@ class JobController extends ResourceController {
                 let applicants = await jobData.getApplicant();
                 for(let i=0; i < applicants.length; i++){
                     try{
-                        let user = await User.find(applicants[i].getNim());
-                        try{
-                            let similarity = await JobStudentMatcher.match(jobData, user);
-                            applicants[i].setSimilarity(similarity);
-                        } catch(e){
-                            throw e;
-                        }
+                        let similarity = await JobStudentMatcher.match(jobData, applicants[i].getUser());
+                        applicants[i].setSimilarity(similarity);
                     } catch(e){
                         throw e;
                     }

@@ -39,7 +39,7 @@ class Religion extends Model{
         let query = `MATCH (r:Religion) RETURN r`;
         let result = await DB.query(query);
         let fResult = [];
-        result.records.forEach((item, iedex) => {
+        result.records.forEach((item) => {
             let value = item.get('r').properties;
             let obj = new Religion(value.id, value.name);
             fResult.push(obj);
@@ -62,6 +62,53 @@ class Religion extends Model{
         } catch(e){
             throw e;
         }
+    }
+
+
+    // Admin section
+    async save(){
+        let query = `MERGE (r:Religion {id: '${this.#id}'})
+                     SET r.name = '${this.#name}'
+                     RETURN r`;
+        try{
+            let result = await DB.query(query);
+            return result.records.length > 0 ? true : false;
+        } catch(e){
+            throw e;
+        }
+    }
+
+    async update(updateRelData){
+        let query = `MATCH (r:Religion {id: '${this.#id}'})
+                     SET r.name = '${updateRelData.name}'
+                     RETURN r`;
+        try{
+            let result = await DB.query(query);
+            if(result.records.length > 0){
+                let propRel = result.records[0].get('r').properties;
+                let religion = new Religion(propRel.id, propRel.name);
+                return religion;
+            } else {
+                return null;
+            }
+        } catch(e){
+            throw e;
+        }
+    }
+
+    async delete(){
+        let query = `MATCH (r:Religion {id: '${this.#id}'}) DETACH DELETE r RETURN COUNT(r)`;
+        try{
+            let result = await DB.query(query);
+            if(result.records.length > 0){
+                return 'Success';
+            } else {
+                throw new Error('Gagal menghapus agama');
+            }
+        } catch(e){
+            throw e;
+        }
+
     }
 }
 

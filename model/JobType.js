@@ -1,6 +1,5 @@
 const DB = require("../services/DB");
 const Model = require("./Model");
-const {v4: uuidv4 } = require('uuid');
 
 class JobType extends Model {
     // Property of job type (private)
@@ -40,23 +39,16 @@ class JobType extends Model {
     }
 
     // Database related
-    static async create(name){
-        let jobTypeID = uuidv4();
-        let query = `MERGE (jt:JobType {id: '${jobTypeID}'}) SET jt.name = '${name}' RETURN jt`;
+    async save(){
+        let query = `MERGE (jt:JobType {id: '${this.#id}'})
+                     SET jt.name = '${this.#name}'
+                     RETURN jt`;
         try{
             let result = await DB.query(query);
-
-            if(result.records.length > 0){
-                let propJobType = result.records[0].get('jt').properties;
-                let jobType = new JobType(propJobType.id, propJobType.name);
-                return jobType.toObject();
-            } else {
-                return null;
-            }
+            return result.records.length > 0 ? true : false;
         } catch(e){
             throw e;
         }
-
     }
 
     static async getAllJobType(){
@@ -104,7 +96,9 @@ class JobType extends Model {
 
     async update(updatedJobType){
         let newName = updatedJobType.name;
-        let query = `MATCH (jt:JobType {id: '${this.#id}'}) SET jt.name = '${newName}' RETURN jt`;
+        let query = `MATCH (jt:JobType {id: '${this.#id}'}) 
+                     SET jt.name = '${newName}' 
+                     RETURN jt`;
         try{
             let result = await DB.query(query);
             
@@ -113,14 +107,14 @@ class JobType extends Model {
                 let jobType = new JobType(propJobType.id, propJobType.name);
                 return jobType;
             } else {
-                throw new Error('TIdak ada data JobType yang diupdate');
+                return null;
             }
         } catch(e){
             throw e;
         }
     }
 
-    static async delete(jobTypeID){
+    async delete(){
         let query = `MATCH (jt:JobType {id: '${jobTypeID}'}) DETACH DELETE jt RETURN COUNT(jt)`;
         try{
             let result = await DB.query(query);

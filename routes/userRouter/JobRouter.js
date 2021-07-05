@@ -25,9 +25,10 @@ router.post('/', async function(req, res) {
 
 // Get all job
 router.get('/', async function(req, res) {
+    const userId = req.query.userId;
     try{
         const jobController = new JobController();
-        let result = await jobController.all();
+        let result = await jobController.all(userId);
 
         res.status(200);
         res.send({ result });

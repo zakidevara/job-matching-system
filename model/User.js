@@ -36,37 +36,6 @@ class User extends Model {
         this.#status = status;
     }
 
-    // Setter
-    setNim(newNim){
-        this.#nim = newNim;
-    }
-    setName(newName){
-        this.#name = newName;
-    }
-    setEmail(newEmail){
-        this.#email = newEmail;
-    }
-    setPassword(newPass){
-        this.#password = newPass;
-    }
-    setBirthDate(newDate){
-        this.#birthDate = newDate;
-    }
-    setGender(newGender){
-        this.#gender = newGender;
-    }
-    setClassYear(newYear){
-        this.#classYear = newYear;
-    }
-    setPhoto(pathPhoto){
-        this.#photo = pathPhoto;
-    }
-    setPhoneNumber(newNumber){
-        this.#phoneNumber = newNumber;
-    }
-    setStudyProgram(newStudy){
-        this.#studyProgram = newStudy;
-    }
     setEmailVerificationCode(newCode){
         this.#emailVerificationCode = newCode;
     }
@@ -76,9 +45,6 @@ class User extends Model {
 
 
     // Getter
-    getID(){
-        return super.getID();
-    }
     getNim(){
         return this.#nim;
     }
@@ -91,23 +57,8 @@ class User extends Model {
     getPassword(){
         return this.#password;
     }
-    getBirthDate(){
-        return this.#birthDate;
-    }
-    getClassYear(){
-        return this.#classYear;
-    }
-    getPhoto(){
-        return this.#photo;
-    }
-    getPhoneNumber(){
-        return this.#phoneNumber;
-    }
-    getGender(){
-        return this.#gender;
-    }
-    getStudyProgram(){
-        return this.#studyProgram;
+    getVerificationCode(){
+        return this.#emailVerificationCode;
     }
     getStatus(){
         return this.#status;
@@ -154,7 +105,6 @@ class User extends Model {
             if(resultUserSkills.records.length > 0){
                 resultUserSkills.records.forEach((item) => {
                     let propSkill = item.get('s').properties;
-                    console.log(propSkill);
                     let skill = new Skill(propSkill.id, propSkill.name, propSkill.uri);
                     if(listSkill.length === 0){
                         listSkill.push(skill);
@@ -188,13 +138,13 @@ class User extends Model {
 
     init(){
         let genObj = {
-            genderId: this.#gender,
+            id: this.#gender,
             name: Gender.toString(this.#gender)
         };
         this.#gender = genObj;
 
         let stuProObj = {
-            studyProgramId: this.#studyProgram,
+            id: this.#studyProgram,
             name: StudyProgram.toString(this.#studyProgram)
         };
         this.#studyProgram = stuProObj;
@@ -229,19 +179,14 @@ class User extends Model {
         let query = `MATCH (u:User) RETURN u ORDER BY u.nim`;
         try{
             let resultListUsers = await DB.query(query);
-            let tempList = [];
+            let listUsers = [];
             resultListUsers.records.forEach((item) => {
                 let propUser = item.get('u').properties;
                 let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNumber, propUser.gender, propUser.studyProgram, propUser.status);
                 user.init();
-                tempList.push(user);
+                listUsers.push(user);
             });
-
-            let listUsers = [];
-            tempList.forEach((item) => {
-                let obj = item.toObject();
-                listUsers.push(obj);
-            });
+            
             return listUsers;
         }catch(e){
             throw e;
@@ -296,7 +241,8 @@ class User extends Model {
                     u.photo = '${userData.photo}',
                     u.phoneNumber = '${userData.phoneNumber}',
                     u.gender = ${userData.gender},
-                    u.studyProgram = ${userData.studyProgram.studyProgramId}
+                    u.studyProgram = ${userData.studyProgram.id},
+                    u.status = ${userData.status}
                     RETURN u`;
         try{
             let resultUpdate = await DB.query(query);
@@ -319,7 +265,7 @@ class User extends Model {
         let length = skillList.length;
 
         for(let i=0; i < length; i++){
-            let checkRel = `MATCH (u:User {nim: ${this.#nim}})-[re:SKILLED_IN]->(s:Skill {id: '${skillList[i]}'}) RETURN re`;
+            let checkRel = `MATCH (u:User {nim: '${this.#nim}'})-[re:SKILLED_IN]->(s:Skill {id: '${skillList[i]}'}) RETURN re`;
             try{
                 let resultCheckRel = await DB.query(checkRel);
                 if(resultCheckRel.records.length < 1){
@@ -364,15 +310,11 @@ class User extends Model {
             if(result.records.length > 0){
                 return 'Success';
             } else {
-                return 'Failed';
+                throw new Error('Gagal menghapus keahlian');
             }
         } catch (e) {
             throw e;
         }
-    }
-
-    async addEducation(education){
-        
     }
 }
 
