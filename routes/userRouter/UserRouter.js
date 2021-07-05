@@ -141,24 +141,6 @@ router.get('/set-skillID', async function(req, res) {
         res.send(e);
     }
 });
-router.post('/skills/match', async function(req, res) {
-
-    let {s1,s2} = req.body;
-    try{
-        let objSkill = new Skill();
-        let skill1 = await objSkill.findByID(s1);
-        let skill2 = await objSkill.findByID(s2);
-        let result = await skill1.calculateSimilarity(skill2);
-        res.send({
-            message: "Berhasil",
-            result
-        });
-    }catch(e){
-        console.log(e);
-        res.status(400);
-        res.send(e);
-    }
-});
 
 
 

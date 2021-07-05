@@ -14,7 +14,7 @@ const bodyParser = require('body-parser');
 const baseUrl = '/v1';
 
 dotenv.config();
-app.use(cors())
+app.use(cors());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.use(`${baseUrl}/jobs`, JobRouter);

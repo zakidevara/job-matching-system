@@ -58,6 +58,24 @@ router.get('/:skillId', async function(req, res) {
         res.send({message});
     }
 });
+router.put('/:skillId', async function(req, res) {
+    const {skillId} = req.params;
+    const {name} = req.body;
+    try{
+        const skillController = new SkillController();
+        let result = await skillController.update({id: skillId, name});
+
+        res.status(200);
+        res.send({
+            message: "Berhasil",
+            result
+        });
+    }catch(e){
+        res.status(400);
+        let {message} = e;
+        res.send({message});
+    }
+});
 router.delete('/:skillId', async function(req, res) {
     const {skillId} = req.params;
     try{

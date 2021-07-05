@@ -2,6 +2,8 @@ const Model = require("./Model");
 // UUID
 const {v4: uuidv4 } = require('uuid');
 const DB = require("../services/DB");
+const DBpedia = require("../services/DBpedia");
+const { performance } = require("perf_hooks");
 
 class Skill extends Model {
     // Property of skill (private)
@@ -16,6 +18,14 @@ class Skill extends Model {
         this.#uri = uri;
     }
 
+    toObject(){
+        let objResult = {
+            id: this.#id,
+            name: this.#name,
+            uri: this.#uri
+        };
+        return objResult;
+    }
     constructFromObject(obj){
         let {
             id,
@@ -25,7 +35,8 @@ class Skill extends Model {
         return new this.constructor(id, name, uri)
     }
 
-    getID(){
+    // GETTER
+    getId(){
         return this.#id;
     }
 
@@ -37,13 +48,11 @@ class Skill extends Model {
         return this.#uri;
     }
 
-    toObject(){
-        let objResult = {
-            id: this.#id,
-            name: this.#name,
-            uri: this.#uri
-        };
-        return objResult;
+    
+
+    // SETTER
+    setName(name){
+        this.#name = name;
     }
 
     async getParentNodes(){
@@ -158,6 +167,165 @@ class Skill extends Model {
         //     similarity: similarity
         // });
     }
+
+    async create(obj){
+        let {name} = obj;
+
+        try {
+            //Check if skill is already in the database
+            let findResult = await this.find({name: name});
+            let isExists = findResult.length > 0;
+            if(isExists) throw new Error(`${this.constructor.name} ${name} sudah ada di dalam basis data`);
+            
+            //Check if skill exists in DBpedia Ontology
+            let isExistsDBpedia = await DBpedia.checkTerm(name);
+            if(!isExistsDBpedia) throw new Error(`${this.constructor.name} ${name} tidak dapat ditambahkan karena tidak terdaftar dalam DBpedia`);
+    
+            // Build Cypher Query
+            // Run Query in Database
+            let addedNodes = await this.buildOntology(name);
+            return addedNodes;
+        } catch (error) {
+            console.log('Skill Model Error: ', error);
+            return null;
+        }
+    }
+
+    async update(obj){
+        let {id, name} = obj;
+        let result = await super.update({id, name});
+        return result;
+    }
+
+    // Ontology Builder
+    async buildOntology(rootConcept){
+        var checkedConcept = [];
+        let addedNodes = new Set();
+        var processQueue = [];
+        processQueue = [rootConcept];
+        console.log('processQueue: ', processQueue);
+        let i = 0;
+        // Enter loop
+        while(processQueue.length > 0){
+            i++;
+            // Pop first element of array
+            // let concept = processQueue.shift();
+            let promiseAll = processQueue.map(async (concept) => {
+                
+                console.log('current concept: ', concept); 
+                // let isExist = await this.find({name: concept});
+                // isExist = isExist.length > 0;
+    
+                try {
+                    // Insert subresource to database
+                    let subResourceTurtle = await DBpedia.getSubResource(concept);
+                    let subResourcesNodesInserted = await DB.importTurtle(subResourceTurtle);
+    
+                    // Set name for concept
+                    let setNameConcept = await DB.query(`MATCH (n:Resource {name: $concept}) SET n:Concept, n:Skill, n.name = $concept RETURN n`,{concept : concept});
+                    addedNodes.add(concept);
+                    checkedConcept.push(concept);
+
+                    //Get all subresource an add to added nodes
+                    let getCurrentSubResource = await DB.query(`MATCH (n:Resource)-[:SUBJECT]->(:Concept {name: $concept}) SET n:Skill RETURN n`, {concept : concept});
+                    let subResourceNames = getCurrentSubResource.records.map((item) => {
+                        let name = item.get('n').properties.name;
+                        addedNodes.add(name);
+                        return name;
+                    });
+    
+                    if(subResourcesNodesInserted > 0){
+                        // Insert sub concept to database
+                        let subConceptTurtle = await DBpedia.getSubConcept(concept);
+                        let subConceptNodesInserted = await DB.importTurtle(subConceptTurtle);
+    
+                        //Update the process queue
+                        let getCurrentSubConcept = await DB.query(`MATCH (n:Resource)-[:BROADER]->(:Resource {name: $concept}) SET n:Concept, n:Skill RETURN n`,{concept : concept});
+                        let subConceptNames = getCurrentSubConcept.records.map((item) => {
+                            let name = item.get('n').properties.name;
+                            addedNodes.add(name);
+                            return name;
+                        });
+    
+                        // Check all item in processQueue
+                        // If items are already in subConceptChecked
+                        // Items will be deleted from processQueue
+                        
+                        processQueue = processQueue.concat(subConceptNames);                
+                    }
+                } catch(error) {
+                    console.log(`Error On Concept ${concept}: `, error);
+                    checkedConcept = checkedConcept.filter((value) => value !== concept);
+                }
+                
+            })
+            await Promise.all(promiseAll);
+            processQueue = processQueue.filter(function (element) {
+                return !checkedConcept.includes(element);
+            });
+            console.log('processQueue: ', {processQueue, length: processQueue.length});        
+
+        }
+
+        console.log('Total iterasi:', i);
+        console.log('Added nodes:', {addedNodes, length: addedNodes.size});
+
+        //Assign UUID to every added nodes
+        let unassignedIdNodes = Array.from(addedNodes);
+        let completedNodes = [];
+        addedNodes = [];
+        do {
+            completedNodes = unassignedIdNodes.map(async (name) => {
+                let id = uuidv4();
+                try {
+                    await DB.query(`MATCH (s:Skill {name: $name}) SET s.id=$id`, {name, id});
+                    unassignedIdNodes = unassignedIdNodes.filter((val) => val !== name);
+                    return {id, name};
+                } catch (error) {
+                    unassignedIdNodes.push(name);                
+                }
+            });
+            let resolvedResults = await Promise.all(completedNodes);
+            addedNodes.concat(resolvedResults);
+        } while (unassignedIdNodes.length > 0);
+        return addedNodes;
+    }
+
 }
 
+// TEST FUNCTION
+// Test Command: `node model/Skill.js`
+async function test(){
+    let skill = new Skill('', '');
+
+    // TESTING CREATE NEW DATA FUNCTIONALITY
+    // let t0 = performance.now();
+    // let createResult = await skill.create({name: "Software engineering"});
+    // console.log(createResult);
+    // let t1 = performance.now();
+    // console.log('Execution time: ', (t1-t0)/1000, ' s');
+
+    // TESTING GET ALL DATA FUNCTIONALITY
+    // let getAllResult = await skill.all();
+    // console.log(getAllResult.map((item) => item.toObject()));
+    
+    // TESTING FIND DATA FUNCTIONALITY
+    // let getFindResult = await skill.find({name: "Software engineering"});
+    // console.log(getFindResult.map((item) => item.toObject()));
+
+    // TESTING GET BY ID FUNCTIONALITY
+    // let getFindByIdResult = await skill.findById('0dc26471-d458-4456-b428-32b6e750fd4a');
+    // console.log(getFindByIdResult.toObject());
+
+    // TESTING UPDATE DATA FUNCTIONALITY
+    // Original Skill name: Streaming algorithms
+    // let updateResult = await skill.update({id: '0dc26471-d458-4456-b428-32b6e750fd4a', name: "Streaming"});
+    // console.log(updateResult);
+
+    // TESTING SAVE DATA FUNCTIONALITY
+    // let newObj = skill.constructFromObject({id: uuidv4(), name: 'TestSkill'});
+    // let saveResult = await newObj.save();
+    // console.log(saveResult);
+}
+test();
 module.exports = Skill;

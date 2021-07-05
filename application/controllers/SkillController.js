@@ -6,6 +6,9 @@ class SkillController extends ResourceController {
         super(Skill);
     }   
 
+    async create(obj){
+        return null;
+    }
 }
 
 module.exports = SkillController;
