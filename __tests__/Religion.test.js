@@ -30,7 +30,7 @@ describe('Religion Model Tests', () => {
             if(clearStatus){
                 let promiseArr = [];
                 for(const data of dummyData){
-                    promiseArr.push(await DB.query(`CREATE (d:Religion {id: '${data.id}', name: '${data.name}')`));
+                    promiseArr.push(await DB.query(`CREATE (d:Religion {id: '${data.id}', name: '${data.name}'})`));
                 }
                 await Promise.all(promiseArr);
             }

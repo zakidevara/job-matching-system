@@ -22,7 +22,7 @@ describe('JobType Model Tests', () => {
             if(clearStatus){
                 let promiseArr = [];
                 for(const data of dummyData){
-                    promiseArr.push(await DB.query(`CREATE (d:JobType {id: '${data.id}', name: '${data.name}')`));
+                    promiseArr.push(await DB.query(`CREATE (d:JobType {id: '${data.id}', name: '${data.name}'})`));
                 }
                 await Promise.all(promiseArr);
             }
