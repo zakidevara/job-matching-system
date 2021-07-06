@@ -96,8 +96,11 @@ class AuthController{
         try{
             const isAuthorized = await this.authorize(email, password);
             if(isAuthorized){
+                let userModel = new User();
+                let user = await userModel.findByEmail(email);
                 let accessToken = await this.generateAccessToken(email);
                 return {
+                    nim: user.getId(),
                     accessToken
                 };
             }
