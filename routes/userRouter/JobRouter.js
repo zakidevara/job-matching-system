@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const JobController = require('../../application/controllers/JobController');
-
+const isUser = require('../../middleware/isUser');
 router.use(isUser);
 // Job route
 // Create new job

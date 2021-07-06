@@ -5,7 +5,6 @@ const isUser = require('../../middleware/isUser');
 // Import controller
 const UserController = require('../../application/controllers/UserController');
 const SkillController = require('../../application/controllers/SkillController');
-const Skill = require('../../model/Skill');
 
 
 
@@ -14,8 +13,15 @@ router.use(isUser);
 // Create new user
 router.post('/users', async function(req, res) {
     let uC = new UserController();
-    let newUser = await uC.create(req.body);
-    res.send({ newUser });
+    try{
+        let newUser = await uC.create(req.body);
+
+        res.status(200);
+        res.send({ newUser });
+    } catch(e){
+        res.status(400);
+        res.send(e);
+    }
 });
 // Get all user
 router.get('/users',  async function(req, res) {

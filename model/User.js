@@ -45,6 +45,27 @@ class User extends Model {
     setStatus(newStatus){
         this.#status = newStatus;
     }
+    setName(newName){
+        this.#name = newName;
+    }
+    setBirthDate(newDate){
+        this.#birthDate = newDate;
+    }
+    setClassYear(newYear){
+        this.#classYear = newYear;
+    }
+    setPhoto(newPhoto){
+        this.#photo = newPhoto;
+    }
+    setNumber(newNum){
+        this.#phoneNumber = newNum;
+    }
+    setGender(newGen){
+        this.#gender = newGen;
+    }
+    setStudyProgram(newProgram){
+        this.#studyProgram = newProgram;
+    }
 
 
     // Getter
@@ -53,9 +74,6 @@ class User extends Model {
     }
     getNim(){
         return this.#nim;
-    }
-    getName(){
-        return this.#name;
     }
     getEmail(){
         return this.#email;
@@ -133,6 +151,9 @@ class User extends Model {
         }
     }
     toObject(){
+        if(typeof this.#gender !== 'object' || typeof this.#studyProgram !== 'object'){
+            this.init();
+        }
         let objResult = {
             name: this.#name,
             nim: this.#nim,
@@ -149,17 +170,25 @@ class User extends Model {
     }
 
     init(){
-        let genObj = {
-            id: this.#gender,
-            name: Gender.toString(this.#gender)
-        };
-        this.#gender = genObj;
+        if(this.#gender !== undefined){
+            if(typeof this.#gender !== 'object'){
+                let genObj = {
+                    id: this.#gender,
+                    name: Gender.toString(this.#gender)
+                };
+                this.#gender = genObj;
+            }
+        }
 
-        let stuProObj = {
-            id: this.#studyProgram,
-            name: StudyProgram.toString(this.#studyProgram)
-        };
-        this.#studyProgram = stuProObj;
+        if(this.#studyProgram !== undefined){
+            if(typeof this.#studyProgram !== 'object'){
+                let stuProObj = {
+                    id: this.#studyProgram,
+                    name: StudyProgram.toString(this.#studyProgram)
+                };
+                this.#studyProgram = stuProObj;
+            }
+        }
     }
 
     // Database Related
@@ -173,8 +202,8 @@ class User extends Model {
                      u.classYear = ${this.#classYear || null}, 
                      u.photo = '${this.#photo}',
                      u.phoneNumber = '${this.#phoneNumber}',
-                     u.gender = ${this.#gender.genderId || null},
-                     u.studyProgram = ${this.#studyProgram.studyProgramId || null},
+                     u.gender = ${this.#gender.id || null},
+                     u.studyProgram = ${this.#studyProgram.id || null},
                      u.emailVerificationCode = ${this.#emailVerificationCode || null},
                      u.status = ${this.#status}
                      RETURN u`;

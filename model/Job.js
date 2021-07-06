@@ -456,7 +456,7 @@ class Job extends Model {
 
         // Second section of query (update relationship JobType if changed)
         let isUpdateJobType = false;
-        if(updatedJobData.jobType !== currJobType.getID()){
+        if(updatedJobData.jobType !== currJobType.getId()){
             query += `
                       WITH j, jr, re
                       DELETE re

@@ -69,7 +69,7 @@ class Skill extends Model {
         
         return listParents;
     }
-    static async find(skillID){
+    async findById(skillID){
         let query = `MATCH (s:Skill {id: '${skillID}'}) RETURN s`;
         try{
             let result = await DB.query(query);

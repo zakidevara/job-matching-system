@@ -27,6 +27,36 @@ class UserController extends ResourceController{
         }
     }
 
+    async create(userData) {
+        try{
+            let userModel = new User();
+            let user = await userModel.findById(userData.nim);
+            if(user === null) throw new Error('User tidak ditemukan');
+
+            user.setName(userData.name);
+            user.setPhoto(userData.photo);
+            user.setGender(userData.gender);
+            user.setBirthDate(userData.birthDate);
+            user.setNumber(userData.phoneNumber);
+            user.setStudyProgram(userData.studyProgram.studyProgramId);
+            user.setClassYear(userData.classYear);
+            user.init();
+
+            try{
+                let result = await user.save();
+                if(result){
+                    return user.toObject();
+                } else {
+                    throw new Error('Gagal menambahkan data user');
+                }
+            } catch(e){
+                throw e;
+            }
+        } catch(e){
+            throw e;
+        }
+    }
+
     // Get user by ID
     async findByID(userID){
         try{
