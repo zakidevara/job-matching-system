@@ -129,17 +129,17 @@ class DBpedia{
     }
 }
 
-async function test(){
-    try {
-        let turtle = await DBpedia.checkTerm('Web development');
-        console.log('result', turtle);
+// async function test(){
+//     try {
+//         let turtle = await DBpedia.checkTerm('Web development');
+//         console.log('result', turtle);
     
-        return turtle;
-    } catch (error) {
-        console.log('DBpedia Error:', error);
-        // throw error;
-    }
-}
-test();
+//         return turtle;
+//     } catch (error) {
+//         console.log('DBpedia Error:', error);
+//         // throw error;
+//     }
+// }
+// test();
 
 module.exports = DBpedia;
