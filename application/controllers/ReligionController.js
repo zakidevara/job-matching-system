@@ -24,7 +24,8 @@ class ReligionController extends ResourceController{
 
     async update(relId, updatedRelData){
         try{
-            let religion = await Religion.find(relId);
+            let relModel = new Religion();
+            let religion = await relModel.findById(relId);
             if(religion === null) throw new Error('Agama tidak ditemukan');
             
             try{
@@ -42,7 +43,8 @@ class ReligionController extends ResourceController{
 
     async delete(relId){
         try{
-            let religion = await Religion.find(relId);
+            let relModel = new Religion();
+            let religion = await relModel.findById(relId);
             if(religion === null) throw new Error('Agama tidak ditemukan');
             try{
                 let resultDelete = await religion.delete();

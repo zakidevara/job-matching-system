@@ -26,7 +26,7 @@ class JobType extends Model {
     getName(){
         return this.#name;
     }
-    getID(){
+    getId(){
         return this.#id;
     }
 
@@ -51,33 +51,7 @@ class JobType extends Model {
         }
     }
 
-    static async getAllJobType(){
-        let query = `MATCH (jt:JobType) RETURN jt`;
-        try{
-            let result = await DB.query(query);
-            let listJobType = [];
-            
-            if(result.records.length > 0){
-                result.records.forEach((item) => {
-                    let propJobType = item.get('jt').properties;
-                    let jobType = new JobType(propJobType.id, propJobType.name);
-                    if(listJobType.length == 0){
-                        listJobType.push(jobType.toObject());
-                    } else {
-                        let validateItem = listJobType.some(jt => jt.id === jobType.getID());
-                        if(!validateItem){
-                            listJobType.push(jobType.toObject());
-                        }
-                    }
-                });
-            }
-            return listJobType;
-        } catch(e){
-            throw e;
-        }
-    }
-
-    static async find(jobTypeID){
+    async findById(jobTypeID){
         let query = `MATCH (jt:JobType {id: '${jobTypeID}'}) RETURN jt`;
         try{
             let result = await DB.query(query);

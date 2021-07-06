@@ -24,7 +24,8 @@ class DegreeController extends ResourceController{
 
     async update(degId, updatedDegData){
         try{
-            let degree = await Degree.find(degId);
+            let degModel = new Degree();
+            let degree = await degModel.findById(degId);
             if(degree === null) throw new Error('Gelar tidak ditemukan');
 
             try{
@@ -42,7 +43,8 @@ class DegreeController extends ResourceController{
 
     async delete(degId){
         try{
-            let degree = await Degree.find(degId);
+            let degModel = new Degree();
+            let degree = await degModel.findById(degId);
             if(degree === null) throw new Error('Gelar tidak ditemukan');
 
             try{

@@ -25,7 +25,8 @@ class JobTypeController extends ResourceController{
 
     async update(jobTypeId, updatedJobType){
         try{
-            let jobType = await JobType.find(jobTypeId);
+            let jobTypeModel = new JobType();
+            let jobType = await jobTypeModel.findById(jobTypeId);
             if(jobType === null) throw new Error('Tipe pekerjaan tidak ditemukan');
     
             try{
@@ -43,7 +44,8 @@ class JobTypeController extends ResourceController{
 
     async delete(jobTypeId){
         try{
-            let jobType = await JobType.find(jobTypeId);
+            let jobTypeModel = new JobType();
+            let jobType = await jobTypeModel.findById(jobTypeId);
             if(jobType === null) throw new Error('Tipe pekerjaan tidak ditemukan');
 
             try{

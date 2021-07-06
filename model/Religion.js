@@ -20,7 +20,7 @@ class Religion extends Model{
         return new this.constructor(id, name);
     }
 
-    getID(){
+    getId(){
         return this.#id;
     }
     getName(){
@@ -34,21 +34,8 @@ class Religion extends Model{
         return resultObj;
     }
 
-    static async getAll(){
-        
-        let query = `MATCH (r:Religion) RETURN r`;
-        let result = await DB.query(query);
-        let fResult = [];
-        result.records.forEach((item) => {
-            let value = item.get('r').properties;
-            let obj = new Religion(value.id, value.name);
-            fResult.push(obj);
-        });
-        
-        return fResult;
-    }
 
-    static async find(id){
+    async findById(id){
         let query = `MATCH (r:Religion {id: '${id}'}) RETURN r`;
         try{
             let result = await DB.query(query);

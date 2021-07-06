@@ -92,7 +92,8 @@ class UserController extends ResourceController{
 
     async addEducation(educationData){
         try{
-            let degree = await Degree.find(educationData.degreeId);
+            let degModel = new Degree();
+            let degree = await degModel.findById(educationData.degreeId);
             let newEdu = new Education(uuidv4(), educationData.userId, educationData.schoolName, degree, educationData.fieldOfStudy, educationData.startYear, educationData.endYear);
             try{
                 let result = await newEdu.save();
@@ -111,7 +112,8 @@ class UserController extends ResourceController{
 
     async deleteEducation(educationId){
         try{
-            let education = await Education.find(educationId);
+            let eduModel = new Education();
+            let education = await eduModel.findById(educationId);
             if(education === null) throw new Error('Data pendidikan tidak ditemukan');
 
             try{
@@ -127,7 +129,8 @@ class UserController extends ResourceController{
 
     async updateEducation(educationId, updatedEduData){
         try{
-            let education = await Education.find(educationId);
+            let eduModel = new Education();
+            let education = await eduModel.findById(educationId);
             if(education === null) throw new Error('Data pendidikan tidak ditemukan');
 
             try{

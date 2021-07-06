@@ -3,7 +3,6 @@ const router = express.Router();
 const isUser = require('../../middleware/isUser');
 
 const JobController = require('../../application/controllers/JobController');
-const isUser = require('../../middleware/isUser');
 
 router.use(isUser);
 // Job route

@@ -61,7 +61,8 @@ class JobRequirement extends Model{
             for(let i=0; i < this.#requiredSkills.length; i++){
                 let value = this.#requiredSkills[i];
                 if(typeof value !== Skill){
-                    let skill = await Skill.find(value);
+                    let skillModel = new Skill();
+                    let skill = await skillModel.findById(value);
                     if(skill !== null) requiredSkillsTemp.push(skill);
                 }
             }
@@ -72,7 +73,8 @@ class JobRequirement extends Model{
             for(let i=0; i < this.#requiredReligion.length; i++){
                 let value = this.#requiredReligion[i];
                 if(typeof value !== Religion){
-                    let religion = await Religion.find(value);
+                    let relModel = new Religion();
+                    let religion = await relModel.findById(value);
                     if(religion !== null) requiredReligionTemp.push(religion);
                 }
             }

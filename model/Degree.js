@@ -20,7 +20,7 @@ class Degree extends Model{
         return new this.constructor(id, name);
     }
 
-    getID(){
+    getId(){
         return this.#id;
     }
     getName(){
@@ -39,7 +39,7 @@ class Degree extends Model{
         return new this.constructor(id, name);
     }
 
-    static async find(degreeId){
+    async findById(degreeId){
         let query = `MATCH (d:Degree {id: '${degreeId}'}) RETURN d`;
         try{
             let result = await DB.query(query);

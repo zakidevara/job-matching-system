@@ -1,6 +1,6 @@
 /-- Query Import User dari JSON --/
 CALL apoc.load.json("file:/dummy_dataset_user_v4.json") YIELD value AS user
-MERGE (u:User {nim: 'user.nim'})
+MERGE (u:User {nim: toString(user.nim)})
 SET u.email = user.email,
 u.password = user.password,
 u.name = user.name,
@@ -8,12 +8,14 @@ u.gender = user.gender,
 u.birthDate = user.birthDate,
 u.phoneNumber = user.phoneNumber,
 u.studyProgram = user.studyProgram,
-u.classYear = user.classYear 
-WITH u, user.skills AS skills, user.religion AS religion
+u.classYear = user.classYear,
+u.status = 1
+WITH u, user, user.skills AS skills
 UNWIND skills as sk
-MERGE (s:Skill {name: sk})
+MATCH (s:Skill {name: sk})
 MERGE (u)-[:SKILLED_IN]->(s)
-MERGE (r:Religion {id: religion})
+WITH user.religion AS religion
+MATCH (r:Religion {id: religion})
 MERGE (u)-[:HAS_RELIGION]->(r)
 
 

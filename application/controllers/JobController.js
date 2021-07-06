@@ -14,7 +14,8 @@ class JobController extends ResourceController {
 
     async all(userId){
         try{
-            let jobList = await Job.getJobs(userId);
+            let jobModel = new Job();
+            let jobList = await jobModel.getAll(userId);
             let finalJobList = [];
             
             if(jobList.length > 0){
@@ -47,7 +48,8 @@ class JobController extends ResourceController {
         try{
             await newJobReq.init();
             try{
-                let jobType = await JobType.find(jobData.jobType);
+                let jobTypeModel = new JobType();
+                let jobType = await jobTypeModel.findById(jobData.jobType);
                 let newJob = new Job(uuidv4(), userId, jobData.title, jobData.quantity, jobData.location, jobData.contact, jobData.benefits, jobData.description, jobData.duration, jobData.remote, jobData.companyName, jobData.endDate, jobData.minSalary, jobData.maxSalary, true, newJobReq, jobType);
                 try{
                     let resultSave = await newJob.save();
@@ -69,7 +71,8 @@ class JobController extends ResourceController {
 
     async find(jobId){
         try{
-            let job = await Job.find(jobId);
+            let jobModel = new Job();
+            let job = await jobModel.findById(jobId);
             if(job === null) throw new Error('Data job tidak ditemukan');
 
             return job.toObject();
@@ -80,7 +83,8 @@ class JobController extends ResourceController {
 
     async update(jobId, updatedJobData){
         try{
-            let jobData = await Job.find(jobId);
+            let jobModel = new Job();
+            let jobData = await jobModel.findById(jobId);
             if(jobData === null) throw new Error('Data job tidak ditemukan');
             try{
                 let updatedJob = await jobData.update(updatedJobData);
@@ -95,7 +99,8 @@ class JobController extends ResourceController {
 
     async deleteJob(jobId){
         try{
-            let jobData = await Job.find(jobId);
+            let jobModel = new Job();
+            let jobData = await jobModel.findById(jobId);
             if(jobData === null) throw new Error('Data job tidak ditemukan');
             try{
                 let result = await jobData.delete();
@@ -110,7 +115,8 @@ class JobController extends ResourceController {
 
     async searchByName(title){
         try{
-            let jobList = await Job.searchByName(title);
+            let jobModel = new Job();
+            let jobList = await jobModel.searchByName(title);
             let finalJobList = [];
     
             if(jobList.length > 0){
@@ -135,14 +141,15 @@ class JobController extends ResourceController {
         }
     }
 
-    async applyJob(jobId, userID){
+    async applyJob(jobId, userId){
         // Validate user and job in database
         try{
-            let job = await Job.find(jobId);
-            console.log(job.toObject());
+            let jobModel = new Job();
+            let job = await jobModel.findById(jobId);
             if(job === null) return 2;  // Job not found
             try{
-                let user = await User.find(userID);
+                let userModel = new User();
+                let user = await userModel.findById(userId);
                 if(user === null) return 3; // User not found
                 try{
                     let result = await job.apply(user);
@@ -162,17 +169,19 @@ class JobController extends ResourceController {
         
         try{
             // Get all available job with requires skill
-            let listJob = await Job.getJobs(userID);
+            let jobModel = new Job();
+            let listJob = await jobModel.getAll(undefined);
             try{
                 // Get user data
-                let userData = await User.find(userID);
+                let userModel = new User();
+                let userData = await userModel.findById(userID);
                 // Create new object including Job item and value similarity and push it into a new array
                 let newListJob = [];
                 listJob.forEach((item) => {
                     let objHelper = {};
                     objHelper['job'] = item;
                     objHelper['value_similarity'] = 0;
-                    newListJob.push(objHelper) 
+                    newListJob.push(objHelper);
                 });
                 
                 // Calculate similarity
@@ -218,10 +227,11 @@ class JobController extends ResourceController {
 
     async getJobApplicant(jobId){
         try{
-            let jobData = await Job.find(jobId);
+            let jobModel = new Job();
+            let jobData = await jobModel.findById(jobId);
             if(job === null) throw new Error('Data job tidak ditemukan');
             try{
-                let applicant = await jobData.job.getApplicant();
+                let applicant = await jobData.getApplicant();
                 let listApplicant = [];
                 applicant.forEach((item) => {
                     let apl = item.toObject();
@@ -239,7 +249,8 @@ class JobController extends ResourceController {
 
     async accApplicant(jobId, applicantData){
         try{
-            let jobData = await Job.find(jobId);
+            let jobModel = new Job();
+            let jobData = await jobModel.findById(jobId);
             if(jobData === null) throw new Error('Data job tidak ditemukan');
             try{
                 let result = await jobData.acceptApplicant(applicantData);
@@ -256,7 +267,8 @@ class JobController extends ResourceController {
 
     async refApplicant(jobId, applicantData){
         try{
-            let jobData = await Job.find(jobId);
+            let jobModel = new Job();
+            let jobData = await jobModel.findById(jobId);
             if(jobData === null) throw new Error('Data job tidak ditemukan');
             try{
                 let result = await jobData.refuseApplicant(applicantData);
@@ -272,7 +284,8 @@ class JobController extends ResourceController {
     async getApplicantRecommendation(jobId){
         // Find Job in database
         try{
-            let jobData = await Job.find(jobId);
+            let jobModel = new Job();
+            let jobData = await jobModel.findById(jobId);
             if(job === null) throw new Error('Data job tidak ditemukan');
     
             // Get applicants of selected job and match the required skills

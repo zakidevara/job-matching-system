@@ -25,7 +25,7 @@ class Education extends Model{
     }
 
     // Getter
-    getID(){
+    getId(){
         return this.#educationID;
     }
     setDegree(newDegree){
@@ -81,7 +81,7 @@ class Education extends Model{
         }
     }
 
-    static async getEdu(userId){
+    async getEdu(userId){
         if(userId === undefined){
             let query = `MATCH (e:Education)-[:HAS_DEGREE]->(d:Degree), (e)<-[:STUDIED_AT]-(u:User) RETURN e{.*, userId: u.nim, degree: d{.*}}`;
             try{
@@ -95,7 +95,7 @@ class Education extends Model{
                         if(listEdu.length === 0){
                             listEdu.push(education);
                         } else {
-                            let validateItem = listEdu.some(ed => ed.getID() === education.getID());
+                            let validateItem = listEdu.some(ed => ed.getId() === education.getId());
                             if(!validateItem) listEdu.push(education);
                         }
                     });
@@ -119,7 +119,7 @@ class Education extends Model{
                         if(listEdu.length === 0){
                             listEdu.push(education);
                         } else {
-                            let validateItem = listEdu.some(e => e.getID() === education.getID());
+                            let validateItem = listEdu.some(e => e.getId() === education.getId());
                             if(!validateItem) listEdu.push(education);
                         }
                     });
@@ -132,7 +132,7 @@ class Education extends Model{
         }
     }
 
-    static async find(educationID){
+    async findById(educationID){
         let query = `MATCH (e:Education {id: '${educationID}'})-[:HAS_DEGREE]-(d:Degree), (e)<-[:STUDIED_AT]-(u:User) RETURN e{.*, userId: u.nim, degree: d{.*}}`;
         try{
             let result = await DB.query(query);
