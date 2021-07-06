@@ -114,6 +114,7 @@ class WorkExperience extends Model{
                 query += `.${val}}`;
             }
         });
+        console.log(query);
 
         // Run Query in Database
         try {

@@ -22,26 +22,28 @@ router.get('/', async function(req, res) {
         res.send({message});
     }
 });
-router.post('/match', async function(req, res) {
+router.get('/match', async function(req, res) {
 
-    let {s1,s2} = req.body;
+    let {skill1,skill2} = req.query;
     try{
         let objSkill = new Skill(undefined, undefined, undefined);
-        let skill1 = await objSkill.findById(s1);
-        let skill2 = await objSkill.findById(s2);
-        let result = await skill1.calculateSimilarity(skill2);
+        let s1 = await objSkill.findById(skill1);
+        let s2 = await objSkill.findById(skill2);
+        if(s1 == null) throw new Error(`Skill dengan id <${skill1}> tidak ditemukan`);
+        if(s2 == null) throw new Error(`Skill dengan id <${skill2}> tidak ditemukan`);
+        let result = await s1.calculateSimilarity(s2);
         res.send({
             message: "Berhasil",
             result
         });
     }catch(e){
-        console.log(e);
         res.status(400);
-        res.send(e);
+        let {message} = e;
+        res.send({message});
     }
 });
 router.get('/search', async function(req, res) {
-    let skillQuery = req.params.skillQuery;
+    let skillQuery = req.query.skillQuery;
     console.log(skillQuery);
     try{
         const skillController = new SkillController();
@@ -51,9 +53,9 @@ router.get('/search', async function(req, res) {
             result
         });
     }catch(e){
-        console.log(e);
         res.status(400);
-        res.send(e);
+        let {message} = e;
+        res.send({message});
     }
 });
 
