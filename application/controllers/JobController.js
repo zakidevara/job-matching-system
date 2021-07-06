@@ -229,7 +229,7 @@ class JobController extends ResourceController {
         try{
             let jobModel = new Job();
             let jobData = await jobModel.findById(jobId);
-            if(job === null) throw new Error('Data job tidak ditemukan');
+            if(jobData === null) throw new Error('Data job tidak ditemukan');
             try{
                 let applicant = await jobData.getApplicant();
                 let listApplicant = [];
@@ -286,7 +286,7 @@ class JobController extends ResourceController {
         try{
             let jobModel = new Job();
             let jobData = await jobModel.findById(jobId);
-            if(job === null) throw new Error('Data job tidak ditemukan');
+            if(jobData === null) throw new Error('Data job tidak ditemukan');
     
             // Get applicants of selected job and match the required skills
             try{
