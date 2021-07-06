@@ -1,45 +1,36 @@
-const Skill = require("../model/Skill");
+const Religion = require("../model/Religion");
 const DB = require("../services/DB");
 const {v4: uuidv4 } = require('uuid');
 
-describe('Skill Model Tests', () => {
-    let classObj = new Skill('', '');
+describe('Religion Model Tests', () => {
+    let classObj = new Religion('', '');
     const dummyData = [
         {
             id: '1', 
-            name:'PHP', 
-            uri: 'http://dbpedia.org/resource/PHP'
+            name:'Islam',
         },
         {
             id: '2', 
-            name:'JavaScript', 
-            uri: 'http://dbpedia.org/resource/JavaScript'
+            name:'Kristen', 
         },
         {
             id: '3', 
-            name:'Python (programming language)', 
-            uri: 'http://dbpedia.org/resource/Python_(programming_language)'
+            name:'Buddha', 
         },
         {
             id: '4', 
-            name:'Machine learning', 
-            uri: 'http://dbpedia.org/resource/Machine_learning'
-        },
-        {
-            id: '5', 
-            name:'Android software development', 
-            uri: 'http://dbpedia.org/resource/Android_software_development'
+            name:'Hindu', 
         },
     ];
 
     // SETUPS AND TEARDOWN
-    const initializeSkillDatabase = async () => {     
+    const initializeReligionDatabase = async () => {     
         try {
-            let clearStatus = await clearSkillDatabase();
+            let clearStatus = await clearReligionDatabase();
             if(clearStatus){
                 let promiseArr = [];
                 for(const data of dummyData){
-                    promiseArr.push(await DB.query(`CREATE (sk:Skill:Dummy {id: '${data.id}', name: '${data.name}', uri: '${data.uri}'})`));
+                    promiseArr.push(await DB.query(`CREATE (d:Religion {id: '${data.id}', name: '${data.name}')`));
                 }
                 await Promise.all(promiseArr);
             }
@@ -49,9 +40,9 @@ describe('Skill Model Tests', () => {
         }
     };
 
-    const clearSkillDatabase = async () => {
+    const clearReligionDatabase = async () => {
         try {
-            await DB.query("MATCH (sk:Skill:Dummy) DETACH DELETE sk");
+            await DB.query("MATCH (d:Religion) DETACH DELETE d");
             return true;
         } catch (error) {
             return false;
@@ -60,7 +51,7 @@ describe('Skill Model Tests', () => {
 
     beforeEach(async () => {
         try {
-            await initializeSkillDatabase();
+            await initializeReligionDatabase();
             return true;
         } catch (error) {
             return false;
@@ -69,7 +60,7 @@ describe('Skill Model Tests', () => {
       
     afterEach(async () => {
         try {
-            await clearSkillDatabase();
+            await clearReligionDatabase();
             return true;
         } catch (error) {
             return false;
@@ -80,37 +71,36 @@ describe('Skill Model Tests', () => {
     let testId = 1;
     // toObject()
     test(`#${testId++} should be able to convert to JavaScript Object`, async () => {
-        expect.assertions(1);
+        
         const data = dummyData[0];
-        const obj = new Skill(data.id, data.name, data.uri);
+        const obj = new Religion(data.id, data.name);
         expect(obj.toObject()).toStrictEqual(data);
         return;
     });
     // constructFromObject()
     test(`#${testId++} should be able to construct object from JavaScript Object`, async () => {
-        expect.assertions(2);
         const data = dummyData[0];
-        const obj = new Skill(data.id, data.name);
+        const obj = new Religion(data.id, data.name);
         expect(classObj.constructFromObject(data)).toStrictEqual(obj);
         expect(obj.getName()).toStrictEqual(data.name);
         return;
     });
     // getAttributes()
     test(`#${testId++} should be able to get all class Attributes`, async () => {
-        expect.assertions(1);
+        
         expect(classObj.getAttributes()).toStrictEqual(Object.keys(classObj.toObject()));
         return;
     });
     // all()
-    test(`#${testId++} should be able to get all data as an array of Skill from DB`, async () => {
-        expect.assertions(1);
+    test(`#${testId++} should be able to get all data as an array of Religion from DB`, async () => {
+        
         const allData = await classObj.all();
         expect(allData).toEqual(expect.arrayContaining(dummyData.map((item) => classObj.constructFromObject(item))));
         return;
     });
     // findById()
     test(`#${testId++} should be able to get data by id from DB`, async () => {
-        expect.assertions(1);
+        
         const id = '1';
         const actual = await classObj.findById(id);
         const expectedObj = dummyData.find((element) => element.id == id);
@@ -128,21 +118,21 @@ describe('Skill Model Tests', () => {
         return;
     });
     // create()
-    // test(`#${testId++} should be able to insert new data to DB`, async () => {
+    test(`#${testId++} should be able to insert new data to DB`, async () => {
 
-    //     const id = '5';
-    //     const testDummy = {id: id, name: "Test"};
-    //     let createResult = await classObj.create(testDummy);
-    //     let findByIdData = await classObj.findById(id);
+        const id = '99';
+        const testDummy = {id: id, name: "Test Religion"};
+        let createResult = await classObj.create(testDummy);
+        let findByIdData = await classObj.findById(id);
 
-    //     // Check the return type from create() method and inserted data in DB
-    //     expect(createResult).toStrictEqual(classObj.constructFromObject(testDummy));
-    //     expect(findByIdData).toStrictEqual(classObj.constructFromObject(testDummy));
-    //     return;
-    // });
+        // Check the return type from create() method and inserted data in DB
+        expect(createResult).toStrictEqual(classObj.constructFromObject(testDummy));
+        expect(findByIdData).toStrictEqual(classObj.constructFromObject(testDummy));
+        return;
+    });
     // find()
     test(`#${testId++} should be able to find data based on attributes query`, async () => {
-        expect.assertions(1);
+        
         const query = {
             name: 'PHP'
         };
@@ -166,7 +156,6 @@ describe('Skill Model Tests', () => {
     });
     // deleteById()
     test(`#${testId++} should be able to delete data by id`, async () => {
-        expect.assertions(2);
         const id = '1';
         const deletedObj = dummyData.find((element) => element.id == id);
         const deleteResult = await classObj.deleteById(id);
@@ -177,7 +166,7 @@ describe('Skill Model Tests', () => {
     });
     // delete()
     test(`#${testId++} should be able to delete data from instantiated object`, async () => {
-        // expect.assertions(2);
+        
         const id = '1';
         const deletedObj = dummyData.find((element) => element.id == id);
         const obj = classObj.constructFromObject(deletedObj);
@@ -189,7 +178,7 @@ describe('Skill Model Tests', () => {
     });
     // save()
     test(`#${testId++} should be able to save data from instantiated object`, async () => {
-        // expect.assertions(2);
+        
         const id = '1';
         let savedObj = dummyData.find((element) => element.id == id);
         savedObj.name = 'Updated Saved Name';

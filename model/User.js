@@ -335,12 +335,13 @@ class User extends Model {
             let result = await workExpObj.create(workExp.toObject());
             this.#workExpList.push(result);
 
-            let createRelationshipResult = await DB.query(
-                `MATCH 
-                    (u:User {nim: '${this.getId()}'}), 
-                    (w:WorkExperience {id: '${result.getId()}'})
-                CREATE
-                    (u)-[:WORKED_AT]->(w)`);
+            let query = 
+            `MATCH 
+                (u:User {nim: '${this.getId()}'}), 
+                (w:WorkExperience {id: '${result.getId()}'})
+            CREATE
+                (u)-[:WORKED_AT]->(w)`;
+            let createRelationshipResult = await DB.query(query);
             return result;
         } catch (error) {
             console.log('User Model Error: ', error);

@@ -200,6 +200,8 @@ class Model {
             query += "{";
             Object.keys(queryObj).forEach((val, index, arr) => {
                 if(queryObj[val] == undefined) return;
+                if(val == 'name') return;
+                if(val == 'title') return;
                 if(index+1 !== arr.length){
                     if(typeof queryObj[val] == "string"){
                         query += `${val}: '${queryObj[val]}', `;
@@ -217,7 +219,13 @@ class Model {
             
             //remove the last comma
             query = query.replace(/,\s*$/, "");
-            query += '}) RETURN res{';
+            query += '}) ';
+            if(queryObj.name || queryObj.title){
+                query += `WHERE `;
+                if(queryObj.name) query += `res.name CONTAINS '${queryObj.name}' `;
+                if(queryObj.title) query += `res.title CONTAINS '${queryObj.title}' `;
+            }
+            query += 'RETURN res{';
             this.getAttributes().forEach((val, index, arr) => {
                 if(index+1 !== arr.length){
                     query += `.${val}, `;
@@ -236,7 +244,7 @@ class Model {
             });
         }
 
-        console.log('QUERY', queryObj);
+        console.log('QUERY', query);
         // Run Query in Database
         try {
             let result = await DB.query(query);

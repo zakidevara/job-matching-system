@@ -8,7 +8,7 @@ router.use(isUser);
 router.get('/', async function(req, res) {
     try{
         const workExpController = new WorkExperienceController();
-        let userId = !req.params ? undefined : req.params.userId;
+        let userId = req.query.userId;
         let result = await workExpController.getAll(userId);
 
         res.status(200);

@@ -114,6 +114,7 @@ class WorkExperience extends Model{
                 query += `.${val}}`;
             }
         });
+        console.log(query);
 
         // Run Query in Database
         try {
@@ -253,7 +254,7 @@ class WorkExperience extends Model{
         // Build Cypher Query
         let workExperienceType = obj.workExperienceType;
         let id = obj.id;
-        let query = `MATCH (u:User)-[:WORKED_AT]->(res:${this.constructor.name} {id: '${id}'})-[:CLASSIFIED]->(wt:WorkExperienceType) SET `;
+        let query = `MATCH (res:${this.constructor.name} {id: '${id}'})-[:CLASSIFIED]->(wt:WorkExperienceType) SET `;
         Object.keys(obj).forEach((val, index, arr) => {
             if(obj[val] == undefined) return;
             if(val == 'id') return;
