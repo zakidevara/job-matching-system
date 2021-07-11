@@ -15,7 +15,7 @@ class JobController extends ResourceController {
     async all(userId){
         try{
             let jobModel = new Job();
-            let jobList = await jobModel.getAll(userId);
+            let jobList = await jobModel.all(userId);
             let finalJobList = [];
             
             if(jobList.length > 0){
@@ -170,7 +170,7 @@ class JobController extends ResourceController {
         try{
             // Get all available job with requires skill
             let jobModel = new Job();
-            let listJob = await jobModel.getAll(undefined);
+            let listJob = await jobModel.all(undefined);
             try{
                 // Get user data
                 let userModel = new User();

@@ -56,6 +56,13 @@ MATCH (r:Religion {id: rr})
 MERGE (jr)-[:REQUIRES_RELIGION]->(r)
 
 
+/-- Query Dadakan --/
+CALL apoc.load.json("file:/dummy_dataset_job_v11.json") YIELD value AS job
+MERGE (j:Job {id: toString(job.job_id)})
+MERGE (jt:JobType {id: toString(job.jobType)})
+MERGE (j)-[:CLASSIFIED]->(jt)
+
+
 
 
 

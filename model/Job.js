@@ -254,7 +254,7 @@ class Job extends Model {
         }
     }
     // Get all job
-    async getAll(userId){
+    async all(userId){
         if(userId === undefined){
             try{
                 let result = await this.searchByName('');
@@ -344,7 +344,7 @@ class Job extends Model {
                 result.records.forEach((item, index) => {
                     let jobData = item.get('j');
                     if(index === 0){
-                        let jobType = new JobType(jobData.jobType.id, jobData.jobType.id);
+                        let jobType = new JobType(jobData.jobType.id, jobData.jobType.name);
                         let jobReq = new JobRequirement(jobData.requirements.classYearRequirement, jobData.requirements.studyProgramRequirement, jobData.requirements.documentRequirement, [], jobData.requirements.softSkillRequirment, jobData.requirements.maximumAge, [], jobData.requirements.requiredGender, jobData.requirements.description);
                         jobReqObject = jobReq;
 
