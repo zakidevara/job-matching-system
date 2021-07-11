@@ -9,7 +9,7 @@ class EducationController extends ResourceController{
     async all(userId){
         try{
             let eduModel = new Education();
-            let eduList = await eduModel.getEdu(userId);
+            let eduList = await eduModel.all(userId);
             eduList.forEach((item, index, array) => {
                 let value = item.toObject();
                 array[index] = value;
