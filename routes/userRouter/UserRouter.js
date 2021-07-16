@@ -56,7 +56,7 @@ router.put('/users/:userId', async function(req, res) {
     let uC = new UserController();
 
     try{
-        let result = await uC.updateData(userId, userData);
+        let result = await uC.update(userId, userData);
         if(result === null) {
             res.send({
                 status: false,

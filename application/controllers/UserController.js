@@ -71,7 +71,7 @@ class UserController extends ResourceController{
     }
 
     // Update data user
-    async updateData(userID, userData){
+    async update(userID, userData){
         
         let userModel = new User();
         let user = await userModel.findById(userID);
