@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const DB = require('../../services/DB');
 const EmailService = require('../../services/EmailService');
 const verificationCodeEmailTemplate = require('../emailTemplate/verificationCodeEmailTemplate');
-
+const Validator = require('validatorjs');
 class AuthController{
 
     constructor(){
@@ -32,8 +32,31 @@ class AuthController{
         }
     }
 
-    validate(nim, email, password){
-        return true;
+    validate(userData){
+        let rules = {
+            nim: 'required|string',
+            email: 'required|email',
+            password: 'required|string|min:6'
+        };
+        let validator = new Validator(userData, rules);
+        if(validator.passes()){
+            return true;
+        } else {
+            return validator.errors;
+        }
+    }
+
+    validateLogin(userData){
+        let rules = {
+            email: 'required|email',
+            password: 'required|string|min:6'
+        };
+        let validator = new Validator(userData, rules);
+        if(validator.passes()){
+            return true;
+        } else {
+            return validator.errors;
+        }
     }
 
     async isEmailExists(email){
@@ -93,6 +116,11 @@ class AuthController{
     }
     
     async login(email, password){
+        let validInput = this.validateLogin({email: email, password: password});
+        if(validInput !== true){
+            return validInput;
+        }
+        
         try{
             const isAuthorized = await this.authorize(email, password);
             if(isAuthorized){
@@ -116,7 +144,15 @@ class AuthController{
             if(nimExists) throw new Error("NIM sudah terdaftar");
 
             // Cek apakah data input sudah memenuhi syarat
-            let isValid = this.validate(nim, email, password);
+            let userData = {
+                nim: nim,
+                email: email,
+                password: password
+            };
+            let isValid = this.validate(userData);
+            if(isValid !== true){
+                return isValid;
+            }
     
             let user;
             if(isValid){

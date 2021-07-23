@@ -2,21 +2,16 @@ class JobApplicant{
     // Property of applicant (private)
     #user;
     #dateApplied;
-    #similarity;
     #applicantDocuments;
     #status;
 
-    constructor(user, date, sim, stat, appDoc=''){
+    constructor(user, date, stat, appDoc=''){
         this.#user = user;
         this.#dateApplied = date;
-        this.#similarity = sim;
         this.#status = stat;
         this.#applicantDocuments = appDoc;
     }
 
-    setSimilarity(newSim){
-        this.#similarity = newSim;
-    }
     setStatus(newStat){
         this.#status = newStat;
     }
@@ -26,9 +21,6 @@ class JobApplicant{
     getDateApplied(){
         return this.#dateApplied;
     }
-    getSimilarity(){
-        return this.#similarity;
-    }
     getStatus(){
         return this.#status;
     }
@@ -37,7 +29,6 @@ class JobApplicant{
         let resultObj = {
             user: this.#user.toObject(),
             dateApplied: this.#dateApplied,
-            similarity: this.#similarity,
             status: this.#status,
             applicantDocuments: this.#applicantDocuments
         }

@@ -173,7 +173,7 @@ class Education extends Model{
             let prop = eduPropList[i];
             let value = updatedEducation[prop];
             if(value !== null && prop !== 'degreeId'){
-                if(prop === 'startYear' && prop === 'endYear'){
+                if(prop === 'startYear' || prop === 'endYear'){
                     query += `e.` + prop + ` = ${value},`;
                 } else {
                     value = this.cleaningStringFormat(value);

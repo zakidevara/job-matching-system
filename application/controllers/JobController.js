@@ -5,11 +5,89 @@ const JobStudentMatcher = require("../matcher/JobStudentMatcher");
 const {v4: uuidv4 } = require('uuid');
 const JobRequirement = require("../../model/JobRequirement");
 const JobType = require("../../model/JobType");
+const Validator = require('validatorjs');
 
 class JobController extends ResourceController {
 
     constructor(){
         super(Job);
+    }
+
+    validate(jobData){
+        let rules = {
+            jobId: 'required|string',
+            nim: 'string',
+            title: 'required|string',
+            quantity: 'required|integer',
+            jobType: 'required|string',
+            location: 'string',
+            benefits: 'string',
+            minSalary: 'string',
+            maxSalary: 'string',
+            contact: 'required|string',
+            endDate: 'required|date',
+            remote: 'boolean',
+            description: 'string',
+            companyName: 'string',
+            duration: 'string',
+            requirements: {
+                studyProgramRequirement: 'array',
+                classYearRequirement: 'array',
+                documentRequirement: 'string',
+                requiredSkills: 'required|array',
+                softSkillRequirement: 'string',
+                maximumAge: 'integer',
+                requiredReligion: 'array',
+                requiredGender: 'array',
+                description: 'string'
+            }
+        };
+        let validator = new Validator(jobData, rules);
+        if(validator.passes()){
+            return true;
+        } else{
+            //console.log(jobValidator.errors);
+            return validator.errors;
+        }
+    }
+
+    validateJobRecommendationInput(inputData){
+        let rules = {
+            userId: 'required|string',
+            limitJob: 'required|integer'
+        };
+        let validator = new Validator(inputData, rules);
+        if(validator.passes()){
+            return true;
+        } else {
+            return validator.errors;
+        }
+    }
+
+    validateApplicantRecommendation(inputData){
+        let rules = {
+            jobId: 'required|string'
+        };
+        let validator = new Validator(inputData, rules);
+        if(validator.passes()){
+            return true;
+        } else {
+            return validator.errors;
+        }
+    }
+
+    validateManageApplicantInput(inputData){
+        let rules = {
+            jobId: 'required|string',
+            applicantId: 'required|string',
+            message: 'string'
+        };
+        let validator = new Validator(inputData, rules);
+        if(validator.passes()){
+            return true;
+        } else {
+            return validator.errors;
+        }
     }
 
     async all(userId){
@@ -42,15 +120,21 @@ class JobController extends ResourceController {
     }
 
     async create(jobData){
-        let userId = jobData.userId;
+        let jobId = uuidv4();
+        jobData.jobId = jobId;
+        let validInput = this.validate(jobData);
+        if(validInput !== true){
+            return validInput;
+        }
 
+        let userId = jobData.userId;
         let newJobReq = new JobRequirement(jobData.requirements.classYearRequirement, jobData.requirements.studyProgramRequirement, jobData.requirements.documentRequirement, jobData.requirements.requiredSkills, jobData.requirements.softSkillRequirement, jobData.requirements.maximumAge, jobData.requirements.requiredReligion, jobData.requirements.requiredGender, jobData.requirements.description);
         try{
             await newJobReq.init();
             try{
                 let jobTypeModel = new JobType();
                 let jobType = await jobTypeModel.findById(jobData.jobType);
-                let newJob = new Job(uuidv4(), userId, jobData.title, jobData.quantity, jobData.location, jobData.contact, jobData.benefits, jobData.description, jobData.duration, jobData.remote, jobData.companyName, jobData.endDate, jobData.minSalary, jobData.maxSalary, true, newJobReq, jobType);
+                let newJob = new Job(jobId, userId, jobData.title, jobData.quantity, jobData.location, jobData.contact, jobData.benefits, jobData.description, jobData.duration, jobData.remote, jobData.companyName, jobData.endDate, jobData.minSalary, jobData.maxSalary, true, newJobReq, jobType);
                 try{
                     let resultSave = await newJob.save();
                     if(resultSave){
@@ -82,6 +166,13 @@ class JobController extends ResourceController {
     }
 
     async update(jobId, updatedJobData){
+        let jobData = updatedJobData;
+        jobData.jobId = jobId;
+        let validInput = this.validate(jobData);
+        if(validInput !== true){
+            return validInput;
+        }
+
         try{
             let jobModel = new Job();
             let jobData = await jobModel.findById(jobId);
@@ -141,7 +232,7 @@ class JobController extends ResourceController {
         }
     }
 
-    async applyJob(jobId, userId){
+    async applyJob(jobId, userId, applicantDocuments){
         // Validate user and job in database
         try{
             let jobModel = new Job();
@@ -152,7 +243,7 @@ class JobController extends ResourceController {
                 let user = await userModel.findById(userId);
                 if(user === null) return 3; // User not found
                 try{
-                    let result = await job.apply(user);
+                    let result = await job.apply(user, applicantDocuments);
                     return result;
                 } catch(e){
                     throw e;
@@ -165,8 +256,16 @@ class JobController extends ResourceController {
         }
     }
     
-    async getJobRecommendation(userID, amount){
-        
+    async getJobRecommendation(userId, amount){
+        let inputData = {
+            userId: userId,
+            limitJob: amount
+        };
+        let validInput = this.validateJobRecommendationInput(inputData);
+        if(validInput !== true){
+            return validInput;
+        }
+
         try{
             // Get all available job with requires skill
             let jobModel = new Job();
@@ -174,7 +273,7 @@ class JobController extends ResourceController {
             try{
                 // Get user data
                 let userModel = new User();
-                let userData = await userModel.findById(userID);
+                let userData = await userModel.findById(userId);
                 // Create new object including Job item and value similarity and push it into a new array
                 let newListJob = [];
                 listJob.forEach((item) => {
@@ -248,6 +347,13 @@ class JobController extends ResourceController {
     }
 
     async accApplicant(jobId, applicantData){
+        let inputData = applicantData;
+        inputData.jobId = jobId;
+        let validInput = this.validateManageApplicantInput(inputData);
+        if(validInput !== true){
+            return validInput;
+        }
+
         try{
             let jobModel = new Job();
             let jobData = await jobModel.findById(jobId);
@@ -266,6 +372,13 @@ class JobController extends ResourceController {
     }
 
     async refApplicant(jobId, applicantData){
+        let inputData = applicantData;
+        inputData.jobId = jobId;
+        let validInput = this.validateManageApplicantInput(inputData);
+        if(validInput !== true){
+            return validInput;
+        }
+
         try{
             let jobModel = new Job();
             let jobData = await jobModel.findById(jobId);
@@ -282,6 +395,11 @@ class JobController extends ResourceController {
     }
 
     async getApplicantRecommendation(jobId){
+        let validInput = this.validateApplicantRecommendation({jobId: jobId});
+        if(validInput !== true){
+            return validInput;
+        }
+
         // Find Job in database
         try{
             let jobModel = new Job();

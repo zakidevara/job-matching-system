@@ -77,7 +77,7 @@ class Job extends Model {
                 let user = new User(propApl.user.nim, propApl.user.name, propApl.user.email, propApl.user.password, propApl.user.birthDate, propApl.user.classYear, propApl.user.photo, propApl.user.phoneNumber, propApl.user.gender, propApl.user.studyProgram, propApl.user.status);
                 user.init();
 
-                let applicant = new JobApplicant(user, propApl.dateApplied, propApl.similarity, propApl.status, undefined);
+                let applicant = new JobApplicant(user, propApl.dateApplied, propApl.status, propApl.applicantDocuments);
                 listApplicant.push(applicant);
             });
             return listApplicant;
@@ -817,14 +817,19 @@ class Job extends Model {
         }
     }
 
-    async apply(user){
+    async apply(user, applicantDocuments){
+        // dont use it, being repaired
         let userID = user.getNim();
         let jobID = this.#jobID;
-        
-        // if(applicantDocuments !== undefined){
-        //     let pathDocuments = `../uploads/job/${jobID}/applicant/documents/${userID}/${applicantDocuments.name}`;
-        //     applicantDocuments.mv(pathDocuments);  
-        // }
+        let pathDocuments = '';
+        if(applicantDocuments !== undefined){
+            if(applicantDocuments.mimetype !== 'application/zip'){
+                return 6;
+            }
+            console.log(applicantDocuments);
+            pathDocuments = './uploads/job/' + jobID + '/documents/' + userID + '/' + applicantDocuments.name;
+            applicantDocuments.mv(pathDocuments);  
+        }
 
         let query = `MATCH (u:User {nim: '${userID}'})-[:APPLY]->(j:Job {id: '${jobID}'}) RETURN u,j`;
         try{
@@ -833,14 +838,14 @@ class Job extends Model {
                 return 5;   // User already apply to selected job
             } else {
                 // Calculate similarity applicant with selected job
-                let similarity = await JobStudentMatcher.match(this, user);
+                // let similarity = await JobStudentMatcher.match(this, user);
                 let currentDate = new Date();
                 let dateApplied = currentDate.getFullYear() + "-0" + 
                                 (currentDate.getMonth()+1) + "-" +
                                 currentDate.getDate();    
                 
                 let secQuery = `MATCH (u:User), (j:Job) WHERE u.nim = '${userID}' AND j.id = '${jobID}' 
-                                MERGE (u)-[rel:APPLY {userId: '${userID}', dateApplied: '${dateApplied}', similarity: ${similarity}, status: false}]->(j) 
+                                MERGE (u)-[rel:APPLY {userId: '${userID}', dateApplied: '${dateApplied}', applicantDocuments: ${pathDocuments}, status: 0}]->(j) 
                                 RETURN rel`;
                 try{
                     let result = await DB.query(secQuery);
