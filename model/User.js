@@ -167,7 +167,7 @@ class User extends Model {
             name: this.#name,
             nim: this.#nim,
             email: this.#email,
-            birthdate: this.#birthDate,
+            birthDate: this.#birthDate,
             classYear: this.#classYear,
             photo: this.#photo,
             phoneNumber: this.#phoneNumber,
@@ -283,6 +283,8 @@ class User extends Model {
 
     // Update user
     async update(userData){
+        let oldPhoto = this.#photo;
+        let newPhoto = '';
         let query = `MATCH (u:User {nim: '${this.#nim}'}) 
                     SET u.name = '${userData.name}',
                     u.email = '${userData.email}',
@@ -290,14 +292,18 @@ class User extends Model {
                     u.classYear = '${userData.classYear}',
                     u.phoneNumber = '${userData.phoneNumber}',
                     u.gender = ${userData.gender},
-                    u.studyProgram = ${userData.studyProgram.id},
+                    u.studyProgram = ${userData.studyProgram},
                     u.status = ${userData.status},`;
-        let pathPhoto = this.savePhoto(userData.photo);
-        let userPhoto = '';
-        if(pathPhoto !== null){
-            userPhoto = pathPhoto;
+        if(userData.photo !== undefined){
+            let pathPhoto = this.savePhoto(userData.photo);
+            if(pathPhoto !== null){
+                newPhoto = pathPhoto;
+                query += `u.photo = '${newPhoto}' RETURN u`;
+            }
+        } else {
+            query += `u.photo = '${oldPhoto}' RETURN u`;
         }
-        query += `u.photo = '${userPhoto}' RETURN u`;
+        
         try{
             let resultUpdate = await DB.query(query);
             if(resultUpdate.records.length > 0){
