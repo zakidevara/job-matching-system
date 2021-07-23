@@ -53,6 +53,9 @@ router.get('/users/:userId', async function(req, res) {
 router.put('/users/:userId', async function(req, res) {
     let userId = req.params.userId;
     let userData = req.body;
+    userData.studyProgram = {
+        id: userData.studyProgram
+    }
     let uC = new UserController();
 
     try{
