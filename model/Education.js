@@ -81,7 +81,7 @@ class Education extends Model{
         }
     }
 
-    async getEdu(userId){
+    async all(userId){
         if(userId === undefined){
             let query = `MATCH (e:Education)-[:HAS_DEGREE]->(d:Degree), (e)<-[:STUDIED_AT]-(u:User) RETURN e{.*, userId: u.nim, degree: d{.*}}`;
             try{

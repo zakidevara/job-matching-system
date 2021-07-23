@@ -15,7 +15,7 @@ class JobController extends ResourceController {
     async all(userId){
         try{
             let jobModel = new Job();
-            let jobList = await jobModel.getAll(userId);
+            let jobList = await jobModel.all(userId);
             let finalJobList = [];
             
             if(jobList.length > 0){
@@ -97,7 +97,7 @@ class JobController extends ResourceController {
         }
     }
 
-    async deleteJob(jobId){
+    async delete(jobId){
         try{
             let jobModel = new Job();
             let jobData = await jobModel.findById(jobId);
@@ -170,7 +170,7 @@ class JobController extends ResourceController {
         try{
             // Get all available job with requires skill
             let jobModel = new Job();
-            let listJob = await jobModel.getAll(undefined);
+            let listJob = await jobModel.all(undefined);
             try{
                 // Get user data
                 let userModel = new User();
@@ -225,11 +225,11 @@ class JobController extends ResourceController {
         }
     }
 
-    async getJobApplicant(jobId){
+    async getJobApplicants(jobId){
         try{
             let jobModel = new Job();
             let jobData = await jobModel.findById(jobId);
-            if(job === null) throw new Error('Data job tidak ditemukan');
+            if(jobData === null) throw new Error('Data job tidak ditemukan');
             try{
                 let applicant = await jobData.getApplicant();
                 let listApplicant = [];
@@ -286,7 +286,7 @@ class JobController extends ResourceController {
         try{
             let jobModel = new Job();
             let jobData = await jobModel.findById(jobId);
-            if(job === null) throw new Error('Data job tidak ditemukan');
+            if(jobData === null) throw new Error('Data job tidak ditemukan');
     
             // Get applicants of selected job and match the required skills
             try{
