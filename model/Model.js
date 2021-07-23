@@ -13,6 +13,9 @@ class Model {
         if(this.constructor === Model){
             throw new Error(`Abstract class "${this.constructor.name}" cannot be instantiated directly`);
         }
+        if(this.getId === undefined){
+            throw new TypeError(`Classes extending the "${this.constructor.name}" abstract class`);
+        }
         if(this.all === undefined){
             throw new TypeError(`Classes extending the "${this.constructor.name}" abstract class`);
         }
@@ -46,8 +49,15 @@ class Model {
         if(this.constructFromObject === undefined){
             throw new TypeError(`Classes extending the "${this.constructor.name}" abstract class`);
         }
+        if(this.init === undefined){
+            throw new TypeError(`Classes extending the "${this.constructor.name}" abstract class`);
+        }
     }
 
+    // Abstract method untuk menginisialisasi class yang melibatkan operasi asynchronous
+    init(){
+        // ---- DIIMPLEMENTASI DI SUBCLASS ----
+    }
     // Abstract method untuk mengambil id dari suatu class
     // Output:
     // nilai ID dari class
@@ -69,6 +79,7 @@ class Model {
     // Objek instansiasi dari class Model
     constructFromObject(obj){
         // ---- DIIMPLEMENTASI DI SUBCLASS ----
+        return new this.constructor();
     }
 
     // Method untuk mengambil semua nama atribut dari class Model

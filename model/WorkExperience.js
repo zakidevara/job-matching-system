@@ -254,6 +254,8 @@ class WorkExperience extends Model{
         // Build Cypher Query
         let workExperienceType = obj.workExperienceType;
         let id = obj.id;
+
+        // Update model property query
         let query = `MATCH (res:${this.constructor.name} {id: '${id}'})-[:CLASSIFIED]->(wt:WorkExperienceType) SET `;
         Object.keys(obj).forEach((val, index, arr) => {
             if(obj[val] == undefined) return;
@@ -274,8 +276,9 @@ class WorkExperience extends Model{
             }
         });
         
-        //remove the last comma
+        // remove the last comma
         query = query.replace(/,\s*$/, "");
+        // update work experience type query
         if(workExperienceType !== undefined && workExperienceType.id){
             query += ` WITH res 
             MATCH 
@@ -287,8 +290,7 @@ class WorkExperience extends Model{
         }else{
             query += ' RETURN res{.*}, wt{.*}';
         }
-        
-        
+                
         console.log('UPDATE QUERY', query);
         // Run Query in Database
         try {

@@ -184,7 +184,7 @@ class Education extends Model{
 
         query = query.substr(0, query.length-1);
         let isDegreeChanged = false;
-        if(updatedEducation.degreeId !== curDeg.getID()){
+        if(updatedEducation.degreeId !== curDeg.getId()){
             query += `
                       WITH e, u, re 
                       DELETE re

@@ -97,7 +97,7 @@ class JobController extends ResourceController {
         }
     }
 
-    async deleteJob(jobId){
+    async delete(jobId){
         try{
             let jobModel = new Job();
             let jobData = await jobModel.findById(jobId);
@@ -225,7 +225,7 @@ class JobController extends ResourceController {
         }
     }
 
-    async getJobApplicant(jobId){
+    async getJobApplicants(jobId){
         try{
             let jobModel = new Job();
             let jobData = await jobModel.findById(jobId);
