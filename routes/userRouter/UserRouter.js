@@ -65,11 +65,19 @@ router.put('/users/:userId', async function(req, res) {
     try{
         let result = await uC.update(userId, userData);
         if(result === null) {
+            res.status(400);
             res.send({
                 status: false,
                 message: 'Gagal update'
             });
+        } else if (typeof result === Error){
+            res.status(400);
+            res.send({ 
+                status: false,
+                errors: result
+             });
         } else {
+            res.status(200);
             res.send({
                 status: true,
                 user: result,

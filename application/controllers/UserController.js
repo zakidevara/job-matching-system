@@ -33,7 +33,7 @@ class UserController extends ResourceController{
     }
 
     validateProfilPictureInput(photo){
-        if(photo.mimetype !== 'image/png' || photo.mimetype !== 'image/jpeg'){
+        if(photo.mimetype !== 'image/png' && photo.mimetype !== 'image/jpeg'){
             let errors = {
                 formatPhoto : [
                     'Format foto harus bertipe png atau jpg'
@@ -138,7 +138,7 @@ class UserController extends ResourceController{
             user.setGender(userData.gender);
             user.setBirthDate(userData.birthDate);
             user.setNumber(userData.phoneNumber);
-            user.setStudyProgram(userData.studyProgram.studyProgramId);
+            user.setStudyProgram(userData.studyProgram);
             user.setClassYear(userData.classYear);
             user.init();
             let pathPhoto = '';
@@ -184,12 +184,14 @@ class UserController extends ResourceController{
     async update(userId, userData){
         let validInput = this.validate(userData);
         if(validInput !== true){
-            return validInput;
+            throw new Error(validInput);
         }
-
-        let validPhoto = this.validateProfilPictureInput(userData.photo);
-        if(validPhoto !== true){
-            return validPhoto;
+        
+        if(userData.photo !== undefined){
+            let validPhoto = this.validateProfilPictureInput(userData.photo);
+            if(validPhoto !== true){
+                throw new Error(validPhoto);
+            }
         }
 
         let userModel = new User();
