@@ -4,7 +4,7 @@ const User = require('./User');
 const DB = require("../services/DB");
 
 const JobStudentMatcher = require("../application/matcher/JobStudentMatcher");
-const Applicant = require("./Applicant");
+const JobApplicant = require("./JobApplicant");
 const JobRequirement = require("./JobRequirement");
 const Religion = require("./Religion");
 const JobType = require("./JobType");
@@ -77,7 +77,7 @@ class Job extends Model {
                 let user = new User(propApl.user.nim, propApl.user.name, propApl.user.email, propApl.user.password, propApl.user.birthDate, propApl.user.classYear, propApl.user.photo, propApl.user.phoneNumber, propApl.user.gender, propApl.user.studyProgram, propApl.user.status);
                 user.init();
 
-                let applicant = new Applicant(user, propApl.dateApplied, propApl.similarity, propApl.status);
+                let applicant = new JobApplicant(user, propApl.dateApplied, propApl.similarity, propApl.status, undefined);
                 listApplicant.push(applicant);
             });
             return listApplicant;
@@ -820,6 +820,12 @@ class Job extends Model {
     async apply(user){
         let userID = user.getNim();
         let jobID = this.#jobID;
+        
+        // if(applicantDocuments !== undefined){
+        //     let pathDocuments = `../uploads/job/${jobID}/applicant/documents/${userID}/${applicantDocuments.name}`;
+        //     applicantDocuments.mv(pathDocuments);  
+        // }
+
         let query = `MATCH (u:User {nim: '${userID}'})-[:APPLY]->(j:Job {id: '${jobID}'}) RETURN u,j`;
         try{
             let validateUserAndJob = await DB.query(query);

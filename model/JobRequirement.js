@@ -56,29 +56,40 @@ class JobRequirement extends Model{
             });
             this.#requiredGender = requiredGenderTemp;
         }
-        let requiredSkillsTemp = [];
         if(this.#requiredSkills !== null && this.#requiredSkills.length > 0){
+            let requiredSkillsTemp = [];
+            let validateConvert = false;
             for(let i=0; i < this.#requiredSkills.length; i++){
                 let value = this.#requiredSkills[i];
-                if(typeof value !== Skill){
+                if(typeof value === 'string'){
                     let skillModel = new Skill();
                     let skill = await skillModel.findById(value);
                     if(skill !== null) requiredSkillsTemp.push(skill);
+                    validateConvert = true;
+                } else {
+                    validateConvert = false;
+                    break;
                 }
             }
-            this.#requiredSkills = requiredSkillsTemp;
+            if(validateConvert) this.#requiredSkills = requiredSkillsTemp;
         }
-        let requiredReligionTemp = [];
+        
         if(this.#requiredReligion !== null && this.#requiredReligion.length > 0){
+            let requiredReligionTemp = [];
+            let validateConvert = false;
             for(let i=0; i < this.#requiredReligion.length; i++){
                 let value = this.#requiredReligion[i];
-                if(typeof value !== Religion){
+                if(typeof value === 'string'){
                     let relModel = new Religion();
                     let religion = await relModel.findById(value);
                     if(religion !== null) requiredReligionTemp.push(religion);
+                    validateConvert = true;
+                } else {
+                    validateConvert = false;
+                    break;
                 }
             }
-            this.#requiredReligion = requiredReligionTemp;
+            if(validateConvert) this.#requiredReligion = requiredReligionTemp;
         }
     }
 

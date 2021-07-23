@@ -91,7 +91,7 @@ router.delete('/:jobId', async function(req, res) {
     const {jobId} = req.params;
     try{
         const jobController = new JobController();
-        let result = await jobController.deleteJob(jobId);
+        let result = await jobController.delete(jobId);
         
         res.status(200);
         res.send({ result });
@@ -120,7 +120,9 @@ router.put('/:jobId', async function(req, res) {
 // Apply job
 router.post('/:jobId/apply', async function(req, res){
     const {jobId} = req.params;
+    // let applicantDocuments = req.files.applicantDocuments;
     const userId = req.user.nim;
+
     try{
         const jobController = new JobController();
         let result = await jobController.applyJob(jobId, userId);
@@ -161,7 +163,7 @@ router.get('/:jobId/applicants', async function(req, res) {
     const {jobId} = req.params;
     try{
         const jobController = new JobController();
-        let result = await jobController.getJobApplicant(jobId);
+        let result = await jobController.getJobApplicants(jobId);
         res.send({ result });
     }catch(e){
         res.status(400);
