@@ -23,12 +23,11 @@ router.get('/', async function(req, res) {
 });
 
 router.post('/', async function(req, res) {
-    const eduData = req.body;
-    let userId = req.user.nim;
-    eduData.userId = userId;
+    const educationData = req.body;
+    educationData.nim = req.user.nim;
     try{
         const userController = new UserController();
-        let result = await userController.addEducation(eduData);
+        let result = await userController.addEducation(educationData);
 
         res.status(200);
         res.send({ result });
@@ -72,6 +71,7 @@ router.delete('/:educationId', async function(req, res) {
 router.put('/:educationId', async function(req, res) {
     const {educationId} = req.params;
     const educationData = req.body;
+    educationData.nim = req.user.nim;
     try{
         const userController = new UserController();
         let result = await userController.updateEducation(educationId, educationData);

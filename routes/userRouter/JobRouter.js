@@ -120,12 +120,12 @@ router.put('/:jobId', async function(req, res) {
 // Apply job
 router.post('/:jobId/apply', async function(req, res){
     const {jobId} = req.params;
-    // let applicantDocuments = req.files.applicantDocuments;
+    let applicantDocuments = req.files.applicantDocuments;
     const userId = req.user.nim;
 
     try{
         const jobController = new JobController();
-        let result = await jobController.applyJob(jobId, userId);
+        let result = await jobController.applyJob(jobId, userId, applicantDocuments);
         let message, status;
         if(result === 0){
             status = false;
@@ -142,7 +142,10 @@ router.post('/:jobId/apply', async function(req, res){
         } else if(result === 5){
             status = false;
             message = 'User sudah pernah melamar ke lowongan pekerjaan yang dipilih';
-        } else {
+        } else if (result === 6){ 
+            status = false;
+            message = 'Dokumen yang dimasukkan harus berekstensi zip';
+        }else {
             status = true;
             message = 'Berhasil melamar'
         }
