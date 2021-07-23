@@ -67,6 +67,15 @@ class User extends Model {
         this.#studyProgram = newProgram;
     }
 
+    savePhoto(userPhoto){
+        let pathPhoto = '';
+        if(userPhoto !== undefined){
+            pathPhoto = './uploads/user/profil-picture/' + userPhoto.name;
+            userPhoto.mv(pathPhoto);
+            return pathPhoto;
+        }
+        return null;
+    }
 
     // Getter
     getId(){
@@ -279,12 +288,16 @@ class User extends Model {
                     u.email = '${userData.email}',
                     u.birthDate = '${userData.birthDate}',
                     u.classYear = '${userData.classYear}',
-                    u.photo = '${userData.photo}',
                     u.phoneNumber = '${userData.phoneNumber}',
                     u.gender = ${userData.gender},
                     u.studyProgram = ${userData.studyProgram.id},
-                    u.status = ${userData.status}
-                    RETURN u`;
+                    u.status = ${userData.status},`;
+        let pathPhoto = this.savePhoto(userData.photo);
+        let userPhoto = '';
+        if(pathPhoto !== null){
+            userPhoto = pathPhoto;
+        }
+        query += `u.photo = '${userPhoto}' RETURN u`;
         try{
             let resultUpdate = await DB.query(query);
             if(resultUpdate.records.length > 0){
