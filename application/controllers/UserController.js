@@ -121,7 +121,7 @@ class UserController extends ResourceController{
     async create(userData) {
         let validInput = this.validate(userData);
         if(validInput !== true){
-            throw new Error(validInput);
+            throw validInput;
         }
 
         if(userData.photo !== null){
@@ -186,7 +186,11 @@ class UserController extends ResourceController{
     async update(userId, userData){
         let validInput = this.validate(userData);
         if(validInput !== true){
-            throw new Error(validInput);
+            let result = {
+                status: 2,
+                err: validInput
+            };
+            return result;
         }
         
         if(userData.photo !== null){
@@ -244,7 +248,7 @@ class UserController extends ResourceController{
 
         let tempSkills = await user.getSkills();
         let listSkills = [];
-        tempSkills.forEach((item, index) => {
+        tempSkills.forEach((item) => {
             let obj = item.toObject();
             listSkills.push(obj);
         });

@@ -27,7 +27,8 @@ router.post('/users', async function(req, res) {
         res.send({ newUser });
     } catch(e){
         res.status(400);
-        res.send(e);
+        let {message} = e;
+        res.send({message});
     }
 });
 // Get all user
@@ -38,7 +39,8 @@ router.get('/users',  async function(req, res) {
         res.send({ userList });
     }catch(e){
         res.status(400);
-        res.send(e);
+        let {message} = e;
+        res.send({message});
     }
 });
 
@@ -52,7 +54,8 @@ router.get('/users/:userId', async function(req, res) {
         res.send({ user });        
     }catch(e){
         res.status(400);
-        res.send(e);
+        let {message} = e;
+        res.send({message});
     }
 });
 
@@ -72,29 +75,26 @@ router.put('/users/:userId', async function(req, res) {
     userData.photo = userPhoto;
     try{
         let result = await uC.update(userId, userData);
-        if(result === null) {
+        if(typeof result === Error){
             res.status(400);
-            res.send({
-                status: false,
-                message: 'Gagal update'
-            });
-        } else if (typeof result === Error){
+            res.send({ result });
+        } else if(result.status === 2){
             res.status(400);
-            res.send({ 
-                status: false,
-                errors: result
-             });
+            res.send(result.err);
+        } else if(result === null){
+            res.status(400);
+            res.send({ message: 'Gagal update'  });
         } else {
             res.status(200);
             res.send({
-                status: true,
                 user: result,
                 message: 'Berhasil update'
             });
         }
     }catch(e){
         res.status(400);
-        res.send(e);
+        let {message} = e;
+        res.send({message});
     }
 });
 
@@ -120,7 +120,8 @@ router.post('/users/:userId/skills/add', async function(req, res) {
         }
     }catch(e){
         res.status(400);
-        res.send(e);
+        let {message} = e;
+        res.send({message});
     }
 });
 
@@ -137,7 +138,8 @@ router.post('/users/:userId/skills/remove', async function(req, res) {
         });
     }catch(e){
         res.status(400);
-        res.send(e);
+        let {message} = e;
+        res.send({message});
     }
 });
 
@@ -151,7 +153,8 @@ router.get('/users/:userId/skills', async function(req, res) {
         res.send({ userSkills });
     }catch(e){
         res.status(400);
-        res.send(e);
+        let {message} = e;
+        res.send({message});
     }
 });
 
@@ -167,7 +170,8 @@ router.get('/set-skillID', async function(req, res) {
         });
     }catch(e){
         res.status(400);
-        res.send(e);
+        let {message} = e;
+        res.send({message});
     }
 });
 
