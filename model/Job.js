@@ -822,11 +822,10 @@ class Job extends Model {
         let userID = user.getNim();
         let jobID = this.#jobID;
         let pathDocuments = '';
-        if(applicantDocuments !== undefined){
+        if(applicantDocuments !== null){
             if(applicantDocuments.mimetype !== 'application/zip'){
                 return 6;
             }
-            console.log(applicantDocuments);
             pathDocuments = './uploads/job/' + jobID + '/documents/' + userID + '/' + applicantDocuments.name;
             applicantDocuments.mv(pathDocuments);  
         }

@@ -294,7 +294,7 @@ class User extends Model {
                     u.gender = ${userData.gender},
                     u.studyProgram = ${userData.studyProgram},
                     u.status = ${userData.status},`;
-        if(userData.photo !== undefined){
+        if(userData.photo !== null){
             let pathPhoto = this.savePhoto(userData.photo);
             if(pathPhoto !== null){
                 newPhoto = pathPhoto;
