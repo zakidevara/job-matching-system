@@ -120,7 +120,10 @@ router.put('/:jobId', async function(req, res) {
 // Apply job
 router.post('/:jobId/apply', async function(req, res){
     const {jobId} = req.params;
-    let applicantDocuments = req.files.applicantDocuments;
+    let applicantDocuments = null;
+    if(req.files){
+        applicantDocuments = req.files.applicantDocuments;
+    }
     const userId = req.user.nim;
 
     try{

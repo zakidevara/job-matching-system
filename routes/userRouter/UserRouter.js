@@ -14,7 +14,11 @@ router.use(isUser);
 router.post('/users', async function(req, res) {
     let uC = new UserController();
     let userData = req.body;
-    let userPhoto = req.files.photo;
+    
+    let userPhoto = null;
+    if(req.files){
+        userPhoto = req.files.photo;
+    }
     userData.photo = userPhoto;
     try{
         let newUser = await uC.create(userData);
@@ -57,7 +61,11 @@ router.put('/users/:userId', async function(req, res) {
     let userId = req.params.userId;
     let userData = req.body;
     let uC = new UserController();
-    let userPhoto = req.files.photo;
+    
+    let userPhoto = null;
+    if(req.files){
+        userPhoto = req.files.photo;
+    }
     userData.photo = userPhoto;
     try{
         let result = await uC.update(userId, userData);

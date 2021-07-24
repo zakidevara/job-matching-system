@@ -121,12 +121,14 @@ class UserController extends ResourceController{
     async create(userData) {
         let validInput = this.validate(userData);
         if(validInput !== true){
-            return validInput;
+            throw new Error(validInput);
         }
 
-        let validPhoto = this.validateProfilPictureInput(userData.photo);
-        if(validPhoto !== true){
-            return validPhoto;
+        if(userData.photo !== null){
+            let validPhoto = this.validateProfilPictureInput(userData.photo);
+            if(validPhoto !== true){
+                throw new Error(validPhoto);
+            }
         }
 
         try{
@@ -143,7 +145,7 @@ class UserController extends ResourceController{
             user.init();
             let pathPhoto = '';
             let isPhotoValid = false;
-            if(userData.photo !== undefined){
+            if(userData.photo !== null){
                 pathPhoto = user.savePhoto(userData.photo);
                 if(pathPhoto !== null){
                     user.setPhoto(pathPhoto);
@@ -187,7 +189,7 @@ class UserController extends ResourceController{
             throw new Error(validInput);
         }
         
-        if(userData.photo !== undefined){
+        if(userData.photo !== null){
             let validPhoto = this.validateProfilPictureInput(userData.photo);
             if(validPhoto !== true){
                 throw new Error(validPhoto);
