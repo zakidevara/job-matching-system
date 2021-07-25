@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const path = require('path');
 
 
 // Authentication Routes
-router.get('/:filePath', async function(req, res) {
-    let filePath = req.params.filePath;
+router.get('/', async function(req, res) {
+    let filePath = req.query.filePath;
     try{
 
         res.status(200);
