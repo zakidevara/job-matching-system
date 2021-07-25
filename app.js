@@ -20,21 +20,21 @@ const logger = require('./utils/logger');
 const baseUrl = '/v1';
 
 dotenv.config();
-app.use(logger());
 app.use(cors());
+app.use(logger());
 app.use(fileUpload({createParentPath: true}));
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
+app.use(`${baseUrl}/auth`, AuthRouter);
+app.use(`${baseUrl}/file`, FileRouter);
 app.use(`${baseUrl}/jobs`, JobRouter);
 app.use(`${baseUrl}/job-type`, JobTypeRouter);
 app.use(`${baseUrl}/degrees`, DegreeRouter);
 app.use(`${baseUrl}/religions`, ReligionRouter);
-app.use(`${baseUrl}/auth`, AuthRouter);
 app.use(`${baseUrl}/skills`, SkillRouter);
 app.use(`${baseUrl}/work-experience-type`, WorkExperienceTypeRouter);
 app.use(`${baseUrl}/work-experience`, WorkExperienceRouter);
 app.use(`${baseUrl}/educations`, EducationRouter);
-app.use(`${baseUrl}/file`, FileRouter);
 app.use(baseUrl, UserRouter);
 
 

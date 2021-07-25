@@ -53,7 +53,7 @@ router.get('/users/:userId', async function(req, res) {
 
     try{
         let user = await uC.findByID(userId);  
-        user.photo = path.join(`${env.APP_URL}/file`, user.photo);  
+        user.photo = `${env.APP_URL}/v1/file?filePath=` + user.photo.replace('.', '');  
         res.send({ user });
     }catch(e){
         res.status(400);
