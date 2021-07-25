@@ -170,6 +170,16 @@ router.get('/:jobId/applicants', async function(req, res) {
     try{
         const jobController = new JobController();
         let result = await jobController.getJobApplicants(jobId);
+
+        result = result.map(item => {
+            if(item.applicantDocuments === ""){
+                delete item['applicantDocuments'];
+            }else{
+                item.applicantDocuments = `${process.env.APP_URL}/v1/file?filePath=` + user.applicantDocuments.replace('.', '');  
+            }
+            return item;
+        })
+
         res.send({ result });
     }catch(e){
         res.status(400);
