@@ -68,12 +68,12 @@ class Job extends Model {
         this.#type = newType;
     }
     async getApplicant(){
-        let query = `MATCH (j:Job {id: '${this.#jobID}'})<-[re:APPLY]-(u:User) RETURN re{.*, user: u{.*}}`;
+        let query = `MATCH (j:Job)<-[:APPLIED_TO]-(ja:JobApplication), (u:User)-[:HAS_APPLIED]->(ja) WHERE j.id = '${this.#jobID}' RETURN ja{.*, user: u{.*}}`;
         try{
             let resultApplicant = await DB.query(query);
             let listApplicant = [];
             resultApplicant.records.forEach((item) => {
-                let propApl = item.get('re');
+                let propApl = item.get('ja');
                 let user = new User(propApl.user.nim, propApl.user.name, propApl.user.email, propApl.user.password, propApl.user.birthDate, propApl.user.classYear, propApl.user.photo, propApl.user.phoneNumber, propApl.user.gender, propApl.user.studyProgram, propApl.user.status);
                 user.init();
 
@@ -819,58 +819,95 @@ class Job extends Model {
 
     async apply(user, applicantDocuments){
         // dont use it, being repaired
-        let userID = user.getNim();
-        let jobID = this.#jobID;
+        let userId = user.getNim();
+        let jobId = this.#jobID;
         let pathDocuments = '';
         if(applicantDocuments !== null){
             if(applicantDocuments.mimetype !== 'application/zip'){
                 return 6;
             }
             pathDocuments = './uploads/job/' + jobID + '/documents/' + userID + '/' + applicantDocuments.name;
-            applicantDocuments.mv(pathDocuments);  
+            applicantDocuments.mv(pathDocuments); 
         }
 
-        let query = `MATCH (u:User {nim: '${userID}'})-[:APPLY]->(j:Job {id: '${jobID}'}) RETURN u,j`;
+        let checkQuery = `MATCH (u:User {nim: '${userId}'})-[:HAS_APPLIED]->(ja:JobApplication)-[:APPLIED_TO]->(j:Job {id: '${jobId}'}) RETURN ja`;
         try{
-            let validateUserAndJob = await DB.query(query);
-            if(validateUserAndJob.records.length > 0){
-                return 5;   // User already apply to selected job
+            let validateApply = await DB.query(checkQuery);
+            if(validateApply.records.length > 0) return 5;  // User already apply to selected job
+            let currentDate = new Date();
+            let dateApplied = '';
+            if(currentDate.getMonth()+1 < 10){
+                dateApplied = currentDate.getFullYear() + "-0" + (currentDate.getMonth()+1) + "-" + currentDate.getDate();
             } else {
-                // Calculate similarity applicant with selected job
-                // let similarity = await JobStudentMatcher.match(this, user);
-                let currentDate = new Date();
-                let dateApplied = currentDate.getFullYear() + "-0" + 
-                                (currentDate.getMonth()+1) + "-" +
-                                currentDate.getDate();    
-                
-                let secQuery = `MATCH (u:User), (j:Job) WHERE u.nim = '${userID}' AND j.id = '${jobID}' 
-                                MERGE (u)-[rel:APPLY {userId: '${userID}', dateApplied: '${dateApplied}', applicantDocuments: ${pathDocuments}, status: 0}]->(j) 
-                                RETURN rel`;
-                try{
-                    let result = await DB.query(secQuery);
-                    if(result.records.length > 0){
-                        return 1;
-                    } else {
-                        return 0;
-                    }
-                } catch(e){
-                    throw e;
-                }
+                dateApplied = currentDate.getFullYear() + "-" + (currentDate.getMonth()+1) + "-" + currentDate.getDate();
             }
-        }catch(e){
+
+            let queryApply = `MATCH (u:User), (j:Job) WHERE u.nim = '${userId}' AND j.id = '${jobId}'
+                              CREATE (ja:JobApplication {dateApplied: '${dateApplied}', applicantDocuments: '${pathDocuments}', status: 0})
+                              CREATE (u)-[:HAS_APPLIED]->(ja)
+                              CREATE (ja)-[:APPLIED_TO]->(j)
+                              RETURN ja`;
+            try{
+                let resultApply = await DB.query(queryApply);
+                if(resultApply.records.length > 0){
+                    return 1;
+                } else {
+                    return 0;
+                }
+            } catch(e){
+                console.log(e);
+                throw e;
+            }
+        } catch(e){
+            console.log(e);
             throw e;
         }
+
+        // let query = `MATCH (u:User {nim: '${userID}'})-[:APPLY]->(j:Job {id: '${jobID}'}) RETURN u,j`;
+        // try{
+        //     let validateUserAndJob = await DB.query(query);
+        //     if(validateUserAndJob.records.length > 0){
+        //         return 5;   // User already apply to selected job
+        //     } else {
+        //         // Calculate similarity applicant with selected job
+        //         // let similarity = await JobStudentMatcher.match(this, user);
+        //         let currentDate = new Date();
+        //         let dateApplied = currentDate.getFullYear() + "-0" + 
+        //                         (currentDate.getMonth()+1) + "-" +
+        //                         currentDate.getDate();    
+                
+        //         let secQuery = `MATCH (u:User), (j:Job) WHERE u.nim = '${userID}' AND j.id = '${jobID}' 
+        //                         MERGE (u)-[rel:APPLY {userId: '${userID}', dateApplied: '${dateApplied}', applicantDocuments: '${pathDocuments}', status: 0}]->(j) 
+        //                         RETURN rel`;
+        //         try{
+        //             let result = await DB.query(secQuery);
+        //             if(result.records.length > 0){
+        //                 return 1;
+        //             } else {
+        //                 return 0;
+        //             }
+        //         } catch(e){
+        //             throw e;
+        //         }
+        //     }
+        // }catch(e){
+        //     throw e;
+        // }
     }
 
     async acceptApplicant(applicantData){
-        let query = `MATCH (j:Job {id: '${this.#jobID}'})<-[re:APPLY]-(u:User) 
-                     WHERE re.userId = '${applicantData.applicantId}' SET re.status = true 
-                     RETURN re{.*, userData: u{.*}}`;
+        let query = `MATCH (j:Job)<-[:APPLIED_TO]-(ja:JobApplication), (u:User)-[:HAS_APPLIED]->(ja) 
+                     WHERE j.id = '${this.#jobID}' AND u.nim = '${applicantData.applicantId}'
+                     SET ja.status = 1
+                     RETURN ja{.*, user: u{.*}};`;
+        // let query = `MATCH (j:Job {id: '${this.#jobID}'})<-[re:APPLY]-(u:User) 
+        //              WHERE re.userId = '${applicantData.applicantId}' SET re.status = true 
+        //              RETURN re{.*, userData: u{.*}}`;
         try{
             let result = await DB.query(query);
             if(result.records.length > 0){
-                let propRel = result.records[0].get('re');
-                if(propRel.status){
+                let propRel = result.records[0].get('ja');
+                if(propRel.status === 1){
                     let emailMessage = '';
                     if(applicantData.message.length === 0){
                         emailMessage += '<p>Selamat anda diterima pada lowongan pekerjaan ' + this.#title + '.</p>';
@@ -879,7 +916,7 @@ class Job extends Model {
                     }
                     const subject = "Hasil Lamaran Lowongan Pekerjaan";
                     try{
-                        let sendEmailStatus = await EmailService.sendEmail(propRel.userData.email, subject, emailMessage);
+                        let sendEmailStatus = await EmailService.sendEmail(propRel.user.email, subject, emailMessage);
                         if(sendEmailStatus){
                             return 'Success';
                         } else {
@@ -900,14 +937,18 @@ class Job extends Model {
     }
 
     async refuseApplicant(applicantData){
-        let query = `MATCH (j:Job {id: '${this.#jobID}'})<-[re:APPLY]-(u:User) 
-                     WHERE re.userId = '${applicantData.applicantId}' AND re.status = false 
-                     RETURN re{.*, userData: u{.*}}`;
+        let query = `MATCH (j:Job)<-[:APPLIED_TO]-(ja:JobApplication), (u:User)-[:HAS_APPLIED]->(ja) 
+                     WHERE j.id = '${this.#jobID}' AND u.nim = '${applicantData.applicantId}'
+                     SET ja.status = 2
+                     RETURN ja{.*, user: u{.*}};`;
+        // let query = `MATCH (j:Job {id: '${this.#jobID}'})<-[re:APPLY]-(u:User) 
+        //              WHERE re.userId = '${applicantData.applicantId}' AND re.status = false 
+        //              RETURN re{.*, userData: u{.*}}`;
         try{
             let result = await DB.query(query);
             if(result.records.length > 0){
-                let propRel = result.records[0].get('re');
-                if(!propRel.status){
+                let propRel = result.records[0].get('ja');
+                if(propRel.status === 2){
                     let emailMessage = '';
                     if(applicantData.message.length === 0){
                         emailMessage += '<p>Sangat disayangkan anda tidak diterima di lowongan pekerjaan ' + this.#title + '. Coba lagi di lain kesempatan oke.</p>';
@@ -916,7 +957,7 @@ class Job extends Model {
                     }
                     const subject = "Hasil Lamaran Lowongan Pekerjaan";
                     try{
-                        let sendEmailStatus = await EmailService.sendEmail(propRel.userData.email, subject, emailMessage);
+                        let sendEmailStatus = await EmailService.sendEmail(propRel.user.email, subject, emailMessage);
                         if(sendEmailStatus){
                             return 'Success';
                         } else {
