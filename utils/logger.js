@@ -33,7 +33,6 @@ function logger() {
    //return next(morgan('myformat', {stream: logStream} ));
    return function log(req, res, next) {
        req.app.use(morgan('myformat', { stream: logStream }));
-       req.app.use(morgan('myformat'));
 
        return next();
    };
