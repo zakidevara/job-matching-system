@@ -1,6 +1,7 @@
 const dotenv = require('dotenv');
 const express = require('express');
 const cors = require('cors')
+const morgan = require('morgan')
 const app = express();
 const port = 3000;
 const fileUpload = require('express-fileupload');
@@ -18,6 +19,7 @@ const bodyParser = require('body-parser');
 const baseUrl = '/v1';
 
 dotenv.config();
+app.use(morgan('combined'));
 app.use(cors());
 app.use(fileUpload({createParentPath: true}));
 app.use(bodyParser.urlencoded({extended: true}));
