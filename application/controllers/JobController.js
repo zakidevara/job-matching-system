@@ -409,30 +409,43 @@ class JobController extends ResourceController {
             // Get applicants of selected job and match the required skills
             try{
                 let applicants = await jobData.getApplicant();
-                for(let i=0; i < applicants.length; i++){
+                let nlApplicants = [];
+                if(applicants.length < 1) return nlApplicants;
+
+                applicants.forEach((item) => {
+                    let objHelper = {};
+                    objHelper['similarity'] = 0;
+                    objHelper['applicant'] = item;
+                    nlApplicants.push(objHelper);
+                });
+
+                for(let i=0; i < nlApplicants.length; i++){
                     try{
-                        let similarity = await JobStudentMatcher.match(jobData, applicants[i].getUser());
-                        applicants[i].setSimilarity(similarity);
+                        let similarity = await JobStudentMatcher.match(jobData, nlApplicants[i].applicant.getUser());
+                        nlApplicants[i].similarity = similarity;
                     } catch(e){
+                        console.log(e);
                         throw e;
                     }
                 }
         
                 // Sort applicants based on value similarity (descending)
-                applicants.sort((a,b) => {
-                    return b.getSimilarity() - a.getSimilarity();
+                nlApplicants.sort((a,b) => {
+                    return b.similarity - a.similarity;
                 });
         
-                applicants.forEach((item, index) => {
-                    let newApplObj = item.toObject();
-                    applicants[index] = newApplObj;
+                nlApplicants.forEach((item, index, array) => {
+                    let newApplObj = item.applicant.toObject();
+                    array[index].applicant = newApplObj;
                 });
         
-                return applicants;
+                return nlApplicants;
             } catch(e){
+                console.log(e);
                 throw e;
             }
         } catch(e){
+            console.log(e);
             throw e;
         }
     }
