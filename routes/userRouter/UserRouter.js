@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const isUser = require('../../middleware/isUser');
 
+const path = require('path');
 // Import controller
 const UserController = require('../../application/controllers/UserController');
 const SkillController = require('../../application/controllers/SkillController');
+const { env } = require('process');
 
 
 
@@ -50,8 +52,9 @@ router.get('/users/:userId', async function(req, res) {
     let uC = new UserController();
 
     try{
-        let user = await uC.findByID(userId);
-        res.send({ user });        
+        let user = await uC.findByID(userId);  
+        user.photo = path.join(`${env.APP_URL}/file`, user.photo);  
+        res.send({ user });
     }catch(e){
         res.status(400);
         let {message} = e;
