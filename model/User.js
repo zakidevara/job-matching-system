@@ -364,7 +364,7 @@ class User extends Model {
     }
 
     async removeSkill(skillID){
-        let query = `MATCH (u:User {nim: ${this.#nim}})-[rel:SKILLED_IN]->(s:Skill {id: '${skillID}'}) DELETE rel RETURN COUNT(rel)`;
+        let query = `MATCH (u:User {nim: '${this.#nim}'})-[rel:SKILLED_IN]->(s:Skill {id: '${skillID}'}) DELETE rel RETURN COUNT(rel)`;
         try{
             let result = await DB.query(query);
             if(result.records.length > 0){
