@@ -38,6 +38,14 @@ router.get('/users',  async function(req, res) {
     let uC = new UserController();
     try{
         let userList = await uC.all();
+        userList = userList.map(user => {
+            if(user.photo === ""){
+                delete user['photo'];
+            }else{
+                user.photo = `${process.env.APP_URL}/v1/file?filePath=` + user.photo.replace('.', '');  
+            }
+            return user;
+        })
         res.send({ userList });
     }catch(e){
         res.status(400);
@@ -53,7 +61,11 @@ router.get('/users/:userId', async function(req, res) {
 
     try{
         let user = await uC.findByID(userId);  
-        user.photo = `${env.APP_URL}/v1/file?filePath=` + user.photo.replace('.', '');  
+        if(user.photo === ""){
+            delete user['photo'];
+        }else{
+            user.photo = `${env.APP_URL}/v1/file?filePath=` + user.photo.replace('.', '');  
+        }
         res.send({ user });
     }catch(e){
         res.status(400);
