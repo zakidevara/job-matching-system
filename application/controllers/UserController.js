@@ -6,6 +6,7 @@ const {v4: uuidv4 } = require('uuid');
 const WorkExperience = require('../../model/WorkExperience');
 const WorkExperienceType = require('../../model/WorkExperienceType');
 const Validator = require('validatorjs');
+const Religion = require('../../model/Religion');
 
 class UserController extends ResourceController{
 
@@ -137,9 +138,11 @@ class UserController extends ResourceController{
             if(user === null) throw new Error('User tidak ditemukan');
 
             user.setName(userData.name);
+            userData.gender = parseInt(userData.gender);
             user.setGender(userData.gender);
             user.setBirthDate(userData.birthDate);
             user.setNumber(userData.phoneNumber);
+            userData.studyProgram = parseInt(userData.studyProgram);
             user.setStudyProgram(userData.studyProgram);
             user.setClassYear(userData.classYear);
             user.init();
@@ -153,6 +156,18 @@ class UserController extends ResourceController{
                 }
             }
             if(!isPhotoValid) user.setPhoto(pathPhoto);
+
+            // Religion
+            let religionModel = new Religion();
+            let religion;
+            try{
+                religion = await religionModel.findById(userData.religion);
+                if(religion === null) throw new Error('Religion tidak ditemukan');
+                user.setReligion(religion);
+            } catch(e){
+                console.log(e);
+                throw e;
+            }
 
             try{
                 let result = await user.save();

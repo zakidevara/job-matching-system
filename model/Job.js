@@ -221,12 +221,12 @@ class Job extends Model {
             query += `WITH j, jr, s
                       UNWIND [`;
             reqReligion.forEach((item) => {
-                query += `"${item.id}",`;
+                query += `"${item.name}",`;
             });
             // Remove comma at the end of char from current query
             query = query.substr(0, query.length-1);
             query += `] AS rl
-                      MATCH (r:Religion {id: rl})
+                      MATCH (r:Religion {name: rl})
                       MERGE (jr)-[:REQUIRES_RELIGION]->(r) `;
             isAddReligion = true;
         }
@@ -304,11 +304,11 @@ class Job extends Model {
                             if(resultReligion.records.length > 0){
                                 resultReligion.records.forEach((item) => {
                                     let propRel = item.get('r').properties;
-                                    let religion = new Religion(propRel.id, propRel.name);
+                                    let religion = new Religion(propRel.name);
                                     if(listReligion.length === 0){
                                         listReligion.push(religion);
                                     } else {
-                                        let validateItem = listReligion.some(rl => rl.getId() === religion.getId());
+                                        let validateItem = listReligion.some(rl => rl.getName() === religion.getName());
                                         if(!validateItem) listReligion.push(religion);
                                     }
                                 });
@@ -370,11 +370,11 @@ class Job extends Model {
                     if(resultReligion.records.length > 0){
                         resultReligion.records.forEach((item) => {
                             let propRel = item.get('r').properties;
-                            let religion = new Religion(propRel.id, propRel.name);
+                            let religion = new Religion(propRel.name);
                             if(listReligion.length === 0){
                                 listReligion.push(religion);
                             } else {
-                                let validateItem = listReligion.some(rl => rl.getId() === religion.getId());
+                                let validateItem = listReligion.some(rl => rl.getName() === religion.getName());
                                 if(!validateItem){
                                     listReligion.push(religion);
                                 }
@@ -616,7 +616,7 @@ class Job extends Model {
                                             // Remove comma at the end of char from current query
                                             thirdQuery = thirdQuery.substr(0, thirdQuery.length-1);
                                             thirdQuery += `] AS rl
-                                                           MERGE (r:Religion {id: rl})
+                                                           MERGE (r:Religion {name: rl})
                                                            MERGE (jr)-[:REQUIRES_RELIGION]->(r)
                                                            RETURN r`;
                                             try{
@@ -625,11 +625,11 @@ class Job extends Model {
                                                     let templistReligion = [];
                                                     resultUpdateReligion.records.forEach((item) => {
                                                         let propRel = item.get('r').properties;
-                                                        let religion = new Religion(propRel.id, propRel.name);
+                                                        let religion = new Religion(propRel.name);
                                                         if(templistReligion.length === 0){
                                                             templistReligion.push(religion);
                                                         } else {
-                                                            let validateItem = templistReligion.some(rl => rl.getId() === religion.getId());
+                                                            let validateItem = templistReligion.some(rl => rl.getName() === religion.getName());
                                                             if(!validateItem){
                                                                 templistReligion.push(religion);
                                                             }
@@ -643,26 +643,26 @@ class Job extends Model {
                                         } else {
                                             // Check if current required religion are same
                                             let diffReligion = currReqReligion.filter(el => {
-                                                return !newReqReligion.some(rl => rl === el.getId());
+                                                return !newReqReligion.some(rl => rl === el.getName());
                                             });
                                             if(diffReligion.length > 0){
                                                 if(diffReligion.length == 1){
                                                     thirdQuery += `
                                                                    WITH jr
-                                                                   MATCH (jr)-[re:REQUIRES_RELIGION]->(:Religion {id: '${diffReligion[0].getId()}'})
+                                                                   MATCH (jr)-[re:REQUIRES_RELIGION]->(:Religion {name: '${diffReligion[0].getName()}'})
                                                                    DELETE re`;
                                                 } else {
                                                     thirdQuery += `
                                                                    WITH jr 
                                                                    UNWIND [`;
                                                     for(let i=0; i < diffReligion.length; i++){
-                                                        let diffValue = diffReligion[i].getId();
+                                                        let diffValue = diffReligion[i].getName();
                                                         thirdQuery += `"${diffValue}",`;
                                                     }
                                                     // Remove comma at the end of char from current query
                                                     thirdQuery = thirdQuery.substr(0, thirdQuery.length-1);
                                                     thirdQuery += `] AS rl
-                                                                   MERGE (jr)-[re:REQUIRES_RELIGION]->(:Religion {id: rl})
+                                                                   MERGE (jr)-[re:REQUIRES_RELIGION]->(:Religion {name: rl})
                                                                    DELETE re`;
                                                 }
                                             }
@@ -677,7 +677,7 @@ class Job extends Model {
                                             }
                                             thirdQuery = thirdQuery.substr(0, thirdQuery.length-1);
                                             thirdQuery += `] AS rl
-                                                            MERGE (r:Religion {id: rl})
+                                                            MERGE (r:Religion {name: rl})
                                                             MERGE (jr)-[:REQUIRES_RELIGION]->(r)
                                                             RETURN r`;
                                             try{
@@ -686,11 +686,11 @@ class Job extends Model {
                                                     let templistReligion = [];
                                                     resultUpdateReligion.records.forEach((item) => {
                                                         let propRel = item.get('r').properties;
-                                                        let religion = new Religion(propRel.id, propRel.name);
+                                                        let religion = new Religion(propRel.name);
                                                         if(templistReligion.length === 0){
                                                             templistReligion.push(religion);
                                                         } else {
-                                                            let validateItem = templistReligion.some(rl => rl.getId() === religion.getId());
+                                                            let validateItem = templistReligion.some(rl => rl.getName() === religion.getName());
                                                             if(!validateItem){
                                                                 templistReligion.push(religion);
                                                             }
@@ -791,11 +791,11 @@ class Job extends Model {
                         if(resultReligion.records.length > 0){
                             resultReligion.records.forEach((item) => {
                                 let propRel = item.get('r').properties;
-                                let religion = new Religion(propRel.id, propRel.name);
+                                let religion = new Religion(propRel.name);
                                 if(listReligion.length === 0){
                                     listReligion.push(religion);
                                 } else {
-                                    let validateItem = listReligion.some(rl => rl.getID() === religion.getID());
+                                    let validateItem = listReligion.some(rl => rl.getName() === religion.getName());
                                     if(!validateItem) listReligion.push(religion);
                                 }
                             });

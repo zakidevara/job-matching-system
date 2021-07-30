@@ -9,7 +9,7 @@ class ReligionController extends ResourceController{
 
     // Admin section
     async create(religionData){
-        let newReligion = new Religion(uuidv4(), religionData.name);
+        let newReligion = new Religion(religionData.name);
         try{
             let result = await newReligion.save();
             if(result){
