@@ -59,7 +59,7 @@ class Skill extends Model {
         let listParents;
         try{
             listParents = await DB.query(
-                `MATCH (:Skill {name: '${this.#name}'})-[:SUBJECT|BROADER*0..2]->(result:Skill) Return result`
+                `MATCH (:Skill {name: '${this.#name}'})-[:SUPER_TOPIC_OF*0..2]->(result:Skill) Return result`
             );
 
         }catch(e){

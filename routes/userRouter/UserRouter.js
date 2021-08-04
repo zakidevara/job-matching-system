@@ -10,27 +10,6 @@ const SkillController = require('../../application/controllers/SkillController')
 
 router.use(isUser);
 // User route
-// Create new user
-router.post('/users', async function(req, res) {
-    let uC = new UserController();
-    let userData = req.body;
-    
-    let userPhoto = null;
-    if(req.files){
-        userPhoto = req.files.photo;
-    }
-    userData.photo = userPhoto;
-    try{
-        let newUser = await uC.create(userData);
-
-        res.status(200);
-        res.send({ newUser });
-    } catch(e){
-        res.status(400);
-        let {message} = e;
-        res.send({message});
-    }
-});
 // Get all user
 router.get('/users',  async function(req, res) {
     let uC = new UserController();

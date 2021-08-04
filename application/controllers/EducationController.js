@@ -1,9 +1,28 @@
 const Education = require('../../model/Education');
 const ResourceController = require('./ResourceController');
+const Validator = require('validatorjs');
 
 class EducationController extends ResourceController{
     constructor(){
         super(Education);
+    }
+
+    validate(eduData){
+        let rules = {
+            educationId: 'required|string',
+            nim: 'required|string',
+            schoolName: 'required|string',
+            degreeId: 'required|string',
+            fieldOfStudy: 'string',
+            startYear: 'required|integer',
+            endYear: 'integer'
+        };
+        let validator = new Validator(eduData, rules);
+        if(validator.passes()){
+            return true;
+        } else {
+            return validator.errors;
+        }
     }
 
     async all(userId){

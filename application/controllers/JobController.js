@@ -4,7 +4,6 @@ const Job = require("../../model/Job");
 const JobStudentMatcher = require("../matcher/JobStudentMatcher");
 const {v4: uuidv4 } = require('uuid');
 const JobRequirement = require("../../model/JobRequirement");
-const JobType = require("../../model/JobType");
 const Validator = require('validatorjs');
 
 class JobController extends ResourceController {
@@ -19,7 +18,7 @@ class JobController extends ResourceController {
             nim: 'string',
             title: 'required|string',
             quantity: 'required|integer',
-            jobType: 'required|string',
+            jobType: 'required|integer',
             location: 'string',
             benefits: 'string',
             minSalary: 'string',
@@ -132,9 +131,10 @@ class JobController extends ResourceController {
         try{
             await newJobReq.init();
             try{
-                let jobTypeModel = new JobType();
-                let jobType = await jobTypeModel.findById(jobData.jobType);
-                let newJob = new Job(jobId, userId, jobData.title, jobData.quantity, jobData.location, jobData.contact, jobData.benefits, jobData.description, jobData.duration, jobData.remote, jobData.companyName, jobData.endDate, jobData.minSalary, jobData.maxSalary, true, newJobReq, jobType);
+                // let jobTypeModel = new JobType();
+                // let jobType = await jobTypeModel.findById(jobData.jobType);
+
+                let newJob = new Job(jobId, userId, jobData.title, jobData.quantity, jobData.location, jobData.contact, jobData.benefits, jobData.description, jobData.duration, jobData.remote, jobData.companyName, jobData.endDate, jobData.minSalary, jobData.maxSalary, true, newJobReq, jobData.jobType);
                 try{
                     let resultSave = await newJob.save();
                     if(resultSave){
