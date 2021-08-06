@@ -133,8 +133,19 @@ class JobController extends ResourceController {
             try{
                 // let jobTypeModel = new JobType();
                 // let jobType = await jobTypeModel.findById(jobData.jobType);
+                let newJobType = parseInt(jobData.jobType);
+                let newJob = new Job(jobId, userId, jobData.title, jobData.quantity, jobData.location, jobData.contact, jobData.benefits, jobData.description, jobData.duration, jobData.remote, jobData.companyName, '',  jobData.endDate, jobData.minSalary, jobData.maxSalary, true, newJobReq, newJobType);
+                let pathLogo = '';
+                let isLogoValid = false;
+                if(jobData.companyLogo !== null){
+                    pathLogo = newJob.saveCompanyLogo(jobData.companyLogo);
+                    if(pathLogo !== null){
+                        newJob.setCompanyLogo(pathLogo);
+                        isLogoValid = true;
+                    }
+                }
+                if(!isLogoValid) newJob.setCompanyLogo(pathLogo);
 
-                let newJob = new Job(jobId, userId, jobData.title, jobData.quantity, jobData.location, jobData.contact, jobData.benefits, jobData.description, jobData.duration, jobData.remote, jobData.companyName, jobData.endDate, jobData.minSalary, jobData.maxSalary, true, newJobReq, jobData.jobType);
                 try{
                     let resultSave = await newJob.save();
                     if(resultSave){

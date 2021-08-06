@@ -22,6 +22,7 @@ class Job extends Model {
     #duration;
     #remote;
     #companyName;
+    #companyLogo;
     #endDate;
     #minSalary;
     #maxSalary;
@@ -29,7 +30,7 @@ class Job extends Model {
     #requirements;
     #type;
 
-    constructor(jobID='', userID='', title='', quantity=0, location='', contact='', benefits='', description='', duration='', remote=false, companyName='', endDate='', minSalary=0, maxSalary=0, status=true, jobReq = {}, jobType = 0){
+    constructor(jobID='', userID='', title='', quantity=0, location='', contact='', benefits='', description='', duration='', remote=false, companyName='', companyLogo='', endDate='', minSalary=0, maxSalary=0, status=true, jobReq = {}, jobType = 0){
         super();
         this.#jobID = jobID;
         this.#userID = userID;
@@ -42,6 +43,7 @@ class Job extends Model {
         this.#duration = duration;
         this.#remote = remote;
         this.#companyName = companyName;
+        this.#companyLogo = companyLogo;
         this.#endDate = endDate;
         this.#minSalary = minSalary;
         this.#maxSalary = maxSalary;
@@ -65,6 +67,9 @@ class Job extends Model {
     }
     setJobType(newType){
         this.#type = newType;
+    }
+    setCompanyLogo(newLogo){
+        this.#companyLogo = newLogo;
     }
     async getApplicant(){
         let query = `MATCH (j:Job)<-[:APPLIED_TO]-(ja:JobApplication), (u:User)-[:HAS_APPLIED]->(ja) WHERE j.id = '${this.#jobID}' RETURN ja{.*, user: u{.*}}`;
@@ -102,6 +107,7 @@ class Job extends Model {
             duration: this.#duration,
             remote: this.#remote,
             companyName: this.#companyName,
+            companyLogo: this.#companyLogo,
             endDate: this.#endDate,
             minSalary: this.#minSalary,
             maxSalary: this.#maxSalary,
@@ -122,6 +128,16 @@ class Job extends Model {
         return result;
     }
 
+    saveCompanyLogo(companyLogo){
+        let pathLogo = '';
+        if(companyLogo !== null){
+            pathLogo = './uploads/job/' + this.#jobID + '/logo/' + companyLogo.name;
+            companyLogo.mv(pathLogo); 
+            return pathLogo;
+        }
+        return null;
+    }
+
     // Database related
     async save(){
         console.log(this.#jobID);
@@ -130,6 +146,7 @@ class Job extends Model {
         // Object data
         let objRequirement = this.#requirements.toObject();
         let objJob = this.toObject();
+        let jobType = this.#type;
 
         // Create node Job
         let query = `MERGE (j:Job {id: '${this.#jobID}'})
@@ -138,17 +155,28 @@ class Job extends Model {
                      j.quantity = ${this.#quantity},
                      j.endDate = '${this.#endDate}',
                      j.status = ${this.#status},`;
-        
-        let restOfJobProperty = ["description", "companyName", "remote", "location", "duration", "benefits", "minSalary", "maxSalary", "jobType"];
+            
+        delete objJob['id'];
+        delete objJob['title'];
+        delete objJob['contact'];
+        delete objJob['quantity'];
+        delete objJob['endDate'];
+        delete objJob['status'];
+
+        let restOfJobProperty = Object.keys(objJob);
         for(let i=0; i < restOfJobProperty.length; i++){
             let property = restOfJobProperty[i];
-            if(objJob[property] !== null && property !== 'requirements'){
+            if(objJob[property] !== null && objJob[property] !== undefined && property !== 'requirements'){
                 let value = objJob[property];
-                if(property !== 'remote' && property !== 'minSalary' && property !== 'maxSalary' && property !== 'jobType'){
-                    value = this.cleaningStringFormat(value);
-                    query += `j.` + property + ` = '${value}',`;
+                if(property === 'jobType'){
+                    query += `j.` + property + ` = ${jobType},`;
                 } else {
-                    query += `j.` + property + ` = ${value},`;
+                    if(property !== 'remote' && property !== 'minSalary' && property !== 'maxSalary'){
+                        value = this.cleaningStringFormat(value);
+                        query += `j.` + property + ` = '${value}',`;
+                    } else {
+                        query += `j.` + property + ` = ${value},`;
+                    }
                 }
             }
         }
@@ -171,16 +199,20 @@ class Job extends Model {
                         if(property === 'classYearRequirement'){
                             query += `jr.` + property + ` = [${value.join()}],`;
                         } else {
-                            query += `jr. ` + property + ` = [`;
-                            value.forEach((item) => {
-                                if(property === 'studyProgramRequirement'){
-                                    query += item.studyProgramId + `,`;
-                                } else {
-                                    query += item.genderId + `,`;
-                                }
-                            });
-                            query = query.substr(0, query.length-1);
-                            query += `],`;
+                            query += `jr.` + property + ` = [`;
+                            if(value.length > 0){
+                                value.forEach((item) => {
+                                    if(property === 'studyProgramRequirement'){
+                                        query += item.studyProgramId + `,`;
+                                    } else {
+                                        query += item.genderId + `,`;
+                                    }
+                                });
+                                query = query.substr(0, query.length-1);
+                                query += `],`;
+                            } else {
+                                query += `],`;
+                            }
                         }
                     } else {
                         if(property !== 'maximumAge'){
@@ -243,6 +275,7 @@ class Job extends Model {
                       MERGE (u)-[:POSTS]->(j)
                       RETURN j, jr, s, u`;
         }
+        console.log('Last Query: ', query);
         try{
             let resultSave = await DB.query(query);
             return resultSave.records.length > 0 ? true : false;
@@ -317,7 +350,7 @@ class Job extends Model {
                             throw e;
                         }
     
-                        let job = new Job(propJob.id, propJob.userId, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status, jobReq, jobType);
+                        let job = new Job(propJob.id, propJob.userId, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.companyLogo, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status, jobReq, jobType);
                         jobData.push(job);
                     }
                 }
@@ -347,7 +380,7 @@ class Job extends Model {
                         let jobReq = new JobRequirement(jobData.requirements.classYearRequirement, jobData.requirements.studyProgramRequirement, jobData.requirements.documentRequirement, [], jobData.requirements.softSkillRequirment, jobData.requirements.maximumAge, [], jobData.requirements.requiredGender, jobData.requirements.description);
                         jobReqObject = jobReq;
 
-                        let job = new Job(jobData.id, jobData.userID, jobData.title, jobData.quantity, jobData.location, jobData.contact, jobData.benefits, jobData.description, jobData.duration, jobData.remote, jobData.companyName, jobData.endDate, jobData.minSalary, jobData.maxSalary, jobData.status, {}, jobType);
+                        let job = new Job(jobData.id, jobData.userID, jobData.title, jobData.quantity, jobData.location, jobData.contact, jobData.benefits, jobData.description, jobData.duration, jobData.remote, jobData.companyName, jobData.companyLogo, jobData.endDate, jobData.minSalary, jobData.maxSalary, jobData.status, {}, jobType);
                         jobObject = job;
                     }
 
@@ -408,7 +441,7 @@ class Job extends Model {
         let finalUpdatedJobData = {};
         let contact = updatedJobData.contact;
         contact = this.cleaningStringFormat(contact);
-        let currJobType = this.#type;
+        updatedJobData.jobType = parseInt(updatedJobData.jobType);
         
 
         // First section of query (update node Job)
@@ -431,7 +464,7 @@ class Job extends Model {
         let jobProperty = Object.keys(updatedJobData);
         for(let i=0; i < jobProperty.length; i++){
             let currProp = jobProperty[i];
-            if(currProp !== 'requirements' && currProp !== 'jobType'){
+            if(currProp !== 'requirements' && currProp !== 'companyLogo'){
                 let propValue = updatedJobData[currProp];
                 if(currProp !== 'remote' && currProp !== 'minSalary' && currProp !== 'maxSalary' && currProp !== 'jobType'){
                     if(propValue !== null){
@@ -448,6 +481,19 @@ class Job extends Model {
                     }
                 }
             }
+        }
+
+        // Check if company logo is change
+        let oldLogo = this.#companyLogo;
+        let newLogo = '';
+        if(updatedJobData.companyLogo !== null){
+            let pathLogo = this.saveCompanyLogo(updatedJobData.companyLogo);
+            if(pathLogo !== null){
+                newLogo = pathLogo;
+                query += `j.companyLogo = '${newLogo}',`;
+            }
+        } else {
+            query += `j.companyLogo = '${oldLogo}',`;
         }
 
         // Remove comma at the end of char from current query
@@ -484,11 +530,19 @@ class Job extends Model {
                 if(item !== 'requiredSkills' && item !== 'requiredReligion'){
                     let propValue = updatedJobData.requirements[item];
                     if(Array.isArray(propValue)){
-                        if(propValue !== null){
-                            query += ` jr.` + item + ` = [${updatedJobData.requirements[item].join()}],`;
-                        } else {
-                            query += ` jr.` + item + ` = null,`;
-                        }
+                        // if(item === 'classYearRequirement'){
+                        //     query += ` jr.` + item + ` = [${propValue.join()}],`;
+                        // } else {
+                        //     query += `jr.` + item + ` = [`;
+                        //     if(propValue.length > 0){
+                        //         propValue.forEach((item) => {
+                        //             query
+                        //         });
+                        //     } else {
+                        //         query += `jr.` + item + `],`;
+                        //     }
+                        // }
+                        query += ` jr.` + item + ` = [${propValue.join()}],`;
                     } else {
                         if(item !== 'maximumAge'){
                             if(propValue !== null){
@@ -724,7 +778,7 @@ class Job extends Model {
                                 }
                                 updatedJobReq.setSkills(listSkills);
                                 updatedJobReq.setReligions(listReligion);
-                                let updatedJob = new Job(this.#jobID, this.#userID, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status, updatedJobReq, propJob.jobType);
+                                let updatedJob = new Job(this.#jobID, this.#userID, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.companyLogo, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status, updatedJobReq, propJob.jobType);
                                 finalUpdatedJobData = updatedJob;
                             }
                         }catch(e){
@@ -810,7 +864,7 @@ class Job extends Model {
                         throw e;
                     }
 
-                    let job = new Job(propJob.id, propJob.userId, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status, jobReq, propJob.jobType);
+                    let job = new Job(propJob.id, propJob.userId, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.companyLogo, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status, jobReq, propJob.jobType);
                     jobData.push(job);
                 }
             }

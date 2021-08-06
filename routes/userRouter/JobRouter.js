@@ -7,10 +7,22 @@ router.use(isUser);
 // Job route
 // Create new job
 router.post('/', async function(req, res) {
+    let jobData = req.body;
+    let stringReq = jobData.requirements;
+    let requirements = null;
+    if(typeof stringReq === 'string'){
+        let parsedJson = JSON.parse(stringReq);
+        requirements = parsedJson;
+        jobData.requirements = requirements;
+    }
+    let companyLogo = null;
+    if(req.files){
+        companyLogo = req.files.companyLogo;
+    }
+    jobData.companyLogo = companyLogo;
+    jobData.userId = req.user.nim;
     try{
         const jobController = new JobController();
-        let jobData = req.body;
-        jobData.userId = req.user.nim;
         let result = await jobController.create(jobData);
 
         res.status(200);
@@ -105,6 +117,12 @@ router.delete('/:jobId', async function(req, res) {
 router.put('/:jobId', async function(req, res) {
     const {jobId} = req.params;
     const jobData = req.body;
+    let companyLogo = null;
+    if(req.files){
+        companyLogo = req.files.companyLogo;
+    }
+    jobData.companyLogo = companyLogo;
+
     try{
         const jobController = new JobController();
         let result = await jobController.update(jobId, jobData);

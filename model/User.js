@@ -74,7 +74,7 @@ class User extends Model {
 
     savePhoto(userPhoto){
         let pathPhoto = '';
-        if(userPhoto !== undefined){
+        if(userPhoto !== null){
             pathPhoto = './uploads/user/profil-picture/' + userPhoto.name;
             userPhoto.mv(pathPhoto);
             return pathPhoto;
