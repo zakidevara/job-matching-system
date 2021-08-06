@@ -19,11 +19,12 @@ class User extends Model {
     #phoneNumber;
     #gender;
     #studyProgram;
+    #religion;
     #emailVerificationCode;
     #status;
     #workExpList;
 
-    constructor(nim = '', name = '', email = '', password = '', birthDate = '', classYear = '', photo = '', phoneNumber = '', gender = 0, studyProgram = 0, status = 0){
+    constructor(nim = '', name = '', email = '', password = '', birthDate = '', classYear = '', photo = '', phoneNumber = '', gender = 0, studyProgram = 0, status = 0, religion = null){
         super("nim");
         this.#nim = nim;
         this.#name = name;
@@ -37,6 +38,7 @@ class User extends Model {
         this.#studyProgram = studyProgram;
         this.#status = status;
         this.#workExpList = [];
+        this.#religion = religion;
     }
 
     setEmailVerificationCode(newCode){
@@ -66,10 +68,13 @@ class User extends Model {
     setStudyProgram(newProgram){
         this.#studyProgram = newProgram;
     }
+    setReligion(newReligion){
+        this.#religion = newReligion;
+    }
 
     savePhoto(userPhoto){
         let pathPhoto = '';
-        if(userPhoto !== undefined){
+        if(userPhoto !== null){
             pathPhoto = './uploads/user/profil-picture/' + userPhoto.name;
             userPhoto.mv(pathPhoto);
             return pathPhoto;
@@ -173,7 +178,8 @@ class User extends Model {
             phoneNumber: this.#phoneNumber,
             gender: this.#gender,
             studyProgram: this.#studyProgram,
-            status: this.#status
+            status: this.#status,
+            religion: this.#religion.toObject()
         };
         return objResult;
     }
@@ -203,7 +209,26 @@ class User extends Model {
     // Database Related
     // Save instance to database
     async save(){
-        let query = `MERGE (u:User {nim: '${this.#nim}'})
+        let query = ``;
+        if(this.#religion !== null){
+            query += `MERGE (u:User {nim: '${this.#nim}'})
+                     SET u.name = '${this.#name}', 
+                     u.email = '${this.#email}',
+                     u.password = '${this.#password}', 
+                     u.birthDate = '${this.#birthDate}',
+                     u.classYear = ${this.#classYear || null}, 
+                     u.photo = '${this.#photo}',
+                     u.phoneNumber = '${this.#phoneNumber}',
+                     u.gender = ${this.#gender.id || null},
+                     u.studyProgram = ${this.#studyProgram.id || null},
+                     u.emailVerificationCode = ${this.#emailVerificationCode || null},
+                     u.status = ${this.#status}
+                     WITH u
+                     MATCH (r:Religion {name: '${this.#religion.getName()}'})
+                     MERGE (u)-[:HAS_RELIGION]->(r)
+                     RETURN u`;
+        } else {
+            query += `MERGE (u:User {nim: '${this.#nim}'})
                      SET u.name = '${this.#name}', 
                      u.email = '${this.#email}',
                      u.password = '${this.#password}', 
@@ -216,6 +241,7 @@ class User extends Model {
                      u.emailVerificationCode = ${this.#emailVerificationCode || null},
                      u.status = ${this.#status}
                      RETURN u`;
+        }
         try{
             let result = await DB.query(query);
             return result.records.length > 0 ? true : false;
@@ -232,7 +258,7 @@ class User extends Model {
             let listUsers = [];
             resultListUsers.records.forEach((item) => {
                 let propUser = item.get('u').properties;
-                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNumber, propUser.gender, propUser.studyProgram, propUser.status);
+                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNumber, propUser.gender, propUser.studyProgram, propUser.status, undefined);
                 user.init();
                 listUsers.push(user);
             });
@@ -244,15 +270,27 @@ class User extends Model {
     }
 
     // Find user by ID
-    async findById(userID){
-        let query = `MATCH (u:User {nim: '${userID}'}) RETURN u`;
+    async findById(userId){
+        let query = `MATCH (u:User {nim: '${userId}'}) RETURN u`;
         try{
             let resultUserData = await DB.query(query);
             if(resultUserData.records.length > 0){
                 let propUser = resultUserData.records[0].get('u').properties;
-                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNumber, propUser.gender, propUser.studyProgram, propUser.status);
+                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNumber, propUser.gender, propUser.studyProgram, propUser.status, undefined);
                 user.setEmailVerificationCode(propUser.emailVerificationCode);
                 user.init();
+                let queryReligion = `MATCH (u:User {nim: '${user.getNim()}'})-[:HAS_RELIGION]->(r:Religion) RETURN r`;
+                try{
+                    let resultRel = await DB.query(queryReligion);
+                    if(resultRel.records.length > 0){
+                        let propRel = resultRel.records[0].get('r').properties;
+                        let religion = new Religion(propRel.name);
+                        user.setReligion(religion);
+                    }
+                } catch(e){
+                    throw e;
+                }
+
                 return user;
             } else{            
                 throw new Error("User tidak ditemukan");
@@ -269,7 +307,7 @@ class User extends Model {
             let resultUserData = await DB.query(query);
             if(resultUserData.records.length > 0){
                 let propUser = resultUserData.records[0].get('u').properties;
-                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNumber, propUser.gender, propUser.studyProgram, propUser.status);
+                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNumber, propUser.gender, propUser.studyProgram, propUser.status, undefined);
                 user.setEmailVerificationCode(propUser.emailVerificationCode);
                 user.init();
                 return user;
@@ -298,17 +336,31 @@ class User extends Model {
             let pathPhoto = this.savePhoto(userData.photo);
             if(pathPhoto !== null){
                 newPhoto = pathPhoto;
-                query += `u.photo = '${newPhoto}' RETURN u`;
+                query += `u.photo = '${newPhoto}'`;
             }
         } else {
-            query += `u.photo = '${oldPhoto}' RETURN u`;
+            query += `u.photo = '${oldPhoto}'`;
+        }
+        if(userData.religion !== this.#religion.getName()){
+            query += `WITH u
+                      MATCH (u)-[re:HAS_RELIGION]->(r:Religion {name: '${this.#religion.getName()}'})
+                      DELETE re
+                      WITH u
+                      MATCH (nr:Religion {name: '${userData.religion}'})
+                      MERGE (u)-[:HAS_RELIGION]->(nr)
+                      RETURN u{.*, religion: nr{.*}}`;
+        } else {
+            query += `WITH u
+                      MATCH (u)-[:HAS_RELIGION]->(r:Religion)
+                      RETURN u{.*, religion: r{.*}}`;
         }
         
         try{
             let resultUpdate = await DB.query(query);
             if(resultUpdate.records.length > 0){
-                let propUser = resultUpdate.records[0].get('u').properties;
-                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNumber, propUser.gender, propUser.studyProgram, propUser.status);
+                let propUser = resultUpdate.records[0].get('u');
+                let religion = new Religion(propUser.religion.name);
+                let user = new User(propUser.nim, propUser.name, propUser.email, propUser.password, propUser.birthDate, propUser.classYear, propUser.photo, propUser.phoneNumber, propUser.gender, propUser.studyProgram, propUser.status, religion);
                 user.init();
                 return user;
             } else {

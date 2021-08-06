@@ -6,6 +6,9 @@ const {v4: uuidv4 } = require('uuid');
 const WorkExperience = require('../../model/WorkExperience');
 const WorkExperienceType = require('../../model/WorkExperienceType');
 const Validator = require('validatorjs');
+const Religion = require('../../model/Religion');
+const EducationController = require('./EducationController');
+const WorkExperienceController = require('./WorkExperienceController');
 
 class UserController extends ResourceController{
 
@@ -65,42 +68,42 @@ class UserController extends ResourceController{
         }
     }
 
-    validateEducationInput(eduData){
-        let rules = {
-            educationId: 'required|string',
-            nim: 'required|string',
-            schoolName: 'required|string',
-            degreeId: 'required|string',
-            fieldOfStudy: 'string',
-            startYear: 'required|integer',
-            endYear: 'integer'
-        };
-        let validator = new Validator(eduData, rules);
-        if(validator.passes()){
-            return true;
-        } else {
-            return validator.errors;
-        }
-    }
+    // validateEducationInput(eduData){
+    //     let rules = {
+    //         educationId: 'required|string',
+    //         nim: 'required|string',
+    //         schoolName: 'required|string',
+    //         degreeId: 'required|string',
+    //         fieldOfStudy: 'string',
+    //         startYear: 'required|integer',
+    //         endYear: 'integer'
+    //     };
+    //     let validator = new Validator(eduData, rules);
+    //     if(validator.passes()){
+    //         return true;
+    //     } else {
+    //         return validator.errors;
+    //     }
+    // }
 
-    validateWorkExpInput(workExpData){
-        let rules = {
-            nim: 'required|string',
-            title: 'required|string',
-            companyName: 'required|string',
-            workExperienceType: {
-                id: 'required|string'
-            },
-            startDate: 'required|date',
-            endDate: 'after:startDate|date'
-        };
-        let validator = new Validator(workExpData, rules);
-        if(validator.passes()){
-            return true;
-        } else {
-            return validator.errors;
-        }
-    }
+    // validateWorkExpInput(workExpData){
+    //     let rules = {
+    //         nim: 'required|string',
+    //         title: 'required|string',
+    //         companyName: 'required|string',
+    //         workExperienceType: {
+    //             id: 'required|string'
+    //         },
+    //         startDate: 'required|date',
+    //         endDate: 'after:startDate|date'
+    //     };
+    //     let validator = new Validator(workExpData, rules);
+    //     if(validator.passes()){
+    //         return true;
+    //     } else {
+    //         return validator.errors;
+    //     }
+    // }
 
     // Get all user
     async all(){
@@ -137,9 +140,11 @@ class UserController extends ResourceController{
             if(user === null) throw new Error('User tidak ditemukan');
 
             user.setName(userData.name);
+            userData.gender = parseInt(userData.gender);
             user.setGender(userData.gender);
             user.setBirthDate(userData.birthDate);
             user.setNumber(userData.phoneNumber);
+            userData.studyProgram = parseInt(userData.studyProgram);
             user.setStudyProgram(userData.studyProgram);
             user.setClassYear(userData.classYear);
             user.init();
@@ -153,6 +158,18 @@ class UserController extends ResourceController{
                 }
             }
             if(!isPhotoValid) user.setPhoto(pathPhoto);
+
+            // Religion
+            let religionModel = new Religion();
+            let religion;
+            try{
+                religion = await religionModel.findById(userData.religion);
+                if(religion === null) throw new Error('Religion tidak ditemukan');
+                user.setReligion(religion);
+            } catch(e){
+                console.log(e);
+                throw e;
+            }
 
             try{
                 let result = await user.save();
@@ -259,7 +276,8 @@ class UserController extends ResourceController{
         let educationId = uuidv4();
         let eduData = educationData;
         eduData.educationId = educationId;
-        let validInput = this.validateEducationInput(eduData);
+        let eduController = new EducationController();
+        let validInput = eduController.validate(eduData);
         if(validInput !== true){
             return validInput;
         }
@@ -303,7 +321,8 @@ class UserController extends ResourceController{
     async updateEducation(educationId, updatedEduData){
         let eduData = updatedEduData;
         eduData.educationId = educationId;
-        let validInput = this.validateEducationInput(eduData);
+        let eduController = new EducationController();
+        let validInput = eduController.validate(eduData);
         if(validInput !== true){
             return validInput;
         }
@@ -329,7 +348,8 @@ class UserController extends ResourceController{
     async addWorkExperience(workExperience, userId){
         let workExpData = workExperience;
         workExpData.nim = userId;
-        let validInput = this.validateWorkExpInput(workExpData);
+        let workExpController = new WorkExperienceController();
+        let validInput = workExpController.validate(workExpData);
         if(validInput !== true){
             return validInput;
         }
