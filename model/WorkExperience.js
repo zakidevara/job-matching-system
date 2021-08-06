@@ -206,7 +206,7 @@ class WorkExperience extends Model{
             // Build Cypher Query
             let id = uuidv4();
             let {workExperienceType} = obj;
-            if(workExperienceType == undefined || !workExperienceType.id) throw new Error("ID Work Experience Type harus diisi");
+            if(workExperienceType == undefined || !workExperienceType.name) throw new Error("ID Work Experience Type harus diisi");
 
             let query = `CREATE (res:${this.constructor.name} {id: '${id}', `;
             this.getAttributes().forEach((val, index, arr) => {
@@ -228,7 +228,7 @@ class WorkExperience extends Model{
                 }
             });
             query += ` 
-            WITH res MATCH (wt:WorkExperienceType {id: '${workExperienceType.id}'})
+            WITH res MATCH (wt:WorkExperienceType {name: '${workExperienceType.name}'})
             CREATE (res)-[:CLASSIFIED]->(wt) RETURN res{.*}, wt{.*}`;
 
             // Run Query in Database        
@@ -283,7 +283,7 @@ class WorkExperience extends Model{
             query += ` WITH res 
             MATCH 
                 (res)-[rel:CLASSIFIED]->(w:WorkExperienceType),   
-                (wt:WorkExperienceType {id: '${workExperienceType.id}'}) 
+                (wt:WorkExperienceType {name: '${workExperienceType.id}'}) 
             CREATE (res)-[:CLASSIFIED]->(wt)
             DELETE rel`;
             query += ' RETURN res{.*}, wt{.*}';

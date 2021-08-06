@@ -3,7 +3,6 @@ const Skill = require('./Skill');
 const User = require('./User');
 const DB = require("../services/DB");
 
-const JobStudentMatcher = require("../application/matcher/JobStudentMatcher");
 const JobApplicant = require("./JobApplicant");
 const JobRequirement = require("./JobRequirement");
 const Religion = require("./Religion");
@@ -23,6 +22,7 @@ class Job extends Model {
     #duration;
     #remote;
     #companyName;
+    #companyLogo;
     #endDate;
     #minSalary;
     #maxSalary;
@@ -30,7 +30,7 @@ class Job extends Model {
     #requirements;
     #type;
 
-    constructor(jobID='', userID='', title='', quantity=0, location='', contact='', benefits='', description='', duration='', remote=false, companyName='', endDate='', minSalary=0, maxSalary=0, status=true, jobReq = {}, jobType = {}){
+    constructor(jobID='', userID='', title='', quantity=0, location='', contact='', benefits='', description='', duration='', remote=false, companyName='', companyLogo='', endDate='', minSalary=0, maxSalary=0, status=true, jobReq = {}, jobType = 0){
         super();
         this.#jobID = jobID;
         this.#userID = userID;
@@ -43,6 +43,7 @@ class Job extends Model {
         this.#duration = duration;
         this.#remote = remote;
         this.#companyName = companyName;
+        this.#companyLogo = companyLogo;
         this.#endDate = endDate;
         this.#minSalary = minSalary;
         this.#maxSalary = maxSalary;
@@ -66,6 +67,9 @@ class Job extends Model {
     }
     setJobType(newType){
         this.#type = newType;
+    }
+    setCompanyLogo(newLogo){
+        this.#companyLogo = newLogo;
     }
     async getApplicant(){
         let query = `MATCH (j:Job)<-[:APPLIED_TO]-(ja:JobApplication), (u:User)-[:HAS_APPLIED]->(ja) WHERE j.id = '${this.#jobID}' RETURN ja{.*, user: u{.*}}`;
@@ -99,10 +103,11 @@ class Job extends Model {
             contact: this.#contact,
             benefits: this.#benefits,
             description: this.#description,
-            jobType: this.#type.toObject(),
+            jobType: JobType.toString(this.#type),
             duration: this.#duration,
             remote: this.#remote,
             companyName: this.#companyName,
+            companyLogo: this.#companyLogo,
             endDate: this.#endDate,
             minSalary: this.#minSalary,
             maxSalary: this.#maxSalary,
@@ -123,6 +128,16 @@ class Job extends Model {
         return result;
     }
 
+    saveCompanyLogo(companyLogo){
+        let pathLogo = '';
+        if(companyLogo !== null){
+            pathLogo = './uploads/job/' + this.#jobID + '/logo/' + companyLogo.name;
+            companyLogo.mv(pathLogo); 
+            return pathLogo;
+        }
+        return null;
+    }
+
     // Database related
     async save(){
         console.log(this.#jobID);
@@ -131,6 +146,7 @@ class Job extends Model {
         // Object data
         let objRequirement = this.#requirements.toObject();
         let objJob = this.toObject();
+        let jobType = this.#type;
 
         // Create node Job
         let query = `MERGE (j:Job {id: '${this.#jobID}'})
@@ -139,17 +155,28 @@ class Job extends Model {
                      j.quantity = ${this.#quantity},
                      j.endDate = '${this.#endDate}',
                      j.status = ${this.#status},`;
-        
-        let restOfJobProperty = ["description", "companyName", "remote", "location", "duration", "benefits", "minSalary", "maxSalary"];
+            
+        delete objJob['id'];
+        delete objJob['title'];
+        delete objJob['contact'];
+        delete objJob['quantity'];
+        delete objJob['endDate'];
+        delete objJob['status'];
+
+        let restOfJobProperty = Object.keys(objJob);
         for(let i=0; i < restOfJobProperty.length; i++){
             let property = restOfJobProperty[i];
-            if(objJob[property] !== null && property !== 'requirements' && property !== 'jobType'){
+            if(objJob[property] !== null && objJob[property] !== undefined && property !== 'requirements'){
                 let value = objJob[property];
-                if(property !== 'remote' && property !== 'minSalary' && property !== 'maxSalary'){
-                    value = this.cleaningStringFormat(value);
-                    query += `j.` + property + ` = '${value}',`;
+                if(property === 'jobType'){
+                    query += `j.` + property + ` = ${jobType},`;
                 } else {
-                    query += `j.` + property + ` = ${value},`;
+                    if(property !== 'remote' && property !== 'minSalary' && property !== 'maxSalary'){
+                        value = this.cleaningStringFormat(value);
+                        query += `j.` + property + ` = '${value}',`;
+                    } else {
+                        query += `j.` + property + ` = ${value},`;
+                    }
                 }
             }
         }
@@ -172,16 +199,20 @@ class Job extends Model {
                         if(property === 'classYearRequirement'){
                             query += `jr.` + property + ` = [${value.join()}],`;
                         } else {
-                            query += `jr. ` + property + ` = [`;
-                            value.forEach((item) => {
-                                if(property === 'studyProgramRequirement'){
-                                    query += item.studyProgramId + `,`;
-                                } else {
-                                    query += item.genderId + `,`;
-                                }
-                            });
-                            query = query.substr(0, query.length-1);
-                            query += `],`;
+                            query += `jr.` + property + ` = [`;
+                            if(value.length > 0){
+                                value.forEach((item) => {
+                                    if(property === 'studyProgramRequirement'){
+                                        query += item.studyProgramId + `,`;
+                                    } else {
+                                        query += item.genderId + `,`;
+                                    }
+                                });
+                                query = query.substr(0, query.length-1);
+                                query += `],`;
+                            } else {
+                                query += `],`;
+                            }
                         }
                     } else {
                         if(property !== 'maximumAge'){
@@ -221,12 +252,12 @@ class Job extends Model {
             query += `WITH j, jr, s
                       UNWIND [`;
             reqReligion.forEach((item) => {
-                query += `"${item.id}",`;
+                query += `"${item.name}",`;
             });
             // Remove comma at the end of char from current query
             query = query.substr(0, query.length-1);
             query += `] AS rl
-                      MATCH (r:Religion {id: rl})
+                      MATCH (r:Religion {name: rl})
                       MERGE (jr)-[:REQUIRES_RELIGION]->(r) `;
             isAddReligion = true;
         }
@@ -234,18 +265,17 @@ class Job extends Model {
         if(isAddReligion){
             query += `
                       WITH j, jr, s, r
-                      MATCH (jt:JobType {id: '${this.#type.getId()}'}), (u:User {nim: '${this.#userID}'})
-                      MERGE (j)-[:CLASSIFIED]->(jt)
+                      MATCH (u:User {nim: '${this.#userID}'})
                       MERGE (u)-[:POSTS]->(j)
-                      RETURN j, jr, s, r, jt, u`;
+                      RETURN j, jr, s, r, u`;
         } else {
             query += `
                       WITH j, jr, s
-                      MATCH (jt:JobType {id: '${this.#type.getId()}'}), (u:User {nim: '${this.#userID}'})
-                      MERGE (j)-[:CLASSIFIED]->(jt)
+                      MATCH (u:User {nim: '${this.#userID}'})
                       MERGE (u)-[:POSTS]->(j)
-                      RETURN j, jr, s, jt, u`;
+                      RETURN j, jr, s, u`;
         }
+        console.log('Last Query: ', query);
         try{
             let resultSave = await DB.query(query);
             return resultSave.records.length > 0 ? true : false;
@@ -266,8 +296,8 @@ class Job extends Model {
         } else {
             let date = new Date();
             let currentDate = `${date.getFullYear()}-0${date.getMonth()+1}-${date.getDate()}`;
-            let query = `MATCH (j:Job)<-[:POSTS]-(u:User {nim: '${userId}'}), (j)-[:CLASSIFIED]->(jt:JobType), (j)-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_SKILL]->(s:Skill)
-                         RETURN j{.*, userId: u.nim, jobType: jt{.*}, requirements: jr{.*, requiredSkills: collect(s{.*})}}`;
+            let query = `MATCH (j:Job)<-[:POSTS]-(u:User {nim: '${userId}'}), (j)-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_SKILL]->(s:Skill)
+                         RETURN j{.*, userId: u.nim, requirements: jr{.*, requiredSkills: collect(s{.*})}}`;
             // let query = `WITH split('${currentDate}', '-') AS cd 
             //             MATCH (j:Job)<-[:POSTS]-(u:User), (j)-[:CLASSIFIED]->(jt:JobType), (j)-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_SKILL]->(s:Skill) 
             //             WHERE j.title CONTAINS '${title}'
@@ -283,7 +313,8 @@ class Job extends Model {
                         let listReligion = [];
                         let propJob =  result.records[i].get('j');
     
-                        let jobType = new JobType(propJob.jobType.id, propJob.jobType.name);
+                        // let jobType = new JobType(propJob.jobType.id, propJob.jobType.name);
+                        let jobType = propJob.jobType;
                         let jobReq = new JobRequirement(propJob.requirements.classYearRequirement, propJob.requirements.studyProgramRequirement, propJob.requirements.documentRequirement, [], propJob.requirements.softSkillRequirement, propJob.requirements.maximumAge, [], propJob.requirements.requiredGender, propJob.requirements.description);
                         await jobReq.init();
                         
@@ -304,11 +335,11 @@ class Job extends Model {
                             if(resultReligion.records.length > 0){
                                 resultReligion.records.forEach((item) => {
                                     let propRel = item.get('r').properties;
-                                    let religion = new Religion(propRel.id, propRel.name);
+                                    let religion = new Religion(propRel.name);
                                     if(listReligion.length === 0){
                                         listReligion.push(religion);
                                     } else {
-                                        let validateItem = listReligion.some(rl => rl.getId() === religion.getId());
+                                        let validateItem = listReligion.some(rl => rl.getName() === religion.getName());
                                         if(!validateItem) listReligion.push(religion);
                                     }
                                 });
@@ -319,7 +350,7 @@ class Job extends Model {
                             throw e;
                         }
     
-                        let job = new Job(propJob.id, propJob.userId, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status, jobReq, jobType);
+                        let job = new Job(propJob.id, propJob.userId, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.companyLogo, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status, jobReq, jobType);
                         jobData.push(job);
                     }
                 }
@@ -332,7 +363,7 @@ class Job extends Model {
     }
 
     async findById(jobID){
-        let query = `MATCH (j:Job {id: '${jobID}'})-[:REQUIRES]->(jr:JobReq), (j)<-[:POSTS]-(u:User), (j)-[:CLASSIFIED]->(jt:JobType), (jr)-[:REQUIRES_SKILL]->(s:Skill) RETURN j{.*, userID: u.nim, jobType: jt{.*}, requirements: jr{.*, requiredSkills: s{.*}}}`;
+        let query = `MATCH (j:Job {id: '${jobID}'})-[:REQUIRES]->(jr:JobReq), (j)<-[:POSTS]-(u:User), (jr)-[:REQUIRES_SKILL]->(s:Skill) RETURN j{.*, userID: u.nim, requirements: jr{.*, requiredSkills: s{.*}}}`;
         try{
             let result = await DB.query(query);
             if(result.records.length > 0){
@@ -344,11 +375,12 @@ class Job extends Model {
                 result.records.forEach((item, index) => {
                     let jobData = item.get('j');
                     if(index === 0){
-                        let jobType = new JobType(jobData.jobType.id, jobData.jobType.name);
+                        // let jobType = new JobType(jobData.jobType.id, jobData.jobType.name);
+                        let jobType = jobData.jobType;
                         let jobReq = new JobRequirement(jobData.requirements.classYearRequirement, jobData.requirements.studyProgramRequirement, jobData.requirements.documentRequirement, [], jobData.requirements.softSkillRequirment, jobData.requirements.maximumAge, [], jobData.requirements.requiredGender, jobData.requirements.description);
                         jobReqObject = jobReq;
 
-                        let job = new Job(jobData.id, jobData.userID, jobData.title, jobData.quantity, jobData.location, jobData.contact, jobData.benefits, jobData.description, jobData.duration, jobData.remote, jobData.companyName, jobData.endDate, jobData.minSalary, jobData.maxSalary, jobData.status, {}, jobType);
+                        let job = new Job(jobData.id, jobData.userID, jobData.title, jobData.quantity, jobData.location, jobData.contact, jobData.benefits, jobData.description, jobData.duration, jobData.remote, jobData.companyName, jobData.companyLogo, jobData.endDate, jobData.minSalary, jobData.maxSalary, jobData.status, {}, jobType);
                         jobObject = job;
                     }
 
@@ -370,11 +402,11 @@ class Job extends Model {
                     if(resultReligion.records.length > 0){
                         resultReligion.records.forEach((item) => {
                             let propRel = item.get('r').properties;
-                            let religion = new Religion(propRel.id, propRel.name);
+                            let religion = new Religion(propRel.name);
                             if(listReligion.length === 0){
                                 listReligion.push(religion);
                             } else {
-                                let validateItem = listReligion.some(rl => rl.getId() === religion.getId());
+                                let validateItem = listReligion.some(rl => rl.getName() === religion.getName());
                                 if(!validateItem){
                                     listReligion.push(religion);
                                 }
@@ -409,11 +441,11 @@ class Job extends Model {
         let finalUpdatedJobData = {};
         let contact = updatedJobData.contact;
         contact = this.cleaningStringFormat(contact);
-        let currJobType = this.#type;
+        updatedJobData.jobType = parseInt(updatedJobData.jobType);
         
 
         // First section of query (update node Job)
-        let query = `MATCH (j:Job {id: '${this.#jobID}'})-[:REQUIRES]->(jr:JobReq), (j)-[re:CLASSIFIED]->(ojt:JobType)  
+        let query = `MATCH (j:Job {id: '${this.#jobID}'})-[:REQUIRES]->(jr:JobReq) 
                     SET j.title = '${updatedJobData.title}',
                     j.quantity = ${updatedJobData.quantity},
                     j.contact = '${contact}',
@@ -432,9 +464,9 @@ class Job extends Model {
         let jobProperty = Object.keys(updatedJobData);
         for(let i=0; i < jobProperty.length; i++){
             let currProp = jobProperty[i];
-            if(currProp !== 'requirements' && currProp !== 'jobType'){
+            if(currProp !== 'requirements' && currProp !== 'companyLogo'){
                 let propValue = updatedJobData[currProp];
-                if(currProp !== 'remote' && currProp !== 'minSalary' && currProp !== 'maxSalary'){
+                if(currProp !== 'remote' && currProp !== 'minSalary' && currProp !== 'maxSalary' && currProp !== 'jobType'){
                     if(propValue !== null){
                         propValue = this.cleaningStringFormat(propValue);
                         query += ` j.` + currProp + ` = '${propValue}',`;
@@ -451,30 +483,46 @@ class Job extends Model {
             }
         }
 
+        // Check if company logo is change
+        let oldLogo = this.#companyLogo;
+        let newLogo = '';
+        if(updatedJobData.companyLogo !== null){
+            let pathLogo = this.saveCompanyLogo(updatedJobData.companyLogo);
+            if(pathLogo !== null){
+                newLogo = pathLogo;
+                query += `j.companyLogo = '${newLogo}',`;
+            }
+        } else {
+            query += `j.companyLogo = '${oldLogo}',`;
+        }
+
         // Remove comma at the end of char from current query
         query = query.substr(0, query.length-1);
 
-        // Second section of query (update relationship JobType if changed)
-        let isUpdateJobType = false;
-        if(updatedJobData.jobType !== currJobType.getId()){
-            query += `
-                      WITH j, jr, re
-                      DELETE re
-                      MATCH (jt:JobType {id: '${updatedJobData.jobType}'})
-                      MERGE (j)-[:CLASSIFIED]->(jt)`;
-            isUpdateJobType = true;
-        }
+        // // Second section of query (update relationship JobType if changed)
+        // let isUpdateJobType = false;
+        // if(updatedJobData.jobType !== currJobType.getId()){
+        //     query += `
+        //               WITH j, jr, re
+        //               DELETE re
+        //               MATCH (jt:JobType {id: '${updatedJobData.jobType}'})
+        //               MERGE (j)-[:CLASSIFIED]->(jt)`;
+        //     isUpdateJobType = true;
+        // }
 
-        // Third section of query (update node JobReq)
-        if(isUpdateJobType){
-            query += `
-                      WITH j, jr, jt 
-                      SET `;
-        } else {
-            query += `
-                      WITH j, jr, ojt
-                      SET `
-        }
+        // // Third section of query (update node JobReq)
+        // if(isUpdateJobType){
+        //     query += `
+        //               WITH j, jr, jt 
+        //               SET `;
+        // } else {
+        //     query += `
+        //               WITH j, jr, ojt
+        //               SET `
+        // }
+        query += `
+                  WITH j, jr 
+                  SET `;
         if(updatedJobData.hasOwnProperty('requirements')){
             // Get properties of requirements object inside updatedJobData
             let requirementsProp = Object.keys(updatedJobData.requirements);
@@ -482,11 +530,19 @@ class Job extends Model {
                 if(item !== 'requiredSkills' && item !== 'requiredReligion'){
                     let propValue = updatedJobData.requirements[item];
                     if(Array.isArray(propValue)){
-                        if(propValue !== null){
-                            query += ` jr.` + item + ` = [${updatedJobData.requirements[item].join()}],`;
-                        } else {
-                            query += ` jr.` + item + ` = null,`;
-                        }
+                        // if(item === 'classYearRequirement'){
+                        //     query += ` jr.` + item + ` = [${propValue.join()}],`;
+                        // } else {
+                        //     query += `jr.` + item + ` = [`;
+                        //     if(propValue.length > 0){
+                        //         propValue.forEach((item) => {
+                        //             query
+                        //         });
+                        //     } else {
+                        //         query += `jr.` + item + `],`;
+                        //     }
+                        // }
+                        query += ` jr.` + item + ` = [${propValue.join()}],`;
                     } else {
                         if(item !== 'maximumAge'){
                             if(propValue !== null){
@@ -508,29 +564,31 @@ class Job extends Model {
 
             // Remove comma at the end of char from current query
             query = query.substr(0, query.length-1);
-            if(isUpdateJobType){
-                query += `
-                          RETURN j, jr, jt`;
-            } else {
-                query += `
-                          RETURN j, jr, ojt`;
-            }
+            query += `
+                        RETURN j, jr`;
+            // if(isUpdateJobType){
+            //     query += `
+            //               RETURN j, jr`;
+            // } else {
+            //     query += `
+            //               RETURN j, jr`;
+            // }
             try{
                 let resultUpdateJobdata = await DB.query(query);
                 if(resultUpdateJobdata.records.length > 0){
                     let propJob = resultUpdateJobdata.records[0].get('j').properties;
                     let propJobReq = resultUpdateJobdata.records[0].get('jr').properties;
-                    let propJobType = null;
                     let listSkills = [];
                     let listReligion = [];
 
-                    if(isUpdateJobType){
-                        propJobType = resultUpdateJobdata.records[0].get('jt').properties;
-                    } else {
-                        propJobType = resultUpdateJobdata.records[0].get('ojt').properties;
-                    }
+                    // if(isUpdateJobType){
+                    //     propJobType = resultUpdateJobdata.records[0].get('jt').properties;
+                    // } else {
+                    //     propJobType = resultUpdateJobdata.records[0].get('ojt').properties;
+                    // }
 
-                    let updatedJobType = new JobType(propJobType.id, propJobType.name);
+                    // let updatedJobType = new JobType(propJobType.id, propJobType.name);
+                    
                     let updatedJobReq = new JobRequirement(propJobReq.classYearRequirement, propJobReq.studyProgramRequirement, propJobReq.documentRequirement, [], propJobReq.softSkillRequirement, propJobReq.maximumAge, [], propJobReq.requiredGender, propJobReq.description);
                     await updatedJobReq.init();
 
@@ -616,7 +674,7 @@ class Job extends Model {
                                             // Remove comma at the end of char from current query
                                             thirdQuery = thirdQuery.substr(0, thirdQuery.length-1);
                                             thirdQuery += `] AS rl
-                                                           MERGE (r:Religion {id: rl})
+                                                           MERGE (r:Religion {name: rl})
                                                            MERGE (jr)-[:REQUIRES_RELIGION]->(r)
                                                            RETURN r`;
                                             try{
@@ -625,11 +683,11 @@ class Job extends Model {
                                                     let templistReligion = [];
                                                     resultUpdateReligion.records.forEach((item) => {
                                                         let propRel = item.get('r').properties;
-                                                        let religion = new Religion(propRel.id, propRel.name);
+                                                        let religion = new Religion(propRel.name);
                                                         if(templistReligion.length === 0){
                                                             templistReligion.push(religion);
                                                         } else {
-                                                            let validateItem = templistReligion.some(rl => rl.getId() === religion.getId());
+                                                            let validateItem = templistReligion.some(rl => rl.getName() === religion.getName());
                                                             if(!validateItem){
                                                                 templistReligion.push(religion);
                                                             }
@@ -643,26 +701,26 @@ class Job extends Model {
                                         } else {
                                             // Check if current required religion are same
                                             let diffReligion = currReqReligion.filter(el => {
-                                                return !newReqReligion.some(rl => rl === el.getId());
+                                                return !newReqReligion.some(rl => rl === el.getName());
                                             });
                                             if(diffReligion.length > 0){
                                                 if(diffReligion.length == 1){
                                                     thirdQuery += `
                                                                    WITH jr
-                                                                   MATCH (jr)-[re:REQUIRES_RELIGION]->(:Religion {id: '${diffReligion[0].getId()}'})
+                                                                   MATCH (jr)-[re:REQUIRES_RELIGION]->(:Religion {name: '${diffReligion[0].getName()}'})
                                                                    DELETE re`;
                                                 } else {
                                                     thirdQuery += `
                                                                    WITH jr 
                                                                    UNWIND [`;
                                                     for(let i=0; i < diffReligion.length; i++){
-                                                        let diffValue = diffReligion[i].getId();
+                                                        let diffValue = diffReligion[i].getName();
                                                         thirdQuery += `"${diffValue}",`;
                                                     }
                                                     // Remove comma at the end of char from current query
                                                     thirdQuery = thirdQuery.substr(0, thirdQuery.length-1);
                                                     thirdQuery += `] AS rl
-                                                                   MERGE (jr)-[re:REQUIRES_RELIGION]->(:Religion {id: rl})
+                                                                   MERGE (jr)-[re:REQUIRES_RELIGION]->(:Religion {name: rl})
                                                                    DELETE re`;
                                                 }
                                             }
@@ -677,7 +735,7 @@ class Job extends Model {
                                             }
                                             thirdQuery = thirdQuery.substr(0, thirdQuery.length-1);
                                             thirdQuery += `] AS rl
-                                                            MERGE (r:Religion {id: rl})
+                                                            MERGE (r:Religion {name: rl})
                                                             MERGE (jr)-[:REQUIRES_RELIGION]->(r)
                                                             RETURN r`;
                                             try{
@@ -686,11 +744,11 @@ class Job extends Model {
                                                     let templistReligion = [];
                                                     resultUpdateReligion.records.forEach((item) => {
                                                         let propRel = item.get('r').properties;
-                                                        let religion = new Religion(propRel.id, propRel.name);
+                                                        let religion = new Religion(propRel.name);
                                                         if(templistReligion.length === 0){
                                                             templistReligion.push(religion);
                                                         } else {
-                                                            let validateItem = templistReligion.some(rl => rl.getId() === religion.getId());
+                                                            let validateItem = templistReligion.some(rl => rl.getName() === religion.getName());
                                                             if(!validateItem){
                                                                 templistReligion.push(religion);
                                                             }
@@ -720,7 +778,7 @@ class Job extends Model {
                                 }
                                 updatedJobReq.setSkills(listSkills);
                                 updatedJobReq.setReligions(listReligion);
-                                let updatedJob = new Job(this.#jobID, this.#userID, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status, updatedJobReq, updatedJobType);
+                                let updatedJob = new Job(this.#jobID, this.#userID, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.companyLogo, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status, updatedJobReq, propJob.jobType);
                                 finalUpdatedJobData = updatedJob;
                             }
                         }catch(e){
@@ -752,9 +810,9 @@ class Job extends Model {
     async searchByName(title){
         let date = new Date();
         let currentDate = `${date.getFullYear()}-0${date.getMonth()+1}-${date.getDate()}`;
-        let query = `MATCH (j:Job)<-[:POSTS]-(u:User), (j)-[:CLASSIFIED]->(jt:JobType), (j)-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_SKILL]->(s:Skill) 
+        let query = `MATCH (j:Job)<-[:POSTS]-(u:User), (j)-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_SKILL]->(s:Skill) 
                      WHERE j.title CONTAINS '${title}'
-                     RETURN j{.*, userId: u.nim, jobType: jt{.*}, requirements: jr{.*, requiredSkills: collect(s{.*})}}`;
+                     RETURN j{.*, userId: u.nim, requirements: jr{.*, requiredSkills: collect(s{.*})}}`;
         // let query = `WITH split('${currentDate}', '-') AS cd 
         //             MATCH (j:Job)<-[:POSTS]-(u:User), (j)-[:CLASSIFIED]->(jt:JobType), (j)-[:REQUIRES]->(jr:JobReq), (jr)-[:REQUIRES_SKILL]->(s:Skill) 
         //             WHERE j.title CONTAINS '${title}'
@@ -770,7 +828,7 @@ class Job extends Model {
                     let listReligion = [];
                     let propJob =  result.records[i].get('j');
 
-                    let jobType = new JobType(propJob.jobType.id, propJob.jobType.name);
+                    // let jobType = new JobType(propJob.jobType.id, propJob.jobType.name);
                     let jobReq = new JobRequirement(propJob.requirements.classYearRequirement, propJob.requirements.studyProgramRequirement, propJob.requirements.documentRequirement, [], propJob.requirements.softSkillRequirement, propJob.requirements.maximumAge, [], propJob.requirements.requiredGender, propJob.requirements.description);
                     await jobReq.init();
                     
@@ -791,11 +849,11 @@ class Job extends Model {
                         if(resultReligion.records.length > 0){
                             resultReligion.records.forEach((item) => {
                                 let propRel = item.get('r').properties;
-                                let religion = new Religion(propRel.id, propRel.name);
+                                let religion = new Religion(propRel.name);
                                 if(listReligion.length === 0){
                                     listReligion.push(religion);
                                 } else {
-                                    let validateItem = listReligion.some(rl => rl.getID() === religion.getID());
+                                    let validateItem = listReligion.some(rl => rl.getName() === religion.getName());
                                     if(!validateItem) listReligion.push(religion);
                                 }
                             });
@@ -806,7 +864,7 @@ class Job extends Model {
                         throw e;
                     }
 
-                    let job = new Job(propJob.id, propJob.userId, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status, jobReq, jobType);
+                    let job = new Job(propJob.id, propJob.userId, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.companyLogo, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status, jobReq, propJob.jobType);
                     jobData.push(job);
                 }
             }
