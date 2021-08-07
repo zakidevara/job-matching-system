@@ -8,13 +8,13 @@ router.use(isUser);
 // Create new job
 router.post('/', async function(req, res) {
     let jobData = req.body;
-    let stringReq = jobData.requirements;
-    let requirements = null;
-    if(typeof stringReq === 'string'){
-        let parsedJson = JSON.parse(stringReq);
-        requirements = parsedJson;
-        jobData.requirements = requirements;
-    }
+    // let stringReq = jobData.requirements;
+    // let requirements = null;
+    // if(typeof stringReq === 'string'){
+    //     let parsedJson = JSON.parse(stringReq);
+    //     requirements = parsedJson;
+    //     jobData.requirements = requirements;
+    // }
     let companyLogo = null;
     if(req.files){
         companyLogo = req.files.companyLogo;

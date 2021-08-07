@@ -25,7 +25,8 @@ class UserController extends ResourceController{
             phoneNumber: 'required|string',
             gender: 'required|integer',
             studyProgram: 'required|integer',
-            classYear: 'required|integer'
+            classYear: 'required|integer',
+            religion: 'required|string'
         };
         let validator = new Validator(userData, rules);
         if(validator.passes()){
