@@ -3,49 +3,38 @@ const DB = require("../services/DB");
 
 class Degree extends Model{
     // Property of degree
-    #id;
     #name;
 
-    constructor(id, name){
-        super('id');
-        this.#id = id;
+    constructor(name){
+        super('name');
         this.#name = name;
     }
 
     constructFromObject(obj){
         let {
-            id,
             name
         } = obj;
-        return new this.constructor(id, name);
+        return new this.constructor(name);
     }
 
-    getId(){
-        return this.#id;
-    }
     getName(){
         return this.#name;
     }
 
     toObject(){
         let objResult = {
-            id: this.#id,
             name: this.#name
         };
         return objResult;
     }
-    constructFromObject(obj){
-        let {id, name} = obj;
-        return new this.constructor(id, name);
-    }
 
     async findById(degreeId){
-        let query = `MATCH (d:Degree {id: '${degreeId}'}) RETURN d`;
+        let query = `MATCH (d:Degree {name: '${degreeId}'}) RETURN d`;
         try{
             let result = await DB.query(query);
             if(result.records.length > 0){
                 let propDeg = result.records[0].get('d').properties;
-                let degree = new Degree(propDeg.id, propDeg.name);
+                let degree = new Degree(propDeg.name);
                 return degree;
             } else {
                 return null;
@@ -57,7 +46,7 @@ class Degree extends Model{
 
     // Admin section
     async save(){
-        let query = `MERGE (d:Degree {id: '${this.#id}'})
+        let query = `MERGE (d:Degree {name: '${this.#name}'})
                      SET d.name = '${this.#name}'
                      RETURN d`;
         try{
@@ -69,14 +58,14 @@ class Degree extends Model{
     }
 
     async update(updatedDegData){
-        let query = `MATCH (d:Degree {id: '${this.#id}'})
+        let query = `MATCH (d:Degree {name: '${this.#name}'})
                      SET d.name = '${updatedDegData.name}'
                      RETURN d`;
         try{
             let result = await DB.query(query);
             if(result.records.length > 0){
                 let propDeg = result.records[0].get('d').properties;
-                let degree = new Degree(propDeg.id, propDeg.name);
+                let degree = new Degree(propDeg.name);
                 return degree;
             } else {
                 return null;
@@ -87,7 +76,7 @@ class Degree extends Model{
     }
 
     async delete(){
-        let query = `MATCH (d:Degree {id: '${this.#id}'}) DETACH DELETE r RETURN COUNT(r)`;
+        let query = `MATCH (d:Degree {name: '${this.#name}'}) DETACH DELETE r RETURN COUNT(r)`;
         try{
             let result = await DB.query(query);
             if(result.records.length > 0){
