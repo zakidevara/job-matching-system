@@ -70,7 +70,7 @@ class Education extends Model{
                      e.startYear = ${this.#startYear},
                      e.endYear = ${this.#endYear}
                      WITH e
-                     MATCH (d:Degree {id: '${degreeObj.id}'})
+                     MATCH (d:Degree {name: '${degreeObj.name}'})
                      MERGE (e)-[:HAS_DEGREE]->(d)
                      RETURN e, d`;
         try{
@@ -90,7 +90,7 @@ class Education extends Model{
                 if(result.records.length > 0){
                     result.records.forEach((item) => {
                         let propEdu = item.get('e');
-                        let degree = new Degree(propEdu.degree.id, propEdu.degree.name);
+                        let degree = new Degree(propEdu.degree.name);
                         let education = new Education(propEdu.id, propEdu.userId, propEdu.schoolName, degree, propEdu.fieldOfStudy, propEdu.startYear, propEdu.endYear);
                         if(listEdu.length === 0){
                             listEdu.push(education);
@@ -114,7 +114,7 @@ class Education extends Model{
                 if(result.records.length > 0){
                     result.records.forEach((item) => {
                         let propEdu = item.get('e');
-                        let degree = new Degree(propEdu.degree.id, propEdu.degree.name);
+                        let degree = new Degree(propEdu.degree.name);
                         let education = new Education(propEdu.id, userId, propEdu.schoolName, degree, propEdu.fieldOfStudy, propEdu.startYear, propEdu.endYear, propEdu.grade, propEdu.activity, propEdu.description);
                         if(listEdu.length === 0){
                             listEdu.push(education);
@@ -139,7 +139,7 @@ class Education extends Model{
 
             if(result.records.length > 0){
                 let propEdu = result.records[0].get('e');
-                let degree = new Degree(propEdu.degree.id, propEdu.degree.name);
+                let degree = new Degree(propEdu.degree.name);
                 let education = new Education(propEdu.id, propEdu.userId, propEdu.schoolName, degree, propEdu.fieldOfStudy, propEdu.startYear, propEdu.endYear);
                 return education;
             } else {
@@ -184,12 +184,12 @@ class Education extends Model{
 
         query = query.substr(0, query.length-1);
         let isDegreeChanged = false;
-        if(updatedEducation.degreeId !== curDeg.getID()){
+        if(updatedEducation.degreeId !== curDeg.getName()){
             query += `
                       WITH e, u, re 
                       DELETE re
                       WITH e, u
-                      MATCH (d:Degree {id: '${updatedEducation.degreeId}'})
+                      MATCH (d:Degree {name: '${updatedEducation.degreeId}'})
                       MERGE (e)-[:HAS_DEGREE]->(d)`;
             isDegreeChanged = true;
         }
@@ -204,7 +204,7 @@ class Education extends Model{
             let result = await DB.query(query);
             if(result.records.length > 0){
                 let propEdu = result.records[0].get('e');
-                let degree = new Degree(propEdu.degree.id, propEdu.degree.name);
+                let degree = new Degree(propEdu.degree.name);
                 let education = new Education(propEdu.id, propEdu.userId, propEdu.schoolName, degree, propEdu.fieldOfStudy, propEdu.startYear, propEdu.endYear);
                 return education;
             } else {
