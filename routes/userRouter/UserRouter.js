@@ -104,7 +104,7 @@ router.post('/users/:userId/skills/add', async function(req, res) {
 // Remove skill
 router.post('/users/:userId/skills/remove', async function(req, res) {
     let userId = req.params.userId;
-    let skillID = req.body.skill_id;
+    let skillID = req.body.skillId;
     let uC = new UserController();
 
     try{
