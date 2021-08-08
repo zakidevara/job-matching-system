@@ -72,13 +72,14 @@ class Job extends Model {
         this.#companyLogo = newLogo;
     }
     async getApplicant(){
-        let query = `MATCH (j:Job)<-[:APPLIED_TO]-(ja:JobApplication), (u:User)-[:HAS_APPLIED]->(ja) WHERE j.id = '${this.#jobID}' RETURN ja{.*, user: u{.*}}`;
+        let query = `MATCH (j:Job)<-[:APPLIED_TO]-(ja:JobApplication), (u:User)-[:HAS_APPLIED]->(ja), (u)-[:HAS_RELIGION]->(r:Religion) WHERE j.id = '${this.#jobID}' RETURN ja{.*, user: u{.*, religion: r{.*}}}`;
         try{
             let resultApplicant = await DB.query(query);
             let listApplicant = [];
             resultApplicant.records.forEach((item) => {
                 let propApl = item.get('ja');
-                let user = new User(propApl.user.nim, propApl.user.name, propApl.user.email, propApl.user.password, propApl.user.birthDate, propApl.user.classYear, propApl.user.photo, propApl.user.phoneNumber, propApl.user.gender, propApl.user.studyProgram, propApl.user.status);
+                let religion = new Religion(propApl.user.religion.name);
+                let user = new User(propApl.user.nim, propApl.user.name, propApl.user.email, propApl.user.password, propApl.user.birthDate, propApl.user.classYear, propApl.user.photo, propApl.user.phoneNumber, propApl.user.gender, propApl.user.studyProgram, propApl.user.status, religion);
                 user.init();
 
                 let applicant = new JobApplicant(user, propApl.dateApplied, propApl.status, propApl.applicantDocuments);
