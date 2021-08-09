@@ -971,7 +971,7 @@ class Job extends Model {
                     if(applicantData.message.length === 0){
                         emailMessage += '<p>Selamat anda diterima pada lowongan pekerjaan ' + this.#title + '.</p>';
                     } else {
-                        emailMessage += '<p>' + applicantData.message + '</p>';
+                        emailMessage += '<div>' + applicantData.message + '</div>';
                     }
                     const subject = "Hasil Lamaran Lowongan Pekerjaan";
                     try{
@@ -1012,7 +1012,7 @@ class Job extends Model {
                     if(applicantData.message.length === 0){
                         emailMessage += '<p>Sangat disayangkan anda tidak diterima di lowongan pekerjaan ' + this.#title + '. Coba lagi di lain kesempatan oke.</p>';
                     } else {
-                        emailMessage += '<p>' + applicantData.message + '</p>';
+                        emailMessage += '<div>' + applicantData.message + '</div>';
                     }
                     const subject = "Hasil Lamaran Lowongan Pekerjaan";
                     try{
