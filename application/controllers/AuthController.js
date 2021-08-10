@@ -116,12 +116,16 @@ class AuthController{
     }
     
     async login(email, password){
-        let validInput = this.validateLogin({email: email, password: password});
-        if(validInput !== true){
-            return validInput;
-        }
         
         try{
+            let validInput = this.validateLogin({email: email, password: password});
+            if(validInput !== true){
+                let result = {
+                    status: 2,
+                    err: validInput
+                };
+                return result;
+            }
             const isAuthorized = await this.authorize(email, password);
             if(isAuthorized){
                 let userModel = new User();
@@ -129,7 +133,8 @@ class AuthController{
                 let accessToken = await this.generateAccessToken(email);
                 return {
                     nim: user.getId(),
-                    accessToken
+                    accessToken,
+                    photo: user.getPhoto() || ""
                 };
             }
         }catch(e){
@@ -154,7 +159,11 @@ class AuthController{
             };
             let isValid = this.validate(userData);
             if(isValid !== true){
-                return isValid;
+                let result = {
+                    status: 2,
+                    err: validInput
+                };
+                return result;
             }
     
             let user;
