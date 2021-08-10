@@ -52,10 +52,32 @@ router.get('/', async function(req, res) {
 
 // Search job
 router.get('/search', async function(req, res) {
+    const {
+        page = 1,
+        keyword,
+        sort = 'similarity',
+        fJobType,
+        fStudyProgram,
+        fClassYear,
+        fMinSalary,
+        fMaxSalary,
+        fRemoteStatus,
+    } = req.query;
+    const query = {
+        page,
+        keyword,
+        sort,
+        fJobType: fJobType instanceof Array || fJobType === undefined ? fJobType : Array(fJobType),
+        fStudyProgram: fStudyProgram instanceof Array || fStudyProgram === undefined ? fStudyProgram : Array(fStudyProgram),
+        fClassYear: fClassYear instanceof Array || fClassYear === undefined ? fClassYear : Array(fClassYear),
+        fMinSalary,
+        fMaxSalary,
+        fRemoteStatus: fRemoteStatus instanceof Array || fRemoteStatus === undefined ? fRemoteStatus : Array(fRemoteStatus),
+    };
+    console.log(query);
     try{
         const jobController = new JobController();
-        let title = req.query.title;
-        let result = await jobController.searchByName(title);
+        let result = await jobController.search(query);
 
         res.status(200);
         res.send({ result });
@@ -137,7 +159,9 @@ router.put('/:jobId', async function(req, res) {
 }); 
 // Apply job
 router.post('/:jobId/apply', async function(req, res){
-    const {jobId} = req.params;
+    const {
+        jobId,
+    } = req.params;
     let applicantDocuments = null;
     if(req.files){
         applicantDocuments = req.files.applicantDocuments;
