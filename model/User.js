@@ -92,6 +92,9 @@ class User extends Model {
     getEmail(){
         return this.#email;
     }
+    getPhoto(){
+        return this.#photo;
+    }
     getPassword(){
         return this.#password;
     }
