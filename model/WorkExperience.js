@@ -64,7 +64,7 @@ class WorkExperience extends Model{
     toObject(){
         
         let objResult = {
-            id: String(this.#id),
+            id: this.#id,
             title: this.#title,
             workExperienceType: this.#workExperienceType,
             companyName: this.#companyName,
@@ -91,8 +91,8 @@ class WorkExperience extends Model{
     async init(){
         if(typeof this.#workExperienceType !== "WorkExperienceType" && this.#workExperienceType !== undefined){
             try {
-                let workExpTypeObj = new WorkExperienceType('', '');
-                this.#workExperienceType = await workExpTypeObj.findById(this.#workExperienceType.id);
+                let workExpTypeObj = new WorkExperienceType('');
+                this.#workExperienceType = await workExpTypeObj.findById(this.#workExperienceType.name);
                 return this;
             } catch (error) {
                 console.log('WorkExperience Model Error: ', error);
@@ -125,7 +125,7 @@ class WorkExperience extends Model{
             let promises = result.records.map(async (value, index, array) => {
                 let obj = value.get('res');     
                 let wt = value.get('wt');
-                wt = new WorkExperienceType(wt.id, wt.name);
+                wt = new WorkExperienceType(wt.name);
                 obj = this.constructFromObject(obj);
                 obj.setWorkExpType(wt);
                 return obj;
@@ -188,7 +188,7 @@ class WorkExperience extends Model{
             let promises = result.records.map(async (value, index, array) => {
                 let obj = value.get('res');     
                 let wt = value.get('wt');
-                wt = new WorkExperienceType(wt.id, wt.name);
+                wt = new WorkExperienceType(wt.name);
                 obj = this.constructFromObject(obj);
                 obj.setWorkExpType(wt);
                 return obj;
@@ -205,8 +205,8 @@ class WorkExperience extends Model{
         try {
             // Build Cypher Query
             let id = uuidv4();
-            let {workExperienceType} = obj;
-            if(workExperienceType == undefined || !workExperienceType.name) throw new Error("ID Work Experience Type harus diisi");
+            let {workExperienceType, userId} = obj;
+            if(workExperienceType === undefined || !workExperienceType.name) throw new Error("Nama Work Experience Type harus diisi");
 
             let query = `CREATE (res:${this.constructor.name} {id: '${id}', `;
             this.getAttributes().forEach((val, index, arr) => {
@@ -228,21 +228,20 @@ class WorkExperience extends Model{
                 }
             });
             query += ` 
-            WITH res MATCH (wt:WorkExperienceType {name: '${workExperienceType.name}'})
-            CREATE (res)-[:CLASSIFIED]->(wt) RETURN res{.*}, wt{.*}`;
+            WITH res MATCH (wt:WorkExperienceType {name: '${workExperienceType.name}'}), (u: User {nim: '${userId}'})
+            CREATE (u)-[:WORKED_AT]->(res)-[:CLASSIFIED]->(wt) RETURN res{.*}, wt{.*}`;
 
             // Run Query in Database        
             let result = await DB.query(query);
-            if(result.records.length <= 0){
+            let nodesCreated = result.summary.counters._stats.nodesCreated;
+            if(result.records.length <= 0 || nodesCreated <= 0){
                 throw new Error(`Data ${this.constructor.name} gagal dimasukkan`);
             }
-            let nodesCreated = result.summary.counters._stats.nodesCreated;
             console.log(`${nodesCreated} node of ${this.constructor.name} created in the database`);
-
             let objResult = result.records[0].get('res');
             let wt = result.records[0].get('wt');
-            wt = new WorkExperienceType(wt.id, wt.name);
-            objResult = this.constructFromObject(obj);
+            wt = new WorkExperienceType(wt.name);
+            objResult = this.constructFromObject(objResult);
             objResult.setWorkExpType(wt);
             return objResult;
         } catch (error) {
@@ -291,14 +290,13 @@ class WorkExperience extends Model{
             query += ' RETURN res{.*}, wt{.*}';
         }
                 
-        console.log('UPDATE QUERY', query);
         // Run Query in Database
         try {
             let result = await DB.query(query);
-            if(result.records.length <= 0){
+            let propertiesSet = result.summary.counters._stats.propertiesSet;
+            if(result.records.length <= 0 || propertiesSet <= 0){
                 throw new Error(`Data ${this.constructor.name} dengan id <${id}> gagal diupdate`);
             }
-            let propertiesSet = result.summary.counters._stats.propertiesSet;
             console.log(`${propertiesSet} properties of ${this.constructor.name} is set in the database`);
 
             let obj = result.records[0].get('res');
@@ -306,7 +304,6 @@ class WorkExperience extends Model{
             wt = new WorkExperienceType(wt.id, wt.name);
             obj = this.constructFromObject(obj);
             obj.setWorkExpType(wt);
-            console.log('UPDATE', obj);
             return obj;
         } catch (error) {
             console.log('Model Error:', error);

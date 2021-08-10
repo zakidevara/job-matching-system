@@ -11,6 +11,9 @@ class WorkExperienceType extends Model{
     setName(newName){
         this.#name = newName;
     }
+    getId(){
+        return this.#name;
+    }
     getName(){
         return this.#name;
     }

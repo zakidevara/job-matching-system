@@ -24,11 +24,12 @@ router.post('/', async function(req, res) {
     let workExpData = req.body;
     let userId = req.user.nim;
     workExpData.workExperienceType = {
-        id: workExpData.workExperienceTypeId,
+        name: workExpData.workExperienceType,
     };
+    workExpData.userId = userId;
     try{
-        const userController = new UserController();
-        let result = await userController.addWorkExperience(workExpData, userId);
+        const workExpController = new WorkExperienceController();
+        let result = await workExpController.create(workExpData);
 
         res.status(200);
         res.send({ result });
@@ -75,7 +76,7 @@ router.put('/:workExperienceId', async function(req, res) {
     workExpData.id = workExperienceId;
     
     workExpData.workExperienceType = {
-        id: workExpData.workExperienceTypeId,
+        name: workExpData.workExperienceType,
     };
     try{
         
