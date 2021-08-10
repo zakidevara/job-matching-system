@@ -876,6 +876,171 @@ class Job extends Model {
         }
     }
 
+    async find(searchQuery){
+        let date = new Date();
+        const itemPerPage = 20;
+        const {
+            keyword,
+            fJobType,
+            fStudyProgram,
+            fClassYear,
+            fMinSalary,
+            fMaxSalary,
+            fRemoteStatus,
+            page,
+            sort,
+        } = searchQuery;
+        let currentDate = `${date.getFullYear()}-0${date.getMonth()+1}-${date.getDate()}`;
+        let query = 
+            `MATCH 
+                (j:Job)<-[:POSTS]-(u:User), 
+                (j)-[:REQUIRES]->(jr:JobReq), 
+                (jr)-[:REQUIRES_SKILL]->(s:Skill)`
+                
+
+        query += ` WHERE`;
+        // SEARCH BY TITLE, COMPANY NAME, OR LOCATION
+        if(keyword === '' || keyword){
+            query += ` 
+                (toLower(j.title) CONTAINS toLower('${keyword}')
+                OR toLower(j.companyName) CONTAINS toLower('${keyword}')
+                OR toLower(j.location) CONTAINS toLower('${keyword}'))
+            `;
+        }
+
+        //JOB TYPE FILTER
+        if(fJobType && fJobType.length > 0){
+            query += ` AND (`
+            fJobType.forEach((jobType, idx, arr) => {
+                query += `j.jobType = ${jobType}`;
+                if(idx+1 !== arr.length) query += ` OR `;
+            });
+            query += `)`;
+        }
+        //STUDY PROGRAM REQUIREMENT FILTER
+        if(fStudyProgram && fStudyProgram.length > 0){
+            query += ` AND (`
+            fStudyProgram.forEach((studyProgram, idx, arr) => {
+                query += `${studyProgram} IN jr.studyProgramRequirement`;
+                if(idx+1 !== arr.length) query += ` OR `;
+            });
+            query += `)`;
+        }
+        //CLASS YEAR REQUIREMENT FILTER
+        if(fClassYear && fClassYear.length > 0){
+            query += ` AND (`
+            fClassYear.forEach((classYear, idx, arr) => {
+                query += `${classYear} IN jr.classYearRequirement`;
+                if(idx+1 !== arr.length) query += ` OR `;
+            });
+            query += `)`;
+        }
+        //REMOTE STATUS FILTER
+        if(fRemoteStatus && fRemoteStatus.length > 0){
+            query += ` AND (`
+            fRemoteStatus.forEach((remoteStatus, idx, arr) => {
+                query += `j.remote = ${remoteStatus}`;
+                if(idx+1 !== arr.length) query += ` OR `;
+            });
+            query += `)`;
+        }
+        //SALARY RANGE FILTER
+        if(fMinSalary){
+            query += ` AND (`
+            query += `j.minSalary >= ${fMinSalary}`;
+            query += `)`;
+        }
+        if(fMaxSalary){
+            query += ` AND (`
+            query += `j.maxSalary <= ${fMaxSalary}`;
+            query += `)`;
+        }
+
+        // Optional Religion Requirement
+        query += ` OPTIONAL MATCH 
+            (jr)-[:REQUIRES_RELIGION]->(r:Religion)`; 
+        
+        // DECLARE QUERY TO COUNT TOTAL ITEM
+        let queryTotalItem = query;
+        queryTotalItem += ` RETURN count(DISTINCT j) as totalItem`;
+
+        //RETURN SEARCH RESULT
+        query += ` RETURN DISTINCT j{.*, postedBy: u{.nim, .name}, requirements: jr{.*, requiredSkills: collect(s{.*}), requiredReligion: collect(r{.*})}}`;
+        // SORT BY
+        switch(sort){
+            case('salary'):
+                query += ` ORDER BY j.maxSalary DESC`
+                break;
+            default:
+                query += ` ORDER BY j.endDate DESC`
+        }      
+
+        query += ` SKIP ${itemPerPage*(page-1)} LIMIT ${itemPerPage}`;
+        console.log(query);
+        try{
+            let result = await DB.query(query);
+            let totalItem = await DB.query(queryTotalItem);
+            totalItem = totalItem.records[0].get('totalItem');
+
+            let jobData = [];
+            console.log(result.records.length);
+            if(totalItem > 0){
+                for(let i=0; i < result.records.length; i++){
+                    let listSkills = [];
+                    let listReligion = [];
+                    let propJob =  result.records[i].get('j');
+
+                    // let jobType = new JobType(propJob.jobType.id, propJob.jobType.name);
+                    let jobReq = new JobRequirement(propJob.requirements.classYearRequirement, propJob.requirements.studyProgramRequirement, propJob.requirements.documentRequirement, [], propJob.requirements.softSkillRequirement, propJob.requirements.maximumAge, [], propJob.requirements.requiredGender, propJob.requirements.description);
+                    await jobReq.init();
+                    
+                    //Skill Requirement
+                    propJob.requirements.requiredSkills.forEach((item) => {
+                        let skill = new Skill(item.id, item.name, item.uri);
+                        if(listSkills.length === 0){
+                            listSkills.push(skill);
+                        } else {
+                            let validateItem = listSkills.some(sk => sk.getId() === skill.getId());
+                            if(!validateItem) listSkills.push(skill);
+                        }
+                    });
+                    jobReq.setSkills(listSkills);
+
+                    //Religion Requirement
+                    propJob.requirements.requiredReligion.forEach((item) => {
+                        let religion = new Religion(item.name);
+                        if(listReligion.length === 0){
+                            listReligion.push(religion);
+                        } else {
+                            let validateItem = listReligion.some(r => r.getId() === religion.getId());
+                            if(!validateItem) listReligion.push(religion);
+                        }
+                    });
+                    jobReq.setReligions(listReligion);
+
+                    let job = new Job(propJob.id, propJob.userId, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.companyLogo, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status, jobReq, propJob.jobType);
+                    jobData.push(job);
+                }
+            }
+
+            let totalPage = Math.ceil(totalItem/20);
+            return {
+                pagination: {
+                    totalItem,
+                    itemPerPage,
+                    totalPage,
+                    currentPage: Number(page),
+                    nextPage: page < totalPage ? Number(page)+1:null,
+                    previousPage: page > 1 ? Number(page)-1:null,
+                },
+                searchResult: jobData
+            };
+        } catch(e){
+            console.log(e);
+            throw e;
+        }
+    }
+
     async apply(user, applicantDocuments){
         // dont use it, being repaired
         let userId = user.getNim();
