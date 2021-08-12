@@ -215,10 +215,11 @@ class JobController extends ResourceController {
         }
     }
 
-    async searchByName(title){
+    async search(query){
         try{
             let jobModel = new Job();
-            let jobList = await jobModel.searchByName(title);
+            let result = await jobModel.find(query);
+            let jobList = result.searchResult;
             let finalJobList = [];
     
             if(jobList.length > 0){
@@ -237,7 +238,10 @@ class JobController extends ResourceController {
                     finalJobList.push(objJob);
                 }
             }
-            return finalJobList;
+            return {
+                pagination: result.pagination,
+                searchResult: finalJobList
+            };
         } catch(e){
             throw e;
         }

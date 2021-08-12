@@ -359,7 +359,7 @@ class UserController extends ResourceController{
             let workExpTypeObj = new WorkExperienceType('', '');
             let userModel = new User();
             userModel = await userModel.findById(userId);
-            let workExpType = await workExpTypeObj.findById(workExperience.workExperienceType.id);
+            let workExpType = await workExpTypeObj.findById(workExperience.workExperienceType.getId());
             let newWorkExp = new WorkExperience(uuidv4(), workExperience.title, workExpType, workExperience.companyName, workExperience.startDate, workExperience.endDate);
 
             console.log(userModel);

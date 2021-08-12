@@ -12,7 +12,7 @@ class WorkExperienceController extends ResourceController{
             title: 'required|string',
             companyName: 'required|string',
             workExperienceType: {
-                id: 'required|string'
+                name: 'required|string'
             },
             startDate: 'required|date',
             endDate: 'after:startDate|date'
@@ -25,13 +25,21 @@ class WorkExperienceController extends ResourceController{
         }
     }
 
+    async create(obj){
+        let validInput = this.validate(obj);
+        if(validInput !== true){
+            return validInput;
+        }
+
+        return await super.create(obj);
+    }
     async update(obj){
         let validInput = this.validate(obj);
         if(validInput !== true){
             return validInput;
         }
 
-        await super.update(obj);
+        return await super.update(obj);
     }
 
     

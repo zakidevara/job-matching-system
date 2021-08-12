@@ -92,6 +92,9 @@ class User extends Model {
     getEmail(){
         return this.#email;
     }
+    getPhoto(){
+        return this.#photo;
+    }
     getPassword(){
         return this.#password;
     }
@@ -179,7 +182,7 @@ class User extends Model {
             gender: this.#gender,
             studyProgram: this.#studyProgram,
             status: this.#status,
-            religion: this.#religion.toObject()
+            religion: this.#religion !== null ? this.#religion.toObject() : null
         };
         return objResult;
     }

@@ -11,6 +11,18 @@ router.post('/login', async function(req, res) {
         const authController = new AuthController();
         let result = await authController.login(email, password);
 
+        // gagal validasi data
+        if(result.status !== undefined && result.status === 2){
+            res.status(400);
+            res.send(result.err);
+            return;
+        }
+
+        if(result.photo === ""){
+            delete result['photo'];
+        }else{
+            result.photo = `${process.env.APP_URL}/v1/file?filePath=` + result.photo.replace('.', '');  
+        }
         res.status(200);
         res.send({
             message: "Login berhasil",
@@ -30,6 +42,13 @@ router.post('/register', async function(req, res) {
         const authController = new AuthController();
         let result = await authController.register(nim, email, password);
 
+        // gagal validasi data
+        if(result.status !== undefined && result.status === 2){
+            res.status(400);
+            res.send(result.err);
+            return;
+        }
+
         res.status(200);
         res.send({
             message: "Registrasi akun berhasil",
@@ -47,6 +66,13 @@ router.post('/validateEmail', async function(req, res) {
     try{
         const authController = new AuthController();
         let result = await authController.validateEmail(email, code);
+
+        // gagal validasi data
+        if(result.status !== undefined && result.status === 2){
+            res.status(400);
+            res.send(result.err);
+            return;
+        }
 
         res.status(200);
         res.send({
