@@ -89,6 +89,9 @@ class User extends Model {
     getNim(){
         return this.#nim;
     }
+    getName(){
+        return this.#name;
+    }
     getEmail(){
         return this.#email;
     }
