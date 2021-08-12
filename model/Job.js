@@ -878,19 +878,22 @@ class Job extends Model {
 
     async find(searchQuery){
         let date = new Date();
-        const itemPerPage = 20;
         const {
-            keyword,
+            keyword = '',
             fJobType,
             fStudyProgram,
             fClassYear,
             fMinSalary,
             fMaxSalary,
+            fGender,
+            fReligion,
             fRemoteStatus,
-            page,
+            fAge,
+            page = 1,
             sort,
+            itemPerPage = 20,
         } = searchQuery;
-        let currentDate = `${date.getFullYear()}-0${date.getMonth()+1}-${date.getDate()}`;
+        console.log(fAge);
         let query = 
             `MATCH 
                 (j:Job)<-[:POSTS]-(u:User), 
@@ -921,7 +924,7 @@ class Job extends Model {
         if(fStudyProgram && fStudyProgram.length > 0){
             query += ` AND (`
             fStudyProgram.forEach((studyProgram, idx, arr) => {
-                query += `${studyProgram} IN jr.studyProgramRequirement`;
+                query += `(${studyProgram} IN jr.studyProgramRequirement OR jr.studyProgramRequirement = [])`;
                 if(idx+1 !== arr.length) query += ` OR `;
             });
             query += `)`;
@@ -930,11 +933,21 @@ class Job extends Model {
         if(fClassYear && fClassYear.length > 0){
             query += ` AND (`
             fClassYear.forEach((classYear, idx, arr) => {
-                query += `${classYear} IN jr.classYearRequirement`;
+                query += `(${classYear} IN jr.classYearRequirement OR jr.classYearRequirement = [])`;
                 if(idx+1 !== arr.length) query += ` OR `;
             });
             query += `)`;
         }
+        //GENDER REQUIREMENT FILTER
+        if(fGender && fGender.length > 0){
+            query += ` AND (`
+            fGender.forEach((gender, idx, arr) => {
+                query += `(${gender} IN jr.genderRequirement OR jr.genderRequirement = [])`;
+                if(idx+1 !== arr.length) query += ` OR `;
+            });
+            query += `)`;
+        }
+        
         //REMOTE STATUS FILTER
         if(fRemoteStatus && fRemoteStatus.length > 0){
             query += ` AND (`
@@ -942,6 +955,12 @@ class Job extends Model {
                 query += `j.remote = ${remoteStatus}`;
                 if(idx+1 !== arr.length) query += ` OR `;
             });
+            query += `)`;
+        }
+        //MAXIMUM AGE FILTER
+        if(fAge){
+            query += ` AND (`;
+            query += `jr.maximumAge >= ${fAge}`;
             query += `)`;
         }
         //SALARY RANGE FILTER
@@ -959,13 +978,22 @@ class Job extends Model {
         // Optional Religion Requirement
         query += ` OPTIONAL MATCH 
             (jr)-[:REQUIRES_RELIGION]->(r:Religion)`; 
-        
+        //RELIGION REQUIREMENT FILTER
+        // if(fReligion && fReligion.length > 0){
+        //     query += ` (`
+        //     fReligion.forEach((religion, idx, arr) => {
+        //         query += `(r.name='${religion}')`;
+        //         if(idx+1 !== arr.length) query += ` OR `;
+        //     });
+        //     query += `)`;
+        // }
+
         // DECLARE QUERY TO COUNT TOTAL ITEM
         let queryTotalItem = query;
         queryTotalItem += ` RETURN count(DISTINCT j) as totalItem`;
 
         //RETURN SEARCH RESULT
-        query += ` RETURN DISTINCT j{.*, postedBy: u{.nim, .name}, requirements: jr{.*, requiredSkills: collect(s{.*}), requiredReligion: collect(r{.*})}}`;
+        query += ` RETURN DISTINCT j{.*, postedBy: u{.nim, .name}, requirements: jr{.*, requiredSkills: collect(s{.*}), requiredReligion: collect(r{.*})}}, count(r)`;
         // SORT BY
         switch(sort){
             case('salary'):

@@ -62,6 +62,7 @@ router.get('/search', async function(req, res) {
         fMinSalary,
         fMaxSalary,
         fRemoteStatus,
+        fAge,
     } = req.query;
     const query = {
         page,
@@ -72,6 +73,7 @@ router.get('/search', async function(req, res) {
         fClassYear: fClassYear instanceof Array || fClassYear === undefined ? fClassYear : Array(fClassYear),
         fMinSalary,
         fMaxSalary,
+        fAge,
         fRemoteStatus: fRemoteStatus instanceof Array || fRemoteStatus === undefined ? fRemoteStatus : Array(fRemoteStatus),
     };
     console.log(query);

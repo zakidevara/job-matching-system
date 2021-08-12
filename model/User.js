@@ -101,8 +101,20 @@ class User extends Model {
     getVerificationCode(){
         return this.#emailVerificationCode;
     }
+    getBirthDate(){
+        return this.#birthDate;
+    }
     getStatus(){
         return this.#status;
+    }
+    getStudyProgram(){
+        return this.#studyProgram;
+    }
+    getClassYear(){
+        return this.#classYear;
+    }
+    getGender(){
+        return this.#gender;
     }
     async getWorkExpList(){
         let workExpObj = new WorkExperience();
@@ -135,7 +147,7 @@ class User extends Model {
             let result = await DB.query(query);
             if(result.records.length > 0){
                 let propRel = result.records[0].get('r').properties;
-                let religion = new Religion(propRel.id, propRel.name);
+                let religion = new Religion(propRel.name);
                 return religion.toObject();
             } else {
                 return null;

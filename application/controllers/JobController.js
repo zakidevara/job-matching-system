@@ -5,6 +5,7 @@ const JobStudentMatcher = require("../matcher/JobStudentMatcher");
 const {v4: uuidv4 } = require('uuid');
 const JobRequirement = require("../../model/JobRequirement");
 const Validator = require('validatorjs');
+const moment = require('moment');
 
 class JobController extends ResourceController {
 
@@ -282,21 +283,35 @@ class JobController extends ResourceController {
         }
 
         try{
-            // Get all available job with requires skill
-            let jobModel = new Job();
-            let listJob = await jobModel.all(undefined);
             try{
                 // Get user data
                 let userModel = new User();
                 let userData = await userModel.findById(userId);
+                let userReligion = await userData.getReligion();
+                console.log(userData.getStudyProgram());
+                // Get all available job with requires skill
+                let jobModel = new Job();
+                let filteredJob = await jobModel.find({
+                    // fStudyProgram: [userData.getStudyProgram().id],
+                    // fClassYear: [userData.getClassYear()],
+                    // fGender: [userData.getGender().id],
+                    // fReligion: userReligion !== undefined ? [userReligion.name]: [],
+                    // fAge: Math.abs(moment(userData.getBirthDate()).diff(moment(new Date()), 'years')),
+                    itemPerPage: amount,
+                });
+
+                let listJob = filteredJob.searchResult;
                 // Create new object including Job item and value similarity and push it into a new array
                 let newListJob = [];
-                listJob.forEach((item) => {
+
+                for(let i = 0; i < listJob.length; i++){
                     let objHelper = {};
-                    objHelper['job'] = item;
+                    objHelper['job'] = listJob[i];
+                    let jobApplicants = await listJob[i].getApplicant();
+                    objHelper['applicantCount'] = jobApplicants.length;
                     objHelper['value_similarity'] = 0;
                     newListJob.push(objHelper);
-                });
+                }
                 
                 // Calculate similarity
                 for(let i=0; i < newListJob.length; i++){
