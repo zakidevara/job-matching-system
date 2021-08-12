@@ -301,7 +301,7 @@ class WorkExperience extends Model{
 
             let obj = result.records[0].get('res');
             let wt = result.records[0].get('wt');
-            wt = new WorkExperienceType(wt.id, wt.name);
+            wt = new WorkExperienceType(wt.name);
             obj = this.constructFromObject(obj);
             obj.setWorkExpType(wt);
             return obj;
@@ -351,7 +351,7 @@ class WorkExperience extends Model{
             result = result.records[0]
             let obj = result.get('res');
             let wt = result.get('wt');
-            wt = new WorkExperienceType(wt.id, wt.name);
+            wt = new WorkExperienceType(wt.name);
             obj = this.constructFromObject(obj);
             obj.setWorkExpType(wt);
             return obj;

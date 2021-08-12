@@ -133,6 +133,7 @@ class AuthController{
                 let accessToken = await this.generateAccessToken(email);
                 return {
                     nim: user.getId(),
+                    name: user.getName(),
                     accessToken,
                     photo: user.getPhoto() || ""
                 };
