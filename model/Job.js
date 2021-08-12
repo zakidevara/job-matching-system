@@ -378,7 +378,7 @@ class Job extends Model {
                     if(index === 0){
                         // let jobType = new JobType(jobData.jobType.id, jobData.jobType.name);
                         let jobType = jobData.jobType;
-                        let jobReq = new JobRequirement(jobData.requirements.classYearRequirement, jobData.requirements.studyProgramRequirement, jobData.requirements.documentRequirement, [], jobData.requirements.softSkillRequirment, jobData.requirements.maximumAge, [], jobData.requirements.requiredGender, jobData.requirements.description);
+                        let jobReq = new JobRequirement(jobData.requirements.classYearRequirement, jobData.requirements.studyProgramRequirement, jobData.requirements.documentRequirement, [], jobData.requirements.softSkillRequirement, jobData.requirements.maximumAge, [], jobData.requirements.requiredGender, jobData.requirements.description);
                         jobReqObject = jobReq;
 
                         let job = new Job(jobData.id, jobData.userID, jobData.title, jobData.quantity, jobData.location, jobData.contact, jobData.benefits, jobData.description, jobData.duration, jobData.remote, jobData.companyName, jobData.companyLogo, jobData.endDate, jobData.minSalary, jobData.maxSalary, jobData.status, {}, jobType);
@@ -969,7 +969,7 @@ class Job extends Model {
                 if(propRel.status === 1){
                     let emailMessage = '';
                     if(applicantData.message.length === 0){
-                        emailMessage += '<p>Selamat anda diterima pada lowongan pekerjaan ' + this.#title + '.</p>';
+                        emailMessage += 'bentar';
                     } else {
                         emailMessage += '<div>' + applicantData.message + '</div>';
                     }
@@ -1010,7 +1010,21 @@ class Job extends Model {
                 if(propRel.status === 2){
                     let emailMessage = '';
                     if(applicantData.message.length === 0){
-                        emailMessage += '<p>Sangat disayangkan anda tidak diterima di lowongan pekerjaan ' + this.#title + '. Coba lagi di lain kesempatan oke.</p>';
+                        emailMessage += '<p>' + propRel.user.name + ',&nbsp;</p><p>Thanks for your interest in the ' + this.#title + ' position';
+                        if(this.#companyName){
+                            emailMessage += ' at ' + this.#companyName;
+                            if(this.#location){
+                                emailMessage += ' in ' + this.#location;
+                            }
+                        }
+                        emailMessage += '. Unfortunately, we will not be moving forward with your application but we appreciate your time and interest';
+                        emailMessage += '</p><br><p>Regards,<br>';
+                        if(this.#companyName){
+                            emailMessage += this.#companyName;
+                        } else {
+                            emailMessage += this.#contact;
+                        }
+                        emailMessage += '</p>';
                     } else {
                         emailMessage += '<div>' + applicantData.message + '</div>';
                     }
