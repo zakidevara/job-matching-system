@@ -969,7 +969,21 @@ class Job extends Model {
                 if(propRel.status === 1){
                     let emailMessage = '';
                     if(applicantData.message.length === 0){
-                        emailMessage += 'bentar';
+                        emailMessage += '<p>' + propRel.user.name + ',&nbsp</p><p>Terima kasih atas ketertarikannya untuk posisi ' + this.#title;
+                        if(this.#companyName){
+                            emailMessage += ' pada ' + this.#companyName;
+                            if(this.#location){
+                                emailMessage += ' di ' + this.#location;
+                            }
+                        }
+                        emailMessage += '. Setelah mempelajari kualifikasi dari saudara secara keseluruhan, kami sangat tertarik dengna kemampuan yang dimiliki saudara. Dengan demikian kami berharap saudara dapat mengikuti proses wawancara, mengenai waktu dan tempat akan kami informasikan lebih lanjut</p><p>Salam,<br>';
+                        if(this.#companyName){
+                            emailMessage += this.#companyName;
+                        } else {
+                            emailMessage += this.#contact;
+                        }
+                        emailMessage += '</p>';
+
                     } else {
                         emailMessage += '<div>' + applicantData.message + '</div>';
                     }
@@ -1010,15 +1024,19 @@ class Job extends Model {
                 if(propRel.status === 2){
                     let emailMessage = '';
                     if(applicantData.message.length === 0){
-                        emailMessage += '<p>' + propRel.user.name + ',&nbsp;</p><p>Thanks for your interest in the ' + this.#title + ' position';
+                        emailMessage += '<p>' + propRel.user.name + ',&nbsp;</p><p>Terima kasih atas ketertarikannya untuk posisi ' + this.#title;
                         if(this.#companyName){
-                            emailMessage += ' at ' + this.#companyName;
+                            emailMessage += ' pada ' + this.#companyName;
                             if(this.#location){
-                                emailMessage += ' in ' + this.#location;
+                                emailMessage += ' di ' + this.#location;
                             }
                         }
-                        emailMessage += '. Unfortunately, we will not be moving forward with your application but we appreciate your time and interest';
-                        emailMessage += '</p><br><p>Regards,<br>';
+                        emailMessage += '. Sayangnya, kami tidak akan menindaklanjuti lamaran anda. Kami sangat mengapresiasi waktu dan ketertarikan anda';
+                        if(this.#companyName){
+                            emailMessage += ' pada ' + this.#companyName;
+                        }
+
+                        emailMessage += '.</p><p>Salam,<br>';
                         if(this.#companyName){
                             emailMessage += this.#companyName;
                         } else {
