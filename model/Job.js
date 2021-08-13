@@ -378,7 +378,7 @@ class Job extends Model {
                     if(index === 0){
                         // let jobType = new JobType(jobData.jobType.id, jobData.jobType.name);
                         let jobType = jobData.jobType;
-                        let jobReq = new JobRequirement(jobData.requirements.classYearRequirement, jobData.requirements.studyProgramRequirement, jobData.requirements.documentRequirement, [], jobData.requirements.softSkillRequirment, jobData.requirements.maximumAge, [], jobData.requirements.requiredGender, jobData.requirements.description);
+                        let jobReq = new JobRequirement(jobData.requirements.classYearRequirement, jobData.requirements.studyProgramRequirement, jobData.requirements.documentRequirement, [], jobData.requirements.softSkillRequirement, jobData.requirements.maximumAge, [], jobData.requirements.requiredGender, jobData.requirements.description);
                         jobReqObject = jobReq;
 
                         let job = new Job(jobData.id, jobData.userID, jobData.title, jobData.quantity, jobData.location, jobData.contact, jobData.benefits, jobData.description, jobData.duration, jobData.remote, jobData.companyName, jobData.companyLogo, jobData.endDate, jobData.minSalary, jobData.maxSalary, jobData.status, {}, jobType);
@@ -1162,7 +1162,21 @@ class Job extends Model {
                 if(propRel.status === 1){
                     let emailMessage = '';
                     if(applicantData.message.length === 0){
-                        emailMessage += '<p>Selamat anda diterima pada lowongan pekerjaan ' + this.#title + '.</p>';
+                        emailMessage += '<p>' + propRel.user.name + ',&nbsp</p><p>Terima kasih atas ketertarikannya untuk posisi ' + this.#title;
+                        if(this.#companyName){
+                            emailMessage += ' pada ' + this.#companyName;
+                            if(this.#location){
+                                emailMessage += ' di ' + this.#location;
+                            }
+                        }
+                        emailMessage += '. Setelah mempelajari kualifikasi dari saudara secara keseluruhan, kami sangat tertarik dengna kemampuan yang dimiliki saudara. Dengan demikian kami berharap saudara dapat mengikuti proses wawancara, mengenai waktu dan tempat akan kami informasikan lebih lanjut</p><p>Salam,<br>';
+                        if(this.#companyName){
+                            emailMessage += this.#companyName;
+                        } else {
+                            emailMessage += this.#contact;
+                        }
+                        emailMessage += '</p>';
+
                     } else {
                         emailMessage += '<div>' + applicantData.message + '</div>';
                     }
@@ -1203,7 +1217,25 @@ class Job extends Model {
                 if(propRel.status === 2){
                     let emailMessage = '';
                     if(applicantData.message.length === 0){
-                        emailMessage += '<p>Sangat disayangkan anda tidak diterima di lowongan pekerjaan ' + this.#title + '. Coba lagi di lain kesempatan oke.</p>';
+                        emailMessage += '<p>' + propRel.user.name + ',&nbsp;</p><p>Terima kasih atas ketertarikannya untuk posisi ' + this.#title;
+                        if(this.#companyName){
+                            emailMessage += ' pada ' + this.#companyName;
+                            if(this.#location){
+                                emailMessage += ' di ' + this.#location;
+                            }
+                        }
+                        emailMessage += '. Sayangnya, kami tidak akan menindaklanjuti lamaran anda. Kami sangat mengapresiasi waktu dan ketertarikan anda';
+                        if(this.#companyName){
+                            emailMessage += ' pada ' + this.#companyName;
+                        }
+
+                        emailMessage += '.</p><p>Salam,<br>';
+                        if(this.#companyName){
+                            emailMessage += this.#companyName;
+                        } else {
+                            emailMessage += this.#contact;
+                        }
+                        emailMessage += '</p>';
                     } else {
                         emailMessage += '<div>' + applicantData.message + '</div>';
                     }
