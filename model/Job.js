@@ -892,13 +892,21 @@ class Job extends Model {
             page = 1,
             sort,
             itemPerPage = 20,
+            userId,
         } = searchQuery;
         console.log(fAge);
-        let query = 
-            `MATCH 
+        let query;
+        if(userId){
+            query = `MATCH 
+                (j:Job)<-[:POSTS]-(u:User {nim: '${userId}'}), 
+                (j)-[:REQUIRES]->(jr:JobReq), 
+                (jr)-[:REQUIRES_SKILL]->(s:Skill)`;
+        }else{
+            query = `MATCH 
                 (j:Job)<-[:POSTS]-(u:User), 
                 (j)-[:REQUIRES]->(jr:JobReq), 
-                (jr)-[:REQUIRES_SKILL]->(s:Skill)`
+                (jr)-[:REQUIRES_SKILL]->(s:Skill)`;                
+        }
                 
 
         query += ` WHERE`;
@@ -1046,7 +1054,7 @@ class Job extends Model {
                     });
                     jobReq.setReligions(listReligion);
 
-                    let job = new Job(propJob.id, propJob.userId, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.companyLogo, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status, jobReq, propJob.jobType);
+                    let job = new Job(propJob.id, propJob.postedBy.nim, propJob.title, propJob.quantity, propJob.location, propJob.contact, propJob.benefits, propJob.description, propJob.duration, propJob.remote, propJob.companyName, propJob.companyLogo, propJob.endDate, propJob.minSalary, propJob.maxSalary, propJob.status, jobReq, propJob.jobType);
                     jobData.push(job);
                 }
             }

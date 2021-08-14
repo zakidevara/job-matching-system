@@ -278,11 +278,11 @@ class WorkExperience extends Model{
         // remove the last comma
         query = query.replace(/,\s*$/, "");
         // update work experience type query
-        if(workExperienceType !== undefined && workExperienceType.id){
+        if(workExperienceType !== undefined && workExperienceType.name){
             query += ` WITH res 
             MATCH 
                 (res)-[rel:CLASSIFIED]->(w:WorkExperienceType),   
-                (wt:WorkExperienceType {name: '${workExperienceType.id}'}) 
+                (wt:WorkExperienceType {name: '${workExperienceType.name}'}) 
             CREATE (res)-[:CLASSIFIED]->(wt)
             DELETE rel`;
             query += ' RETURN res{.*}, wt{.*}';
