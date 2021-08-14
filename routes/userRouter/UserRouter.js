@@ -53,6 +53,22 @@ router.get('/users/:userId', async function(req, res) {
     }
 });
 
+//delete user
+router.delete('/users/:userId', async function(req, res) {
+    const {userId} = req.params;
+    try{
+        let userController = new UserController();
+        let result = await userController.delete(userId);
+
+        res.status(200);
+        res.send({ result });
+    } catch(e){
+        res.status(400);
+        let {message} = e;
+        res.send({ message });
+    }
+});
+
 // Update user data
 router.put('/users/:userId', async function(req, res) {
     let userId = req.params.userId;
