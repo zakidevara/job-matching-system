@@ -219,6 +219,7 @@ class JobController extends ResourceController {
     async search(query){
         try{
             let jobModel = new Job();
+            let userModel = new User();
             let result = await jobModel.find(query);
             let jobList = result.searchResult;
             let finalJobList = [];
@@ -236,6 +237,14 @@ class JobController extends ResourceController {
                     value.setRequirements(requirements);
         
                     let objJob = value.toObject();
+                    let recruiter = await userModel.findById(value.getUserID());
+                    let jobApplicants = await value.getApplicant();
+                    objJob['applicantCount'] = jobApplicants.length;
+                    objJob.postedBy = {
+                        nim: recruiter.getId(),
+                        name: recruiter.getName(),
+                    };
+
                     finalJobList.push(objJob);
                 }
             }
@@ -308,6 +317,11 @@ class JobController extends ResourceController {
                     let objHelper = {};
                     objHelper['job'] = listJob[i];
                     let jobApplicants = await listJob[i].getApplicant();
+                    let recruiter = await userModel.findById(listJob[i].getUserID());
+                    objHelper['postedBy'] = {
+                        nim: recruiter.getId(),
+                        name: recruiter.getName(),
+                    };
                     objHelper['applicantCount'] = jobApplicants.length;
                     objHelper['value_similarity'] = 0;
                     newListJob.push(objHelper);
