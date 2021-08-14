@@ -162,7 +162,7 @@ class AuthController{
             if(isValid !== true){
                 let result = {
                     status: 2,
-                    err: validInput
+                    err: isValid
                 };
                 return result;
             }
