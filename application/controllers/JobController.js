@@ -245,6 +245,12 @@ class JobController extends ResourceController {
                         name: recruiter.getName(),
                     };
 
+                    if(objJob.companyLogo === ""){
+                        delete objJob['companyLogo'];
+                    }else{
+                        objJob.companyLogo = `${process.env.APP_URL}/v1/file?filePath=` + objJob.companyLogo.replace('.', '');  
+                    }
+
                     finalJobList.push(objJob);
                 }
             }
@@ -480,6 +486,11 @@ class JobController extends ResourceController {
         
                 nlApplicants.forEach((item, index, array) => {
                     let newApplObj = item.applicant.toObject();
+                    if(newApplObj.user.photo === ""){
+                        delete newApplObj.user['photo'];
+                    }else{
+                        newApplObj.user.photo = `${process.env.APP_URL}/v1/file?filePath=` + newApplObj.user.photo.replace('.', '');  
+                    }
                     array[index].applicant = newApplObj;
                 });
         
