@@ -882,11 +882,10 @@ class Job extends Model {
         let jobId = this.#jobID;
         let pathDocuments = '';
         if(applicantDocuments !== null){
-            if(applicantDocuments.mimetype !== 'application/zip' || applicantDocuments.mimetype !== 'application/x-zip-compressed'){
+            if(applicantDocuments.mimetype !== 'application/zip' && applicantDocuments.type !== 'application/x-zip-compressed'){
                 return 6;
             }
             pathDocuments = './uploads/job/' + jobId + '/documents/' + userId + '/' + applicantDocuments.name;
-            applicantDocuments.mv(pathDocuments); 
         }
 
         let checkQuery = `MATCH (u:User {nim: '${userId}'})-[:HAS_APPLIED]->(ja:JobApplication)-[:APPLIED_TO]->(j:Job {id: '${jobId}'}) RETURN ja`;
@@ -909,6 +908,7 @@ class Job extends Model {
             try{
                 let resultApply = await DB.query(queryApply);
                 if(resultApply.records.length > 0){
+                    applicantDocuments.mv(pathDocuments); 
                     return 1;
                 } else {
                     return 0;
