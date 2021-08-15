@@ -125,7 +125,7 @@ class UserController extends ResourceController{
     async create(userData) {
         let validInput = this.validate(userData);
         if(validInput !== true){
-            throw validInput;
+            return validInput;
         }
 
         if(userData.photo !== null){
