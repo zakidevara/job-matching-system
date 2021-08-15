@@ -1083,10 +1083,10 @@ class Job extends Model {
         let jobId = this.#jobID;
         let pathDocuments = '';
         if(applicantDocuments !== null){
-            if(applicantDocuments.mimetype !== 'application/zip'){
+            if(applicantDocuments.mimetype !== 'application/zip' || applicantDocuments.mimetype !== 'application/x-zip-compressed'){
                 return 6;
             }
-            pathDocuments = './uploads/job/' + jobID + '/documents/' + userID + '/' + applicantDocuments.name;
+            pathDocuments = './uploads/job/' + jobId + '/documents/' + userId + '/' + applicantDocuments.name;
             applicantDocuments.mv(pathDocuments); 
         }
 
@@ -1177,7 +1177,7 @@ class Job extends Model {
                                 emailMessage += ' di ' + this.#location;
                             }
                         }
-                        emailMessage += '. Setelah mempelajari kualifikasi dari saudara secara keseluruhan, kami sangat tertarik dengna kemampuan yang dimiliki saudara. Dengan demikian kami berharap saudara dapat mengikuti proses wawancara, mengenai waktu dan tempat akan kami informasikan lebih lanjut</p><p>Salam,<br>';
+                        emailMessage += '. Setelah mempelajari kualifikasi dari saudara secara keseluruhan, kami sangat tertarik dengan kemampuan yang dimiliki saudara. Dengan demikian kami berharap saudara dapat mengikuti proses wawancara, mengenai waktu dan tempat akan kami informasikan lebih lanjut</p><p>Salam,<br>';
                         if(this.#companyName){
                             emailMessage += this.#companyName;
                         } else {
