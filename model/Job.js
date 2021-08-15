@@ -1083,11 +1083,10 @@ class Job extends Model {
         let jobId = this.#jobID;
         let pathDocuments = '';
         if(applicantDocuments !== null){
-            if(applicantDocuments.mimetype !== 'application/zip'){
+            if(applicantDocuments.mimetype !== 'application/zip' && applicantDocuments.type !== 'application/x-zip-compressed'){
                 return 6;
             }
-            pathDocuments = './uploads/job/' + jobID + '/documents/' + userID + '/' + applicantDocuments.name;
-            applicantDocuments.mv(pathDocuments); 
+            pathDocuments = './uploads/job/' + jobId + '/documents/' + userId + '/' + applicantDocuments.name;
         }
 
         let checkQuery = `MATCH (u:User {nim: '${userId}'})-[:HAS_APPLIED]->(ja:JobApplication)-[:APPLIED_TO]->(j:Job {id: '${jobId}'}) RETURN ja`;
@@ -1110,6 +1109,7 @@ class Job extends Model {
             try{
                 let resultApply = await DB.query(queryApply);
                 if(resultApply.records.length > 0){
+                    applicantDocuments.mv(pathDocuments); 
                     return 1;
                 } else {
                     return 0;
@@ -1177,7 +1177,7 @@ class Job extends Model {
                                 emailMessage += ' di ' + this.#location;
                             }
                         }
-                        emailMessage += '. Setelah mempelajari kualifikasi dari saudara secara keseluruhan, kami sangat tertarik dengna kemampuan yang dimiliki saudara. Dengan demikian kami berharap saudara dapat mengikuti proses wawancara, mengenai waktu dan tempat akan kami informasikan lebih lanjut</p><p>Salam,<br>';
+                        emailMessage += '. Setelah mempelajari kualifikasi dari saudara secara keseluruhan, kami sangat tertarik dengan kemampuan yang dimiliki saudara. Dengan demikian kami berharap saudara dapat mengikuti proses wawancara, mengenai waktu dan tempat akan kami informasikan lebih lanjut</p><p>Salam,<br>';
                         if(this.#companyName){
                             emailMessage += this.#companyName;
                         } else {

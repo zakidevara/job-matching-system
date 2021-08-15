@@ -186,6 +186,10 @@ class User extends Model {
         if(typeof this.#gender !== 'object' || typeof this.#studyProgram !== 'object'){
             this.init();
         }
+        let objReligion = 'Tidak ada';
+        if(this.#religion !== null){
+            objReligion = this.#religion.toObject();
+        }
         let objResult = {
             name: this.#name,
             nim: this.#nim,
@@ -197,7 +201,7 @@ class User extends Model {
             gender: this.#gender,
             studyProgram: this.#studyProgram,
             status: this.#status,
-            religion: this.#religion !== null ? this.#religion.toObject() : null
+            religion: objReligion
         };
         return objResult;
     }
@@ -304,6 +308,8 @@ class User extends Model {
                         let propRel = resultRel.records[0].get('r').properties;
                         let religion = new Religion(propRel.name);
                         user.setReligion(religion);
+                    } else {
+                        user.setReligion(null);
                     }
                 } catch(e){
                     throw e;
@@ -359,17 +365,24 @@ class User extends Model {
         } else {
             query += `u.photo = '${oldPhoto}'`;
         }
-        if(userData.religion !== this.#religion.getName()){
-            query += `WITH u
-                      MATCH (u)-[re:HAS_RELIGION]->(r:Religion {name: '${this.#religion.getName()}'})
-                      DELETE re
-                      WITH u
-                      MATCH (nr:Religion {name: '${userData.religion}'})
-                      MERGE (u)-[:HAS_RELIGION]->(nr)
-                      RETURN u{.*, religion: nr{.*}}`;
+        if(this.#religion !== null){
+            if(userData.religion !== this.#religion.getName()){
+                query += `WITH u
+                          MATCH (u)-[re:HAS_RELIGION]->(r:Religion {name: '${this.#religion.getName()}'})
+                          DELETE re
+                          WITH u
+                          MATCH (nr:Religion {name: '${userData.religion}'})
+                          MERGE (u)-[:HAS_RELIGION]->(nr)
+                          RETURN u{.*, religion: nr{.*}}`;
+            } else {
+                query += `WITH u
+                          MATCH (u)-[:HAS_RELIGION]->(r:Religion)
+                          RETURN u{.*, religion: r{.*}}`;
+            }
         } else {
             query += `WITH u
-                      MATCH (u)-[:HAS_RELIGION]->(r:Religion)
+                      MATCH (r:Religion {name : '${userData.religion}'})
+                      MERGE (u)-[:HAS_RELIGION]->(r)
                       RETURN u{.*, religion: r{.*}}`;
         }
         
