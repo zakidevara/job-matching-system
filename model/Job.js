@@ -1082,7 +1082,6 @@ class Job extends Model {
         let userId = user.getNim();
         let jobId = this.#jobID;
         let pathDocuments = '';
-        console.log(applicantDocuments);
         if(applicantDocuments !== null){
             if(applicantDocuments.mimetype !== 'application/zip' && applicantDocuments.mimetype !== 'application/x-zip-compressed'){
                 return 6;
