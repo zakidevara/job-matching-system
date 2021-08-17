@@ -950,7 +950,7 @@ class Job extends Model {
         if(fGender && fGender.length > 0){
             query += ` AND (`
             fGender.forEach((gender, idx, arr) => {
-                query += `(${gender} IN jr.genderRequirement OR jr.genderRequirement = [])`;
+                query += `(${gender} IN jr.requiredGender OR jr.requiredGender = [])`;
                 if(idx+1 !== arr.length) query += ` OR `;
             });
             query += `)`;
@@ -968,7 +968,7 @@ class Job extends Model {
         //MAXIMUM AGE FILTER
         if(fAge){
             query += ` AND (`;
-            query += `jr.maximumAge >= ${fAge}`;
+            query += `jr.maximumAge >= ${fAge} OR jr.maximumAge = 0`;
             query += `)`;
         }
         //SALARY RANGE FILTER

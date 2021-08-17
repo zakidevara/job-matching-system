@@ -307,11 +307,11 @@ class JobController extends ResourceController {
                 // Get all available job with requires skill
                 let jobModel = new Job();
                 let filteredJob = await jobModel.find({
-                    // fStudyProgram: [userData.getStudyProgram().id],
-                    // fClassYear: [userData.getClassYear()],
-                    // fGender: [userData.getGender().id],
+                    fStudyProgram: [userData.getStudyProgram().id],
+                    fClassYear: [userData.getClassYear()],
+                    fGender: [userData.getGender().id],
                     // fReligion: userReligion !== undefined ? [userReligion.name]: [],
-                    // fAge: Math.abs(moment(userData.getBirthDate()).diff(moment(new Date()), 'years')),
+                    fAge: Math.abs(moment(userData.getBirthDate()).diff(moment(new Date()), 'years')),
                     itemPerPage: amount,
                 });
 
