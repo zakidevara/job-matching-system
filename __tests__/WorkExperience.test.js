@@ -9,7 +9,6 @@ describe('Work Experience Model Tests', () => {
             id: '1', 
             title:'Software engineer',
             workExperienceType: {
-                id: '1',
                 name: 'Full-time',
             },
             companyName:'Tokopedia',
@@ -20,7 +19,6 @@ describe('Work Experience Model Tests', () => {
             id: '2', 
             title:'Software tester',
             workExperienceType: {
-                id: '2',
                 name: 'Part-time',
             },
             companyName:'Traveloka',
@@ -31,7 +29,6 @@ describe('Work Experience Model Tests', () => {
             id: '3', 
             title:'Head of engineering',
             workExperienceType: {
-                id: '1',
                 name: 'Full-time',
             },
             companyName:'Bukalapak',
@@ -61,7 +58,7 @@ describe('Work Experience Model Tests', () => {
                 let promiseArr = dummyData.map(async (data) => {
                     let promise = await DB.query(
                         `CREATE (w:WorkExperience {id: '${data.id}', title: '${data.title}', companyName: '${data.companyName}', startDate: '${data.startDate}', endDate: '${data.endDate}'}),
-                        (wt:WorkExperienceType {id: '${data.workExperienceType.id}', name: '${data.workExperienceType.name}'}),
+                        (wt:WorkExperienceType {name: '${data.workExperienceType.name}'}),
                         (w)-[:CLASSIFIED]->(wt)`
                     );
                     return promise;

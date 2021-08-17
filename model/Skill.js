@@ -10,6 +10,7 @@ class Skill extends Model {
     #id;
     #name;
     #uri;
+    #taxonomyFeatures;
 
     constructor(id='', name='', uri=''){
         super("id");
@@ -22,7 +23,8 @@ class Skill extends Model {
         let objResult = {
             id: this.#id,
             name: this.#name,
-            uri: this.#uri
+            uri: this.#uri,
+            taxonomyFeatures: this.#taxonomyFeatures ? this.#taxonomyFeatures.map((item) => item.toObject()) : []
         };
         return objResult;
     }
@@ -30,7 +32,7 @@ class Skill extends Model {
         let {
             id,
             name,
-            uri
+            uri,
         } = obj;
         return new this.constructor(id, name, uri)
     }
@@ -47,12 +49,23 @@ class Skill extends Model {
     getUri(){
         return this.#uri;
     }
+    async getTaxonomyFeatures(){
+        if(this.#taxonomyFeatures=== undefined){
+            let features = await this.getParentNodes();
+            this.setTaxonomyFeatures(features);
+        }else{
+            return this.#taxonomyFeatures;
+        }
+    }
 
     
 
     // SETTER
     setName(name){
         this.#name = name;
+    }
+    setTaxonomyFeatures(features){
+        this.#taxonomyFeatures = features;
     }
 
     async getParentNodes(){
@@ -62,12 +75,31 @@ class Skill extends Model {
                 `MATCH (:Skill {name: '${this.#name}'})-[:SUPER_TOPIC_OF*0..2]->(result:Skill) Return result`
             );
 
+            let listOfParentsFS = listParents.records;
+
+            let listOfObjFS = [];
+            listOfParentsFS.forEach((item, index) => {
+                let obj = {};
+                obj['id'] = item.get('result').properties.id;
+                obj['name'] = item.get('result').properties.name;
+                obj['uri'] = item.get('result').properties.uri;
+                listOfObjFS.push(obj);
+            });
+
+            
+            // Remove duplicates
+            let fsObject = listOfObjFS.map(JSON.stringify);
+            let uniqueFSSet = new Set(fsObject);
+            let finalFsList = Array.from(uniqueFSSet).map(JSON.parse);
+            
+            let skillList = finalFsList.map((item) => new Skill(item.id, item.name, item.uri));
+            this.setTaxonomyFeatures(skillList);
+            return skillList;
         }catch(e){
             console.log(e)
             throw e;
         }
         
-        return listParents;
     }
     async findById(skillID){
         let query = `MATCH (s:Skill {id: '${skillID}'}) RETURN s`;
@@ -110,45 +142,27 @@ class Skill extends Model {
         return result;
     }
 
+    calculateSanchezSimilarity(featureOne, featureTwo){
+        featureOne = featureOne.map((item) => item.toObject());
+        featureTwo = featureTwo.map((item) => item.toObject());
+        // Get the difference and intersection
+        let differenceOne = this.getTotalOfDifferenceSkill(featureOne, featureTwo);     // notasi --> listOfParentsFS \ listOfParentsSS
+        let differenceTwo = this.getTotalOfDifferenceSkill(featureTwo, featureOne);     // notasi --> listOfParentsSS \ listOfParentsFS
+        let intersection = this.getIntersection(featureOne, featureTwo);           // notasi --> listOfParentsFS n listOfParentsSS
+
+        let dissimilarity = Math.log(1 + ((differenceOne+differenceTwo)/(differenceOne+differenceTwo+intersection))) / Math.log(2);
+        let similarity = 1 - dissimilarity;
+        return similarity;
+
+    }
     async calculateSimilarity(secondSkill){
         // Fill up all parents from each skill
-        let dataOfParentsFS = await this.getParentNodes();
-        let listOfParentsFS = dataOfParentsFS.records;
-        let dataOfParentsSS = await secondSkill.getParentNodes();
-        let listOfParentsSS = dataOfParentsSS.records;
+        let dataOfParentsFS = await this.getTaxonomyFeatures();
+        let dataOfParentsSS = await secondSkill.getTaxonomyFeatures();
 
-        let listOfObjFS = [];
-        listOfParentsFS.forEach((item, index) => {
-            let obj = {};
-            obj['name'] = item.get('result').properties.name;
-            obj['uri'] = item.get('result').properties.uri;
-            listOfObjFS.push(obj);
-        });
-        let listOfObjSS = [];
-        listOfParentsSS.forEach((item, index) => {
-            let obj = {};
-            obj['name'] = item.get('result').properties.name;
-            obj['uri'] = item.get('result').properties.uri;
-            listOfObjSS.push(obj);
-        });
-
-        // Remove duplicates
-        let fsObject = listOfObjFS.map(JSON.stringify);
-        let uniqueFSSet = new Set(fsObject);
-        let finalFsList = Array.from(uniqueFSSet).map(JSON.parse);
-
-        let ssObject = listOfObjSS.map(JSON.stringify);
-        let uniqueSSSet = new Set(ssObject);
-        let finalSsList = Array.from(uniqueSSSet).map(JSON.parse);
 
         // Get the difference and intersection (Sanchez)
-        let totDifFS = this.getTotalOfDifferenceSkill(finalFsList, finalSsList);     // notasi --> listOfParentsFS \ listOfParentsSS
-        let totDifSS = this.getTotalOfDifferenceSkill(finalSsList, finalFsList);     // notasi --> listOfParentsSS \ listOfParentsFS
-        let intersection = this.getIntersection(finalFsList, finalSsList);           // notasi --> listOfParentsFS n listOfParentsSS
-
-        let disimilarity = Math.log(1 + ((totDifFS+totDifSS)/(totDifFS+totDifSS+intersection))) / Math.log(2);
-        let similarity = 1 - disimilarity;
-        return similarity;
+        return this.calculateSanchezSimilarity(dataOfParentsFS, dataOfParentsSS);
 
         // Get the difference and intersection (Rodriguez)
         // let totDifFS = getTotalOfDifferenceSkill(finalFsList, finalSsList);     // notasi --> listOfParentsFS \ listOfParentsSS

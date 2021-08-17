@@ -6,23 +6,18 @@ describe('Degree Model Tests', () => {
     let classObj = new Degree('', '');
     const dummyData = [
         {
-            id: '1', 
             name:'SMK/SMA',
         },
         {
-            id: '2', 
             name:'Diploma III', 
         },
         {
-            id: '3', 
             name:'Diploma IV', 
         },
         {
-            id: '4', 
             name:'Strata I', 
         },
         {
-            id: '5', 
             name:'Strata II', 
         },
     ];
@@ -34,7 +29,7 @@ describe('Degree Model Tests', () => {
             if(clearStatus){
                 let promiseArr = [];
                 for(const data of dummyData){
-                    promiseArr.push(await DB.query(`CREATE (d:Degree {id: '${data.id}', name: '${data.name}'})`));
+                    promiseArr.push(await DB.query(`CREATE (d:Degree {name: '${data.name}'})`));
                 }
                 await Promise.all(promiseArr);
             }
@@ -77,14 +72,14 @@ describe('Degree Model Tests', () => {
     test(`#${testId++} should be able to convert to JavaScript Object`, async () => {
         
         const data = dummyData[0];
-        const obj = new Degree(data.id, data.name);
+        const obj = new Degree(data.name);
         expect(obj.toObject()).toStrictEqual(data);
         return;
     });
     // constructFromObject()
     test(`#${testId++} should be able to construct object from JavaScript Object`, async () => {
         const data = dummyData[0];
-        const obj = new Degree(data.id, data.name);
+        const obj = new Degree(data.name);
         expect(classObj.constructFromObject(data)).toStrictEqual(obj);
         expect(obj.getName()).toStrictEqual(data.name);
         return;
@@ -105,9 +100,9 @@ describe('Degree Model Tests', () => {
     // findById()
     test(`#${testId++} should be able to get data by id from DB`, async () => {
         
-        const id = '1';
+        const id = 'SMK/SMA';
         const actual = await classObj.findById(id);
-        const expectedObj = dummyData.find((element) => element.id == id);
+        const expectedObj = dummyData.find((element) => element.name == id);
         expect(actual).toStrictEqual(classObj.constructFromObject(expectedObj));
         return;
     });
@@ -124,10 +119,9 @@ describe('Degree Model Tests', () => {
     // create()
     test(`#${testId++} should be able to insert new data to DB`, async () => {
 
-        const id = '99';
-        const testDummy = {id: id, name: "Test Degree"};
+        const testDummy = {name: "Test Degree"};
         let createResult = await classObj.create(testDummy);
-        let findByIdData = await classObj.findById(id);
+        let findByIdData = await classObj.findById(testDummy.name);
 
         // Check the return type from create() method and inserted data in DB
         expect(createResult).toStrictEqual(classObj.constructFromObject(testDummy));
@@ -151,7 +145,7 @@ describe('Degree Model Tests', () => {
         let testDummy = dummyData[0];
         testDummy.name = 'Updated Name';
         let updateResult = await classObj.update(testDummy);
-        let findByIdData = await classObj.findById(testDummy.id);
+        let findByIdData = await classObj.findById(testDummy.name);
 
         // Check the return type from update() method and updated data in DB
         expect(updateResult).toStrictEqual(classObj.constructFromObject(testDummy));
@@ -160,8 +154,8 @@ describe('Degree Model Tests', () => {
     });
     // deleteById()
     test(`#${testId++} should be able to delete data by id`, async () => {
-        const id = '1';
-        const deletedObj = dummyData.find((element) => element.id == id);
+        const id = 'SMK/SMA';
+        const deletedObj = dummyData.find((element) => element.name == id);
         const deleteResult = await classObj.deleteById(id);
         const allData = await classObj.all();
         expect(deleteResult).toBeTruthy();
@@ -171,8 +165,8 @@ describe('Degree Model Tests', () => {
     // delete()
     test(`#${testId++} should be able to delete data from instantiated object`, async () => {
         
-        const id = '1';
-        const deletedObj = dummyData.find((element) => element.id == id);
+        const id = 'SMK/SMA';
+        const deletedObj = dummyData.find((element) => element.name == id);
         const obj = classObj.constructFromObject(deletedObj);
         const deleteResult = await obj.delete();
         const allData = await classObj.all();
@@ -183,8 +177,8 @@ describe('Degree Model Tests', () => {
     // save()
     test(`#${testId++} should be able to save data from instantiated object`, async () => {
         
-        const id = '1';
-        let savedObj = dummyData.find((element) => element.id == id);
+        const id = 'SMK/SMA';
+        let savedObj = dummyData.find((element) => element.name == id);
         savedObj.name = 'Updated Saved Name';
         let obj = classObj.constructFromObject(savedObj);
         obj.setName(savedObj.name);

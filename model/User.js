@@ -23,6 +23,7 @@ class User extends Model {
     #emailVerificationCode;
     #status;
     #workExpList;
+    #skillList;
 
     constructor(nim = '', name = '', email = '', password = '', birthDate = '', classYear = '', photo = '', phoneNumber = '', gender = 0, studyProgram = 0, status = 0, religion = null){
         super("nim");
@@ -70,6 +71,9 @@ class User extends Model {
     }
     setReligion(newReligion){
         this.#religion = newReligion;
+    }
+    setSkillList(skillList){
+        this.#skillList = skillList;
     }
 
     savePhoto(userPhoto){
@@ -160,27 +164,34 @@ class User extends Model {
         }
     }
     async getSkills(){
-        let query = `MATCH (u:User {nim: '${this.#nim}'})-[:SKILLED_IN]->(s:Skill) RETURN s`;
-        try{
-            let resultUserSkills = await DB.query(query);
-            let listSkill = [];
-            if(resultUserSkills.records.length > 0){
-                resultUserSkills.records.forEach((item) => {
-                    let propSkill = item.get('s').properties;
-                    let skill = new Skill(propSkill.id, propSkill.name, propSkill.uri);
-                    if(listSkill.length === 0){
-                        listSkill.push(skill);
-                    } else {
-                        let validateItem = listSkill.some(sk => sk.getId() === skill.getId());
-                        if(!validateItem) listSkill.push(skill);
-                    }
-                });
+        if(this.#skillList === undefined){
+
+            let query = `MATCH (u:User {nim: '${this.#nim}'})-[:SKILLED_IN]->(s:Skill) RETURN s`;
+            try{
+                let resultUserSkills = await DB.query(query);
+                let listSkill = [];
+                if(resultUserSkills.records.length > 0){
+                    resultUserSkills.records.forEach((item) => {
+                        let propSkill = item.get('s').properties;
+                        let skill = new Skill(propSkill.id, propSkill.name, propSkill.uri);
+                        if(listSkill.length === 0){
+                            listSkill.push(skill);
+                        } else {
+                            let validateItem = listSkill.some(sk => sk.getId() === skill.getId());
+                            if(!validateItem) listSkill.push(skill);
+                        }
+                    });
+                }
+                this.setSkillList(listSkill);
+                return listSkill;
+            }catch(e){
+                console.log(e);
+                throw e;
             }
-            return listSkill;
-        }catch(e){
-            console.log(e);
-            throw e;
+        }else{
+            return this.#skillList;
         }
+
     }
     toObject(){
         if(typeof this.#gender !== 'object' || typeof this.#studyProgram !== 'object'){

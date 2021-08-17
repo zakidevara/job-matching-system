@@ -39,7 +39,7 @@ describe('Skill Model Tests', () => {
             if(clearStatus){
                 let promiseArr = [];
                 for(const data of dummyData){
-                    promiseArr.push(await DB.query(`CREATE (sk:Skill {id: '${data.id}', name: '${data.name}', uri: '${data.uri}'})`));
+                    promiseArr.push(await DB.query(`CREATE (sk:Skill:Test {id: '${data.id}', name: '${data.name}', uri: '${data.uri}'})`));
                 }
                 await Promise.all(promiseArr);
             }
@@ -51,7 +51,7 @@ describe('Skill Model Tests', () => {
 
     const clearSkillDatabase = async () => {
         try {
-            await DB.query("MATCH (sk:Skill) DETACH DELETE sk");
+            await DB.query("MATCH (sk:Skill:Test) DETACH DELETE sk");
             return true;
         } catch (error) {
             return false;

@@ -62,6 +62,12 @@ class Job extends Model {
     getRequirements(){
         return this.#requirements;
     }
+    setId(id){
+        this.#jobID = id;
+    }
+    setTitle(title){
+        this.#title = title;
+    }
     setRequirements(newReq){
         this.#requirements = newReq;
     }

@@ -8,18 +8,19 @@ class JobStudentMatcher {
         if(userSkills.length < 1) return 0;
         let jobRequirements = job.getRequirements();
         let jobRequiredSkills = jobRequirements.getSkills();
-        for(let i=0; i < userSkills.length; i++){
+        for(let i=0; i < jobRequiredSkills.length; i++){
             let maxSkillSimilarity = 0;
             let currSkillSimilarity = 0;
-            for(let j=0; j < jobRequiredSkills.length; j++){
-                currSkillSimilarity = await userSkills[i].calculateSimilarity(jobRequiredSkills[j]);
+            for(let j=0; j < userSkills.length; j++){
+                currSkillSimilarity = await jobRequiredSkills[i].calculateSimilarity(userSkills[j]);
+                // console.log(`Similarity between <${userSkills[j].getName()}> and <${jobRequiredSkills[i].getName()}> :`, currSkillSimilarity)
                 if(currSkillSimilarity > maxSkillSimilarity){
                     maxSkillSimilarity = currSkillSimilarity;
                 }
             }
             resultMatcher += maxSkillSimilarity;
         }
-        resultMatcher /= userSkills.length;
+        resultMatcher = resultMatcher/jobRequiredSkills.length;
         return resultMatcher;
     }
 }
