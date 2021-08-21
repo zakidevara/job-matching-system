@@ -53,6 +53,7 @@ class Skill extends Model {
         if(this.#taxonomyFeatures=== undefined){
             let features = await this.getParentNodes();
             this.setTaxonomyFeatures(features);
+            return this.#taxonomyFeatures;
         }else{
             return this.#taxonomyFeatures;
         }
